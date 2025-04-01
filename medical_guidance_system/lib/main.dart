@@ -1,23 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:go_router/go_router.dart';
 import 'views/home_screen.dart';
+import 'views/health_dashboard.dart';
+import 'views/workout_planner.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+void main() {
   runApp(const MyApp());
 }
+
+final GoRouter _router = GoRouter(
+  routes: [
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/dashboard',
+      builder: (context, state) => const HealthDashboard(),
+    ),
+    GoRoute(
+      path: '/workout',
+      builder: (context, state) => const WorkoutPlanner(),
+    ),
+  ],
+);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'AI Medical Guidance',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(),
+      routerConfig: _router, // Use GoRouter
     );
   }
 }
