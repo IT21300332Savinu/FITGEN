@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "374430418123",
+    "project_id": "crudapp-35a42",
+    "storage_bucket": "crudapp-35a42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374430418123:android:438cb108f3e7c2f3da874e",
+        "android_client_info": {
+          "package_name": "com.example.crud_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPteuQXgJZScp7neoYN6AAYr19V4czVWs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374430418123:android:3ab60007e48537ccda874e",
+        "android_client_info": {
+          "package_name": "com.example.medical_guidance_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPteuQXgJZScp7neoYN6AAYr19V4czVWs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
