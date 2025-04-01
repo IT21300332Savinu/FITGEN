@@ -47,12 +47,12 @@ Future<void> main() async {
     await Firebase.initializeApp();
   }
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+  /*
   @override
   Widget build(BuildContext context) {
     return Provider<FirebaseService>(
@@ -89,6 +89,66 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
+  }
+  */
+  @override
+  Widget build(BuildContext context) {
+    return Provider<FirebaseService>(
+      create: (_) => FirebaseService(),
+      child: MaterialApp(
+        title: 'FITGEN',
+        theme: ThemeData(
+          primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          brightness: Brightness.light,
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: createMaterialColor(
+              const Color(0xFFF97000),
+            ), // Orange
+            brightness: Brightness.light,
+            accentColor: const Color(0xFFF97000), // Orange accent
+          ),
+        ),
+        darkTheme: ThemeData(
+          primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          brightness: Brightness.dark,
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: createMaterialColor(
+              const Color(0xFFF97000),
+            ), // Orange
+            brightness: Brightness.dark,
+            accentColor: const Color(0xFFF97000), // Orange accent
+          ),
+        ),
+        themeMode: ThemeMode.system,
+        home: const AuthenticationWrapper(),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignupScreen(),
+          '/profile_setup': (context) => const ProfileSetupScreen(),
+          '/home': (context) => const HomeScreen(),
+        },
+      ),
+    );
+  }
+
+  // Add this helper function to create a MaterialColor from a single Color
+  MaterialColor createMaterialColor(Color color) {
+    List<double> strengths = <double>[.05, .1, .2, .3, .4, .5, .6, .7, .8, .9];
+    Map<int, Color> swatch = {};
+    final int r = color.red, g = color.green, b = color.blue;
+
+    for (var strength in strengths) {
+      final double ds = 0.5 - strength;
+      swatch[(strength * 1000).round()] = Color.fromRGBO(
+        r + ((ds < 0 ? r : (255 - r)) * ds).round(),
+        g + ((ds < 0 ? g : (255 - g)) * ds).round(),
+        b + ((ds < 0 ? b : (255 - b)) * ds).round(),
+        1,
+      );
+    }
+    return MaterialColor(color.value, swatch);
   }
 }
 

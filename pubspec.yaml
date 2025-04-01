@@ -20,9 +20,9 @@ dependencies:
   tflite_flutter: ^0.9.0
   image: ^4.0.17
   path_provider: ^2.0.15
-  flutter_blue: ^0.8.0
   provider: ^6.0.5
   intl: ^0.18.0
+  flutter_blue_plus: ^1.35.3
 
 dev_dependencies:
   flutter_test:
@@ -36,3 +36,9 @@ flutter:
   # Add this assets section
   assets:
     - assets/images/
+
+dependency_overrides:
+  tflite_flutter:
+    git:
+      url: https://github.com/tensorflow/flutter-tflite
+      ref: main
