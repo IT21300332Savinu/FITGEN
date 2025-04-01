@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Fetch User Health Data from Firestore
   Future<Map<String, dynamic>?> getUserHealthData(String userId) async {
     try {
       DocumentSnapshot doc =
@@ -17,6 +18,7 @@ class FirebaseService {
     }
   }
 
+  // Save User Health Data to Firestore
   Future<void> saveUserHealthData(
     String userId,
     Map<String, dynamic> healthData,
