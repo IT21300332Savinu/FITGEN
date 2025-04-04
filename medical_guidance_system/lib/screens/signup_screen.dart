@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
   _SignupScreenState createState() => _SignupScreenState();
 }
@@ -118,20 +120,20 @@ class _SignupScreenState extends State<SignupScreen> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: details.onStepCancel,
-                          child: Text('Cancel'),
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 12),
                           ),
+                          child: Text('Cancel'),
                         ),
                       )
                     else
                       Expanded(
                         child: OutlinedButton(
                           onPressed: details.onStepCancel,
-                          child: Text('Back'),
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 12),
                           ),
+                          child: Text('Back'),
                         ),
                       ),
                   ],
