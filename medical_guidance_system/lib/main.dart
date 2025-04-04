@@ -1,15 +1,19 @@
+// lib/main.dart (modification)
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'providers/health_provider.dart';
+import 'providers/mock_wearable_provider.dart'; // Add this
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/health_dashboard.dart';
 import 'screens/profile_screen.dart';
-import 'screens/health_dashboard.dart'; // Import the HealthDashboard screen
+import 'screens/exercise_guide.dart';
+import 'screens/workout_planner.dart';
+import 'screens/pain_detection.dart';
 import 'theme/app_theme.dart';
-import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +35,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthService())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => HealthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => MockWearableProvider(),
+        ), // Add this
+      ],
       child: Consumer<AuthService>(
         builder: (context, authService, _) {
           return MaterialApp(
@@ -41,34 +51,16 @@ class MyApp extends StatelessWidget {
             themeMode: ThemeMode.system,
             home:
                 authService.currentUser != null
-                    ? HomeScreen(
-                      title: 'Home',
-                      value: 42.toString(),
-                      unit: 'units',
-                      status: 'active',
-                      icon: Icons.home,
-                      progress: 0.75,
-                      color: Colors.blue,
-                    )
+                    ? HealthDashboard()
                     : LoginScreen(),
             routes: {
               '/login': (context) => LoginScreen(),
-
               '/signup': (context) => SignupScreen(),
-              '/home':
-                  (context) => HomeScreen(
-                    title: 'Home',
-                    value: 42.toString(),
-                    unit: 'units',
-                    status: 'active',
-                    icon: Icons.home,
-                    progress: 0.75,
-                    color: Colors.blue,
-                  ),
+              '/dashboard': (context) => HealthDashboard(),
               '/profile': (context) => ProfileScreen(),
-
-              '/dashboard':
-                  (context) => HealthDashboard(), // Correct route for dashboard
+              '/exercise_guide': (context) => ExerciseGuide(),
+              '/workout_planner': (context) => WorkoutPlanner(),
+              '/pain_detection': (context) => PainDetection(),
             },
           );
         },
