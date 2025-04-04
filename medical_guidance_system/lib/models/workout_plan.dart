@@ -1,23 +1,7 @@
 class WorkoutPlan {
-  final String userId;
-  final List<String> exercises;
-  final int breakTime;
+  // Add your properties here
+  final String name;
+  final String description;
 
-  WorkoutPlan({
-    required this.userId,
-    required this.exercises,
-    required this.breakTime,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {'userId': userId, 'exercises': exercises, 'breakTime': breakTime};
-  }
-
-  factory WorkoutPlan.fromJson(Map<String, dynamic> json) {
-    return WorkoutPlan(
-      userId: json['userId'],
-      exercises: List<String>.from(json['exercises']),
-      breakTime: json['breakTime'],
-    );
-  }
+  WorkoutPlan({required this.name, required this.description});
 }
