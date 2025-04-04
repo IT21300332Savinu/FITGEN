@@ -15,8 +15,7 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       surface: Colors.white,
-      background: Colors.grey[100]!,
-      onBackground: Colors.black87,
+      onSurface: Colors.black87,
     ),
     scaffoldBackgroundColor: Colors.grey[100],
     appBarTheme: AppBarTheme(
@@ -68,8 +67,7 @@ class AppTheme {
       primary: primaryColor,
       secondary: accentColor,
       surface: Color(0xFF1E1E1E),
-      background: Color(0xFF121212),
-      onBackground: Colors.white70,
+      onSurface: Colors.white70,
     ),
     scaffoldBackgroundColor: Color(0xFF121212),
     appBarTheme: AppBarTheme(
