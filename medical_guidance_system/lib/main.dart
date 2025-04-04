@@ -7,16 +7,27 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
-import 'models/user_model.dart';
+import 'screens/health_dashboard.dart'; // Import the HealthDashboard screen
 import 'theme/app_theme.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print('Firebase initialization error: $e');
+  }
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -29,12 +40,35 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeMode.system,
             home:
-                authService.currentUser != null ? HomeScreen() : LoginScreen(),
+                authService.currentUser != null
+                    ? HomeScreen(
+                      title: 'Home',
+                      value: 42.toString(),
+                      unit: 'units',
+                      status: 'active',
+                      icon: Icons.home,
+                      progress: 0.75,
+                      color: Colors.blue,
+                    )
+                    : LoginScreen(),
             routes: {
               '/login': (context) => LoginScreen(),
+
               '/signup': (context) => SignupScreen(),
-              '/home': (context) => HomeScreen(),
+              '/home':
+                  (context) => HomeScreen(
+                    title: 'Home',
+                    value: 42.toString(),
+                    unit: 'units',
+                    status: 'active',
+                    icon: Icons.home,
+                    progress: 0.75,
+                    color: Colors.blue,
+                  ),
               '/profile': (context) => ProfileScreen(),
+
+              '/dashboard':
+                  (context) => HealthDashboard(), // Correct route for dashboard
             },
           );
         },
