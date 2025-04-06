@@ -63,9 +63,13 @@
         messagingSenderId: "47999782996",
         appId: "1:47999782996:web:6e92b59c6139c9f03f5dc1",
         measurementId: "G-3ETVGV9BRT"
+        
       };
       // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Camera permissions are supported
+  }
     </script>
 </body>
 </html>

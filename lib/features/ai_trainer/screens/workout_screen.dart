@@ -1,10 +1,19 @@
+// file: lib/screens/workout_screen.dart
+
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
+import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import '../services/firebase_service.dart';
 import '../services/pose_analyzer_service.dart';
 import '../models/workout_session.dart';
+import '../widgets/pose_visualization.dart';
 
+// Improved WorkoutScreen class
 class WorkoutScreen extends StatefulWidget {
   final String exerciseName;
   final String workoutType;
@@ -19,78 +28,221 @@ class WorkoutScreen extends StatefulWidget {
   _WorkoutScreenState createState() => _WorkoutScreenState();
 }
 
-class _WorkoutScreenState extends State<WorkoutScreen> {
+class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserver {
+  // Platform check
+  final bool isWeb = false;
+  
   // Camera controller
   CameraController? _cameraController;
-  List<CameraDescription> cameras = [];
   bool _isCameraInitialized = false;
+  bool _isFrontFacing = true;
 
-  // Pose analyzer
+  // Pose detector
   late PoseAnalyzerService _poseAnalyzer;
+  bool _poseAnalyzerInitialized = false;
 
   // Workout state
-  final int _repCount = 0;
-  final double _formQuality = 0.0;
-  final List<String> _formIssues = [];
+  int _repCount = 0;
+  double _formQuality = 0.75;
+  List<String> _formIssues = ['Getting ready...'];
+  List<PoseLandmark>? _landmarks;
   DateTime _startTime = DateTime.now();
   bool _isWorkoutActive = false;
-
+  
   // Timer for workout duration
-  final int _durationSeconds = 0;
+  int _durationSeconds = 0;
+  Timer? _durationTimer;
+  
+  // Simulation timer for web demo
+  Timer? _simulationTimer;
 
   @override
   void initState() {
     super.initState();
-
+    WidgetsBinding.instance.addObserver(this);
+    
     // Initialize pose analyzer
-    _poseAnalyzer = PoseAnalyzerService();
     _initializePoseAnalyzer();
-
-    // Initialize camera
-    _initializeCamera();
-
-    // Start workout timer
-    _startWorkout();
+    
+    // Start workout duration timer
+    _startDurationTimer();
+    
+    // Initialize camera with a slight delay to ensure UI is ready
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _initializeCamera();
+    });
   }
-
-  Future<void> _initializePoseAnalyzer() async {
-    await _poseAnalyzer.initialize(widget.exerciseName);
-  }
-
-  Future<void> _initializeCamera() async {
-    try {
-      cameras = await availableCameras();
-      if (cameras.isNotEmpty) {
-        _cameraController = CameraController(
-          cameras[0],
-          ResolutionPreset.medium,
-          enableAudio: false,
-        );
-
-        await _cameraController!.initialize();
-
-        if (!mounted) return;
-
-        setState(() {
-          _isCameraInitialized = true;
-        });
-
-        // Start image stream for pose analysis
-        // _startImageStream();
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Handle app lifecycle to properly manage camera
+    if (state == AppLifecycleState.inactive) {
+      _cameraController?.stopImageStream();
+      _disposeCamera();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_cameraController != null) {
+        _initializeCamera();
       }
-    } catch (e) {
-      print('Error initializing camera: $e');
     }
   }
 
-  void _startWorkout() {
-    setState(() {
-      _isWorkoutActive = true;
-      _startTime = DateTime.now();
+  void _startDurationTimer() {
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_isWorkoutActive && mounted) {
+        setState(() {
+          _durationSeconds++;
+        });
+      }
     });
+  }
 
-    // Start timer
-    // In a real app, you would use a Timer to update _durationSeconds
+  Future<void> _initializePoseAnalyzer() async {
+    try {
+      _poseAnalyzer = PoseAnalyzerService();
+      await _poseAnalyzer.initialize(widget.exerciseName);
+      setState(() {
+        _poseAnalyzerInitialized = true;
+      });
+      
+      if (isWeb) {
+        _setupWebSimulation();
+      }
+    } catch (e) {
+      print('Error initializing pose analyzer: $e');
+    }
+  }
+
+   Future<void> _initializeCamera() async {
+    try {
+      // Get available cameras
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        print('No cameras available');
+        setState(() {
+          _isCameraInitialized = true; // Set to true so UI shows demo mode
+        });
+        return;
+      }
+      
+      // Use front camera if available
+      final frontCameras = cameras.where(
+        (camera) => camera.lensDirection == CameraLensDirection.front
+      ).toList();
+      
+      final camera = frontCameras.isNotEmpty ? frontCameras.first : cameras.first;
+      _isFrontFacing = camera.lensDirection == CameraLensDirection.front;
+      
+      // Initialize camera controller
+      _cameraController = CameraController(
+        camera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.yuv420,
+      );
+      
+      await _cameraController!.initialize();
+      
+      if (!mounted) return;
+      
+      // Start image stream for pose detection
+      await _cameraController!.startImageStream(_processImage);
+      
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    } catch (e) {
+      print('Error initializing camera: $e');
+      // Show a more detailed error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Camera error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+        )
+      );
+      
+      setState(() {
+        _isCameraInitialized = true; // Still set to true to show fallback UI
+      });
+    }
+  }
+  
+  // Process camera image for pose detection
+  void _processImage(CameraImage image) async {
+    if (!_isWorkoutActive || !_poseAnalyzerInitialized) return;
+    
+    try {
+      final result = await _poseAnalyzer.processFrame(
+        image, 
+        _cameraController!.description
+      );
+      
+      if (result != null && mounted) {
+        setState(() {
+          _repCount = result.repCount;
+          _formQuality = result.formQuality;
+          _formIssues = result.formIssues;
+          _landmarks = result.landmarks;
+        });
+      }
+    } catch (e) {
+      print('Error processing image: $e');
+    }
+  }
+  
+  void _setupWebSimulation() {
+    // For web demo, create simulated data
+    _simulationTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (!_isWorkoutActive || !mounted) return;
+      
+      // Create simulated movements based on exercise type
+      final isSquat = widget.exerciseName.toLowerCase() == 'squat';
+      
+      // Cycle through different exercise positions
+      final cyclePosition = (_durationSeconds % 4) / 4; // 0 to 1 over 4 seconds
+      
+      // Simulate realistic movement pattern (down then up)
+      final position = cyclePosition < 0.5 
+          ? cyclePosition * 2 // 0 to 1 (going down)
+          : (1 - (cyclePosition - 0.5) * 2); // 1 to 0 (going up)
+      
+      // Add a repetition at the top of the movement
+      if (cyclePosition > 0.9 && cyclePosition < 0.95) {
+        setState(() {
+          _repCount = (_durationSeconds / 4).floor();
+        });
+      }
+      
+      // Adjust form quality every few seconds
+      if (_durationSeconds % 10 == 0) {
+        setState(() {
+          _formQuality = 0.7 + (math.Random().nextDouble() * 0.3);
+        });
+      }
+      
+      // Add occasional form issues
+      if (_durationSeconds % 15 == 0) {
+        setState(() {
+          if (isSquat) {
+            _formIssues = ['Keep your knees aligned with your toes'];
+          } else {
+            _formIssues = ['Keep your core engaged throughout the movement'];
+          }
+        });
+      } else if (_durationSeconds % 12 == 0) {
+        setState(() {
+          if (isSquat) {
+            _formIssues = ['Lower your hips more for full depth'];
+          } else {
+            _formIssues = ['Lower your chest closer to the ground'];
+          }
+        });
+      } else if (_durationSeconds % 7 == 0) {
+        setState(() {
+          _formIssues = ['Good form! Keep it up.'];
+        });
+      }
+    });
   }
 
   Future<void> _endWorkout() async {
@@ -99,11 +251,19 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     setState(() {
       _isWorkoutActive = false;
     });
+    
+    if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+      await _cameraController!.stopImageStream();
+    }
+    
+    // Dispose timers
+    _durationTimer?.cancel();
+    _simulationTimer?.cancel();
 
     try {
       final firebaseService = Provider.of<FirebaseService>(
-        context,
-        listen: false,
+        context, 
+        listen: false
       );
 
       // Create workout session
@@ -121,35 +281,52 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ),
         ],
         caloriesBurned: _calculateCaloriesBurned(),
-        averageHeartRate: 120, // Placeholder - would come from wearable
+        averageHeartRate: 125, // Placeholder - would come from wearable
         averageFormScore: _formQuality * 100,
       );
 
       // Save to Firebase
       await firebaseService.saveWorkoutSession(session);
 
-      // Navigate back to home screen
-      Navigator.pop(context, {'completed': true, 'repCount': _repCount});
+      // Navigate back with completion data
+      Navigator.pop(context, {
+        'completed': true, 
+        'repCount': _repCount, 
+        'duration': _durationSeconds,
+        'formScore': _formQuality * 100
+      });
     } catch (e) {
       print('Error saving workout: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error saving workout: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving workout: ${e.toString().substring(0, math.min(e.toString().length, 100))}')
+        )
+      );
+      Navigator.pop(context, {'completed': false});
     }
   }
 
   int _calculateCaloriesBurned() {
     // Simple estimation based on exercise type and duration
-    double mets = 4.0; // Metabolic equivalent for moderate exercise
+    double mets = widget.workoutType.toLowerCase() == 'cardio' ? 6.0 : 4.5;
     int weightKg = 70; // Default weight - would come from user profile
-    int durationHours = (_durationSeconds / 3600).toInt();
+    double durationHours = _durationSeconds / 3600;
 
     return (mets * weightKg * durationHours * 3.5).round();
+  }
+  
+  void _disposeCamera() {
+    _cameraController?.dispose();
+    _cameraController = null;
   }
 
   @override
   void dispose() {
-    _cameraController?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _durationTimer?.cancel();
+    _simulationTimer?.cancel();
+    _disposeCamera();
+    _poseAnalyzer.dispose();
     super.dispose();
   }
 
@@ -159,11 +336,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       appBar: AppBar(
         title: Text(widget.exerciseName),
         backgroundColor: Colors.black,
+        elevation: 0,
       ),
-      body:
-          _isCameraInitialized
-              ? _buildWorkoutBody()
-              : const Center(child: CircularProgressIndicator()),
+      body: _isCameraInitialized
+          ? _buildWorkoutBody()
+          : const Center(child: CircularProgressIndicator()),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _endWorkout,
         icon: const Icon(Icons.stop),
@@ -178,108 +355,262 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       color: Colors.black,
       child: Column(
         children: [
-          // Camera preview
+          // Camera preview with pose overlay
           Expanded(
             flex: 3,
-            child: Center(child: CameraPreview(_cameraController!)),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Camera preview or demo placeholder
+                if (isWeb || _cameraController == null)
+                  _buildPlaceholderPreview()
+                else
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CameraPreview(_cameraController!),
+                  ),
+                
+                // Pose visualization overlay
+                if (_landmarks != null && _landmarks!.isNotEmpty)
+                  PoseVisualization(
+                    landmarks: _landmarks,
+                    screenSize: MediaQuery.of(context).size,
+                    cameraSize: isWeb || _cameraController == null
+                        ? Size(MediaQuery.of(context).size.width, 
+                               MediaQuery.of(context).size.width * 0.75)
+                        : Size(
+                            _cameraController!.value.previewSize!.height,
+                            _cameraController!.value.previewSize!.width,
+                          ),
+                    isFrontFacing: _isFrontFacing,
+                  ),
+                
+                // Rep counter overlay
+                Positioned(
+                  top: 20,
+                  right: 20,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Reps: $_repCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                
+                // Duration timer overlay
+                Positioned(
+                  top: 20,
+                  left: 20,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _formatDuration(_durationSeconds),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          // Stats panel
+          // Stats and feedback panel
           Expanded(
             flex: 2,
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Rep counter
+                  // Exercise name and type
+                  Text(
+                    '${widget.exerciseName} (${widget.workoutType})',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Stats summary
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const Text(
-                        'Repetitions',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      _buildStatBox(
+                        icon: Icons.fitness_center,
+                        value: '$_repCount',
+                        label: 'Repetitions',
+                        color: Theme.of(context).primaryColor,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '$_repCount',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                      _buildStatBox(
+                        icon: Icons.timer,
+                        value: _formatDuration(_durationSeconds),
+                        label: 'Duration',
+                      ),
+                      _buildStatBox(
+                        icon: Icons.local_fire_department,
+                        value: '${_calculateCaloriesBurned()}',
+                        label: 'Calories',
+                        color: Colors.orange,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                  // Form quality
+                  // Form quality indicator
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Form Quality',
+                        'Form Quality:',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      _buildFormQualityIndicator(),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildFormQualityIndicator(),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // Form feedback
-                  _formIssues.isNotEmpty
-                      ? Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Form Tips:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(_formIssues.first),
-                          ],
-                        ),
-                      )
-                      : Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green),
-                        ),
-                        child: Text(
-                          'Great form! Keep it up!',
-                          style: TextStyle(color: Colors.green.shade800),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
+                            ? Colors.amber.shade50
+                            : Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
+                              ? Colors.amber
+                              : Colors.green,
                         ),
                       ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
+                                ? 'Form Feedback:'
+                                : 'Great Job!',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
+                                  ? Colors.amber.shade800
+                                  : Colors.green.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _formIssues.isNotEmpty
+                                ? _formIssues.first
+                                : 'Excellent form! Keep up the great work!',
+                            style: TextStyle(
+                              color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
+                                  ? Colors.amber.shade800
+                                  : Colors.green.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+ Widget _buildPlaceholderPreview() {
+  return Container(
+    color: Colors.grey[900],
+    child: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            widget.exerciseName.toLowerCase() == 'squat'
+                ? Icons.accessibility_new // Use this for squat exercise
+                : Icons.fitness_center,    // Use this for other exercises
+            size: 64,
+            color: Colors.white70,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Pose analysis active',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isWeb
+                ? 'Web demo mode (camera not available)'
+                : 'Camera initializing...',
+            style: TextStyle(color: Colors.white70),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+  Widget _buildStatBox({
+    required IconData icon,
+    required String value,
+    required String label,
+    Color color = Colors.blue,
+  }) {
+    return Container(
+      width: 110,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
             ),
           ),
         ],
@@ -291,14 +622,13 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     Color color;
     if (_formQuality >= 0.8) {
       color = Colors.green;
-    } else if (_formQuality >= 0.5) {
-      color = Colors.orange;
+    } else if (_formQuality >= 0.6) {
+      color = Colors.amber;
     } else {
       color = Colors.red;
     }
 
     return Container(
-      width: 150,
       height: 20,
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
@@ -328,5 +658,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         ],
       ),
     );
+  }
+  
+  String _formatDuration(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

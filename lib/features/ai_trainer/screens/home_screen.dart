@@ -7,6 +7,9 @@ import '../services/firebase_service.dart';
 import '../models/user_profile.dart';
 import '../models/workout_session.dart';
 import '../models/achievement.dart';
+import 'workout_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:fitgen/features/ai_trainer/screens/workout_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -487,80 +490,192 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showWorkoutOptionsDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Start a Workout'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildWorkoutOption(
-                  title: 'Strength Training',
-                  icon: Icons.fitness_center,
-                  color: Colors.blue,
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to strength workout screen
-                  },
-                ),
-                _buildWorkoutOption(
-                  title: 'Cardio',
-                  icon: Icons.directions_run,
-                  color: Colors.red,
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to cardio workout screen
-                  },
-                ),
-                _buildWorkoutOption(
-                  title: 'Flexibility',
-                  icon: Icons.self_improvement,
-                  color: Colors.purple,
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to flexibility workout screen
-                  },
-                ),
-                _buildWorkoutOption(
-                  title: 'Custom Workout',
-                  icon: Icons.add_circle_outline,
-                  color: Colors.green,
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to custom workout setup screen
-                  },
-                ),
-              ],
-            ),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Start a Workout'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildWorkoutOption(
+                title: 'Strength Training',
+                icon: Icons.fitness_center,
+                color: Colors.blue,
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToExerciseSelection('strength');
+                },
+              ),
+              _buildWorkoutOption(
+                title: 'Cardio',
+                icon: Icons.directions_run,
+                color: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToExerciseSelection('cardio');
+                },
+              ),
+              _buildWorkoutOption(
+                title: 'Flexibility',
+                icon: Icons.self_improvement,
+                color: Colors.purple,
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToExerciseSelection('flexibility');
+                },
+              ),
+              _buildWorkoutOption(
+                title: 'Custom Workout',
+                icon: Icons.add_circle_outline,
+                color: Colors.green,
+                onTap: () {
+                  Navigator.pop(context);
+                  _navigateToCustomWorkout();
+                },
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
-  Widget _buildWorkoutOption({
-    required String title,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
-        child: Icon(icon, color: color),
+// Helper method for building workout options in the dialog
+Widget _buildWorkoutOption({
+  required String title,
+  required IconData icon,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return ListTile(
+    leading: CircleAvatar(
+      backgroundColor: color.withOpacity(0.2),
+      child: Icon(icon, color: color),
+    ),
+    title: Text(title),
+    onTap: onTap,
+  );
+}
+
+// Methods for handling navigation after workout type selection
+void _navigateToExerciseSelection(String workoutType) {
+  // Show a simplified exercise selection dialog
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // Define exercises based on workout type
+      List<Map<String, String>> exercises = [];
+      
+      if (workoutType == 'strength') {
+        exercises = [
+          {'name': 'Squat', 'description': 'Lower body strength exercise'},
+          {'name': 'Pushup', 'description': 'Upper body strength exercise'},
+          {'name': 'Plank', 'description': 'Core stability exercise'},
+        ];
+      } else if (workoutType == 'cardio') {
+        exercises = [
+          {'name': 'Jumping Jacks', 'description': 'Full body cardio exercise'},
+          {'name': 'High Knees', 'description': 'Leg cardio exercise'},
+        ];
+      } else if (workoutType == 'flexibility') {
+        exercises = [
+          {'name': 'Forward Bend', 'description': 'Hamstring stretch'},
+          {'name': 'Child\'s Pose', 'description': 'Lower back stretch'},
+        ];
+      }
+      
+      return AlertDialog(
+        title: Text('Select ${_capitalizeFirstLetter(workoutType)} Exercise'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: exercises.map((exercise) => 
+              ListTile(
+                title: Text(exercise['name']!),
+                subtitle: Text(exercise['description']!),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startExercise(exercise['name']!, workoutType);
+                },
+              )
+            ).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _navigateToCustomWorkout() {
+  // For now, show a message that this feature is coming soon
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Custom workout feature coming soon!'),
+      duration: Duration(seconds: 2),
+    ),
+  );
+}
+
+void _startExercise(String exerciseName, String workoutType) {
+  try {
+    // Navigate to workout screen with proper exercise parameters
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorkoutScreen(
+          exerciseName: exerciseName,
+          workoutType: workoutType,
+        ),
       ),
-      title: Text(title),
-      onTap: onTap,
+    ).then((result) {
+      // Handle result when returning from workout screen
+      if (result != null && result is Map<String, dynamic>) {
+        if (result['completed'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Great job! You completed ${result['repCount']} reps.',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Refresh data after workout
+          _loadUserData();
+        }
+      }
+    });
+  } catch (e) {
+    print('Error navigating to workout screen: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error starting workout: $e'),
+        backgroundColor: Colors.red,
+      ),
     );
   }
+}
+
+String _capitalizeFirstLetter(String text) {
+  if (text.isEmpty) return text;
+  return text[0].toUpperCase() + text.substring(1);
+}
 }
