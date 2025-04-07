@@ -8,6 +8,8 @@ import '../services/auth_service.dart';
 import '../providers/mock_wearable_provider.dart';
 
 class WorkoutPlanner extends StatefulWidget {
+  const WorkoutPlanner({super.key});
+
   @override
   _WorkoutPlannerState createState() => _WorkoutPlannerState();
 }
@@ -809,8 +811,7 @@ class _WorkoutPlannerState extends State<WorkoutPlanner> {
 class WorkoutDetailScreen extends StatelessWidget {
   final Map<String, dynamic> workout;
 
-  const WorkoutDetailScreen({Key? key, required this.workout})
-    : super(key: key);
+  const WorkoutDetailScreen({super.key, required this.workout});
 
   @override
   Widget build(BuildContext context) {
