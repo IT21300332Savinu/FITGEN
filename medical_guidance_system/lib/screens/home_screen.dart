@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   final Color color;
 
   const HomeScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.unit,
@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
     required this.icon,
     required this.progress,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
