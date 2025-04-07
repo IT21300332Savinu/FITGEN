@@ -71,12 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo and Title
-                  Image.asset(
-                    'assets/logo.png', // Add your logo to assets folder
-                    height: 120,
-                    width: 120,
-                  ),
                   SizedBox(height: 16),
                   Text(
                     'Medical Guidance',
