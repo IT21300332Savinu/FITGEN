@@ -10,6 +10,8 @@ import '../widgets/medical_alert_widget.dart';
 import '../widgets/wearable_control_panel.dart';
 
 class HealthDashboard extends StatefulWidget {
+  const HealthDashboard({super.key});
+
   @override
   _HealthDashboardState createState() => _HealthDashboardState();
 }
