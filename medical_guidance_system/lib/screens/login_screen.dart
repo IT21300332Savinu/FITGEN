@@ -72,10 +72,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Logo and Title
-                  Icon(
-                    Icons.favorite,
-                    size: 80,
-                    color: Theme.of(context).primaryColor,
+                  Image.asset(
+                    'assets/logo.png', // Add your logo to assets folder
+                    height: 120,
+                    width: 120,
                   ),
                   SizedBox(height: 16),
                   Text(
@@ -100,12 +100,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.red[100],
+                        color: Colors.orange[100],
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: TextStyle(color: Colors.red[800]),
+                        style: TextStyle(color: Colors.orange[800]),
                       ),
                     ),
                     SizedBox(height: 16),
@@ -154,7 +154,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Navigate to forgot password screen
                       },
-                      child: Text('Forgot Password?'),
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Theme.of(context).primaryColor),
+                      ),
                     ),
                   ),
                   SizedBox(height: 24),
@@ -176,7 +179,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.pushNamed(context, '/signup');
                         },
-                        child: Text('Sign Up'),
+                        child: Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
                       ),
                     ],
                   ),
