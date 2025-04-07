@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../providers/mock_wearable_provider.dart';
 
 class HealthRecommendationWidget extends StatelessWidget {
+  const HealthRecommendationWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     final mockWearableProvider = Provider.of<MockWearableProvider>(context);
