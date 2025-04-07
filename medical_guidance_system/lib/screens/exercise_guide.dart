@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../providers/mock_wearable_provider.dart';
 
 class ExerciseGuide extends StatelessWidget {
+  const ExerciseGuide({super.key});
+
   @override
   Widget build(BuildContext context) {
     final mockWearableProvider = Provider.of<MockWearableProvider>(context);
@@ -203,9 +205,7 @@ class ExerciseGuide extends StatelessWidget {
             SizedBox(height: 16),
 
             // Exercise list
-            ...exercises
-                .map((exercise) => buildExerciseCard(exercise))
-                .toList(),
+            ...exercises.map((exercise) => buildExerciseCard(exercise)),
 
             SizedBox(height: 24),
 
