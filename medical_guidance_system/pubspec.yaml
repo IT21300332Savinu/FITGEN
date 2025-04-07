@@ -38,6 +38,7 @@ dependencies:
   go_router: ^12.1.1  # Add this dependency
   flutter_animate: ^4.0.0
   google_fonts: ^6.1.0  # Keep only one!
+  image_picker: ^0.8.7+5  # Use the latest version available
 
 
 
