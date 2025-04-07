@@ -1,3 +1,5 @@
+// app/build.gradle.kts
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,12 +7,12 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-// Use this method to apply external gradle file
-apply(from = arrayOf("${rootProject.projectDir}/mlkit_commons_fix.gradle"))
+// Apply the ML Kit commons fix
+apply(from = "${rootProject.projectDir}/mlkit_commons_fix.gradle")
 
 android {
     namespace = "com.example.fitgen"
-    compileSdk = 34 // Or your specific Flutter compileSdkVersion
+    compileSdk = 35
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -31,16 +33,43 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("debug")
         }
+        debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+
+     // Updated variant configuration
+    applicationVariants.all { 
+    val variant = this
+    tasks.named("assemble${variant.name.capitalize()}").configure {
+        doLast {
+            copy {
+                from("${project.buildDir}/outputs/apk/${variant.name}/app-${variant.name}.apk")
+                into("${project.buildDir}/outputs/apk")
+            }
+        }
+    }
     }
 }
 
+
+
+
+
+
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Add your dependencies here if needed
 }

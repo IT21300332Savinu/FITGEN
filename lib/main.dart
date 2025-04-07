@@ -12,8 +12,21 @@ import 'features/ai_trainer/screens/profile_setup_screen.dart';
 import 'features/ai_trainer/services/firebase_service.dart';
 
 // Add the following imports to main.dart
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:camera/camera.dart';
+
+// // Add to your main.dart
+// void _checkCameraPermissions() async {
+//   if (kIsWeb) {
+//     // For web, we'll check at the time of camera initialization
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(
+//         content: Text('Please allow camera access when prompted'),
+//         duration: Duration(seconds: 3),
+//       ),
+//     );
+//   } else {
+//     // For mobile, check permissions here
+//   }
+//}
 
 // Then in the main() function:
 Future<void> main() async {
@@ -33,24 +46,14 @@ Future<void> main() async {
           measurementId: "G-3ETVGV9BRT",
         ),
       );
-      print('Firebase initialized for web successfully');
+      debugPrint('Firebase initialized for web successfully');
     } catch (e) {
-      print('Firebase initialization error: $e');
+      debugPrint('Firebase initialization error: $e');
     }
   } else {
     // Mobile Firebase initialization
     await Firebase.initializeApp();
-    print('Firebase initialized for mobile successfully');
-  }
-
-  // Initialize available cameras if on mobile (we don't need this for web)
-  if (!kIsWeb) {
-    try {
-      await availableCameras();
-      print('Camera initialization successful');
-    } catch (e) {
-      print('Camera initialization error: $e');
-    }
+    debugPrint('Firebase initialized for mobile successfully');
   }
 
   runApp(const MyApp());

@@ -1,7 +1,4 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
 class PoseVisualization extends StatelessWidget {
@@ -53,7 +50,7 @@ class PosePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Define paint styles
     final jointPaint = Paint()
-      ..color = Colors.green.withOpacity(0.8)
+      ..color = Colors.green.withAlpha(200)
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;
     
@@ -99,10 +96,10 @@ class PosePainter extends CustomPainter {
       
       if (startLandmark != null && endLandmark != null) {
         // Transform coordinates to screen space
-        final startX = _transformX(startLandmark.x, size.width);
-        final startY = _transformY(startLandmark.y, size.height);
-        final endX = _transformX(endLandmark.x, size.width);
-        final endY = _transformY(endLandmark.y, size.height);
+        final startX = transformX(startLandmark.x, size.width);
+        final startY = transformY(startLandmark.y, size.height);
+        final endX = transformX(endLandmark.x, size.width);
+        final endY = transformY(endLandmark.y, size.height);
         
         // Draw line between joints
         canvas.drawLine(
@@ -117,8 +114,8 @@ class PosePainter extends CustomPainter {
     for (final landmark in landmarks) {
       // Only draw if the landmark has reasonable confidence
       if (landmark.likelihood > 0.5) {
-        final x = _transformX(landmark.x, size.width);
-        final y = _transformY(landmark.y, size.height);
+        final x = transformX(landmark.x, size.width);
+        final y = transformY(landmark.y, size.height);
         
         canvas.drawCircle(
           Offset(x, y),
@@ -130,12 +127,12 @@ class PosePainter extends CustomPainter {
   }
   
   // Helper methods to transform coordinates correctly
-  double _transformX(double x, double width) {
+  double transformX(double x, double width) {
     // Handle mirroring for front-facing camera
     return isFrontFacing ? width - (x * width) : x * width;
   }
   
-  double _transformY(double y, double height) {
+  double transformY(double y, double height) {
     return y * height;
   }
   

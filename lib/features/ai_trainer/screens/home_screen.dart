@@ -8,8 +8,6 @@ import '../models/user_profile.dart';
 import '../models/workout_session.dart';
 import '../models/achievement.dart';
 import 'workout_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:fitgen/features/ai_trainer/screens/workout_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

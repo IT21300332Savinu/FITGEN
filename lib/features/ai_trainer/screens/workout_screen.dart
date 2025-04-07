@@ -1,9 +1,8 @@
-// file: lib/screens/workout_screen.dart
+// file: lib/features/ai_trainer/screens/workout_screen.dart
 
 import 'dart:async';
 import 'dart:math' as math;
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +12,6 @@ import '../services/pose_analyzer_service.dart';
 import '../models/workout_session.dart';
 import '../widgets/pose_visualization.dart';
 
-// Improved WorkoutScreen class
 class WorkoutScreen extends StatefulWidget {
   final String exerciseName;
   final String workoutType;
@@ -25,17 +23,17 @@ class WorkoutScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _WorkoutScreenState createState() => _WorkoutScreenState();
+  State<WorkoutScreen> createState() => WorkoutScreenState();
 }
 
-class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserver {
+class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserver {
   // Platform check
-  final bool isWeb = false;
+  final bool isWeb = kIsWeb;
   
   // Camera controller
   CameraController? _cameraController;
   bool _isCameraInitialized = false;
-  bool _isFrontFacing = true;
+  final bool _isFrontFacing = true;
 
   // Pose detector
   late PoseAnalyzerService _poseAnalyzer;
@@ -46,8 +44,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
   double _formQuality = 0.75;
   List<String> _formIssues = ['Getting ready...'];
   List<PoseLandmark>? _landmarks;
-  DateTime _startTime = DateTime.now();
-  bool _isWorkoutActive = false;
+  final DateTime _startTime = DateTime.now();
+  bool _isWorkoutActive = true;
   
   // Timer for workout duration
   int _durationSeconds = 0;
@@ -104,40 +102,42 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
         _poseAnalyzerInitialized = true;
       });
       
-      if (isWeb) {
+      if (kIsWeb) {
         _setupWebSimulation();
       }
     } catch (e) {
-      print('Error initializing pose analyzer: $e');
+      debugPrint('Error initializing pose analyzer: $e');
     }
   }
 
-   Future<void> _initializeCamera() async {
+  Future<void> _initializeCamera() async {
     try {
-      // Get available cameras
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        print('No cameras available');
+      if (kIsWeb) {
         setState(() {
-          _isCameraInitialized = true; // Set to true so UI shows demo mode
+          _isCameraInitialized = true;
         });
         return;
       }
       
-      // Use front camera if available
-      final frontCameras = cameras.where(
-        (camera) => camera.lensDirection == CameraLensDirection.front
-      ).toList();
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        debugPrint('No cameras available');
+        setState(() {
+          _isCameraInitialized = true;
+        });
+        return;
+      }
       
-      final camera = frontCameras.isNotEmpty ? frontCameras.first : cameras.first;
-      _isFrontFacing = camera.lensDirection == CameraLensDirection.front;
+      final frontCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
       
-      // Initialize camera controller
       _cameraController = CameraController(
-        camera,
+        frontCamera,
         ResolutionPreset.medium,
         enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.yuv420,
+        imageFormatGroup: ImageFormatGroup.jpeg,
       );
       
       await _cameraController!.initialize();
@@ -151,23 +151,42 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
         _isCameraInitialized = true;
       });
     } catch (e) {
-      print('Error initializing camera: $e');
-      // Show a more detailed error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Camera error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 5),
-        )
-      );
-      
-      setState(() {
-        _isCameraInitialized = true; // Still set to true to show fallback UI
-      });
+      debugPrint('Error initializing camera: $e');
+      if (mounted) {
+        setState(() {
+          _isCameraInitialized = true; // Show fallback UI
+        });
+      }
     }
   }
-  
-  // Process camera image for pose detection
+
+  void _processWebCameraImage(CameraImage image) {
+    if (!_isWorkoutActive || !_poseAnalyzerInitialized) return;
+    
+    try {
+      // For web, we'll need special handling
+      // This is a simplified version for demonstration
+      setState(() {
+        // Update visualization based on timer instead of actual pose detection
+        if (_durationSeconds % 3 == 0) {
+          _repCount++;
+          _formQuality = 0.7 + (0.2 * math.Random().nextDouble());
+          
+          // Cycle through form issues for demo
+          if (_repCount % 4 == 0) {
+            _formIssues = ['Keep your back straight for proper form'];
+          } else if (_repCount % 3 == 0) {
+            _formIssues = ['Lower your body more for full range of motion'];
+          } else {
+            _formIssues = ['Good form! Keep it up.'];
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error processing web camera image: $e');
+    }
+  }
+
   void _processImage(CameraImage image) async {
     if (!_isWorkoutActive || !_poseAnalyzerInitialized) return;
     
@@ -186,7 +205,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
         });
       }
     } catch (e) {
-      print('Error processing image: $e');
+      debugPrint('Error processing image: $e');
     }
   }
   
@@ -288,6 +307,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
       // Save to Firebase
       await firebaseService.saveWorkoutSession(session);
 
+      if (!mounted) return;
+
       // Navigate back with completion data
       Navigator.pop(context, {
         'completed': true, 
@@ -296,13 +317,15 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
         'formScore': _formQuality * 100
       });
     } catch (e) {
-      print('Error saving workout: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving workout: ${e.toString().substring(0, math.min(e.toString().length, 100))}')
-        )
-      );
-      Navigator.pop(context, {'completed': false});
+      debugPrint('Error saving workout: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving workout: ${e.toString().substring(0, math.min(e.toString().length, 100))}')
+          )
+        );
+        Navigator.pop(context, {'completed': false});
+      }
     }
   }
 
@@ -358,75 +381,83 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
           // Camera preview with pose overlay
           Expanded(
             flex: 3,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Camera preview or demo placeholder
-                if (isWeb || _cameraController == null)
-                  _buildPlaceholderPreview()
-                else
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CameraPreview(_cameraController!),
-                  ),
-                
-                // Pose visualization overlay
-                if (_landmarks != null && _landmarks!.isNotEmpty)
-                  PoseVisualization(
-                    landmarks: _landmarks,
-                    screenSize: MediaQuery.of(context).size,
-                    cameraSize: isWeb || _cameraController == null
-                        ? Size(MediaQuery.of(context).size.width, 
-                               MediaQuery.of(context).size.width * 0.75)
-                        : Size(
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey[800]!, width: 2),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Camera preview
+                    AspectRatio(
+                      aspectRatio: _cameraController?.value.aspectRatio ?? 3/4,
+                      child: _isCameraInitialized && _cameraController != null
+                        ? CameraPreview(_cameraController!)
+                        : _buildPlaceholderPreview(),
+                    ),
+                    
+                    // Pose visualization overlay
+                    if (_landmarks != null && _landmarks!.isNotEmpty)
+                      PoseVisualization(
+                        landmarks: _landmarks,
+                        screenSize: MediaQuery.of(context).size,
+                        cameraSize: _cameraController?.value.previewSize != null
+                          ? Size(
                             _cameraController!.value.previewSize!.height,
                             _cameraController!.value.previewSize!.width,
+                          )
+                          : const Size(640, 480),
+                        isFrontFacing: _isFrontFacing,
+                      ),
+                          
+                    // Rep counter overlay
+                    Positioned(
+                      top: 20,
+                      right: 20,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(179), // 70% opacity
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Reps: $_repCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                    isFrontFacing: _isFrontFacing,
-                  ),
-                
-                // Rep counter overlay
-                Positioned(
-                  top: 20,
-                  right: 20,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Reps: $_repCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                
-                // Duration timer overlay
-                Positioned(
-                  top: 20,
-                  left: 20,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _formatDuration(_durationSeconds),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    
+                    // Duration timer overlay
+                    Positioned(
+                      top: 20,
+                      left: 20,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(179), // 70% opacity
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _formatDuration(_durationSeconds),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
 
@@ -548,37 +579,37 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
     );
   }
 
- Widget _buildPlaceholderPreview() {
-  return Container(
-    color: Colors.grey[900],
-    child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            widget.exerciseName.toLowerCase() == 'squat'
-                ? Icons.accessibility_new // Use this for squat exercise
-                : Icons.fitness_center,    // Use this for other exercises
-            size: 64,
-            color: Colors.white70,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Pose analysis active',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isWeb
-                ? 'Web demo mode (camera not available)'
-                : 'Camera initializing...',
-            style: TextStyle(color: Colors.white70),
-          ),
-        ],
+  Widget _buildPlaceholderPreview() {
+    return Container(
+      color: Colors.grey[900],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              widget.exerciseName.toLowerCase() == 'squat'
+                  ? Icons.accessibility_new // Use this for squat exercise
+                  : Icons.fitness_center,    // Use this for other exercises
+              size: 64,
+              color: Colors.white70,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Pose analysis active',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              kIsWeb
+                  ? 'Web demo mode (camera not available)'
+                  : 'Camera initializing...',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildStatBox({
     required IconData icon,
@@ -590,7 +621,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserv
       width: 110,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withAlpha(25), // 10% opacity
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
