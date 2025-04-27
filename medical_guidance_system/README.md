@@ -1,16 +1,5 @@
-# medical_guidance_system
+# AI Medical Guidance for Smart Gym
 
-A new Flutter project.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+AI Medical Guidance for Smart Gym
+Our AI Medical Guidance system transforms the gym experience for users with chronic health conditions. By intelligently monitoring vital signs through wearable devices and analyzing exercise patterns, it provides real-time, personalized workout recommendations tailored to specific medical conditions like diabetes, hypertension, and Chorinc kidney disease,hypercholestromia, fallyliver. The system detects potentially harmful movements during exercise, offers immediate feedback to prevent injuries, and creates customized recovery plans. With seamless integration of health monitoring and AI-driven recommendations, users can exercise safely and effectively while managing their health conditions.
