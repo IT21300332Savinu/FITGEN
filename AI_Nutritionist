@@ -1,0 +1,78 @@
+AI Nutritionist & Meal Planner
+
+This is a research-based Python project that functions as an AI-powered nutritionist and meal planning system. It uses machine learning models and NLP-based embeddings to predict personalized calorie needs and recommend meals for users based on their health conditions and dietary preferences.
+
+Designed to be integrated with mobile health and fitness platforms (e.g., Flutter + Firebase), this project supports data-driven decision-making in meal planning, especially for individuals with chronic diseases.
+
+---
+
+Problem Statement
+
+Modern diet and fitness apps often fail to consider **individual health conditions**, making meal suggestions that are unsuitable for people with diseases like diabetes, hypertension, or kidney problems.
+
+This system fills that gap by:
+- Predicting daily calorie intake using bio-data.
+- Recommending disease-aware, contextually relevant meals.
+- Enabling clinical diet planning with AI models trained on real nutrition data.
+
+---
+Key Features
+
+- AI-Based Calorie Prediction 
+  Uses a regression model to calculate the user's daily caloric need based on weight, height, age, gender, and physical activity.
+
+- Personalized Meal Suggestions  
+  Trained ML and NLP models generate meals tailored to user needs, using health conditions as input factors.
+
+- NLP-Based Meal Embeddings  
+  Sentence Transformers are used to vectorize meal descriptions and suggest contextually relevant options.
+
+- Expandable for Clinical Use
+  Data and models are structured for integration with telemedicine, hospital systems, and fitness apps.
+
+---
+
+Model Descriptions
+1. Calorie Prediction Model
+Type: Regression (e.g., Random Forest or Gradient Boosting)
+
+Input Features: Gender, Age, Height, Weight, Physical Activity
+
+Output: Predicted daily calorie intake
+
+2. Meal Suggestion Model
+Type: ML + NLP Embedding Model
+
+Uses Sentence-BERT to understand meal context
+
+Trained on a dataset mapping food items to disease categories
+
+
+Technologies Used
+Python 3.8+
+
+Scikit-learn
+
+Pandas / NumPy
+
+Jupyter Notebook
+
+Sentence Transformers (for semantic meal embeddings)
+
+Pickle (for model storage)
+
+Future Work
+- Integration with Flutter mobile app interface
+
+- Add clinical calendar + notification reminders
+
+- Support direct hospital/patient data syncing (Firebase)
+
+- Include budgeting logic for cost-effective meal planning
+
+
+Author
+Methsandi K. A. N. 
+Undergraduate Student – BSc (Hons) in Information Technology
+
+
