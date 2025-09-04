@@ -63,6 +63,32 @@ class FirebaseService {
     }
   }
 
+  static Future<bool> updateUserProfile(UserProfile profile) async {
+    try {
+      String? userId = getCurrentUserId();
+      if (userId == null) {
+        print('No user ID available for profile update');
+        return false;
+      }
+
+      print('Updating profile for user: $userId');
+
+      // Update the profile with the correct user ID
+      final updatedProfile = profile.copyWith(id: userId);
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .set(updatedProfile.toMap(), SetOptions(merge: true));
+
+      print('Profile updated successfully');
+      return true;
+    } catch (e) {
+      print('Error updating user profile: $e');
+      return false;
+    }
+  }
+
   static Future<UserProfile?> getUserProfile() async {
     try {
       String? userId = getCurrentUserId();
@@ -120,6 +146,7 @@ class FirebaseService {
     }
   }
 
+  /// Save detailed report data with OCR results
   static Future<bool> saveReportData(Map<String, dynamic> reportData) async {
     try {
       String? userId = getCurrentUserId();
@@ -130,13 +157,39 @@ class FirebaseService {
 
       print('Saving report data for user: $userId');
 
-      await _firestore
+      // Add user ID and timestamp
+      reportData['userId'] = userId;
+      reportData['createdAt'] = FieldValue.serverTimestamp();
+      reportData['updatedAt'] = FieldValue.serverTimestamp();
+
+      // Save to reports collection
+      DocumentReference docRef = await _firestore
           .collection('users')
           .doc(userId)
           .collection('reports')
           .add(reportData);
 
-      print('Report data saved successfully');
+      // If extractedValues exist, also save to separate health_parameters collection for easy querying
+      if (reportData['extractedValues'] != null &&
+          (reportData['extractedValues'] as Map).isNotEmpty) {
+        Map<String, dynamic> healthParams = Map<String, dynamic>.from(
+          reportData['extractedValues'],
+        );
+        healthParams['reportId'] = docRef.id;
+        healthParams['reportDate'] = reportData['uploadDate'];
+        healthParams['userId'] = userId;
+        healthParams['createdAt'] = FieldValue.serverTimestamp();
+
+        await _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('health_parameters')
+            .add(healthParams);
+
+        print('✅ Health parameters saved to separate collection');
+      }
+
+      print('Report data saved successfully with ID: ${docRef.id}');
       return true;
     } catch (e) {
       print('Error saving report data: $e');
@@ -144,6 +197,7 @@ class FirebaseService {
     }
   }
 
+  /// Get user reports with detailed OCR data
   static Future<List<Map<String, dynamic>>> getUserReports() async {
     try {
       String? userId = getCurrentUserId();
@@ -169,6 +223,62 @@ class FirebaseService {
       return reports;
     } catch (e) {
       print('Error fetching user reports: $e');
+      return [];
+    }
+  }
+
+  /// Get latest health parameters from OCR
+  static Future<Map<String, dynamic>?> getLatestHealthParameters() async {
+    try {
+      String? userId = getCurrentUserId();
+      if (userId == null) {
+        print('No user ID available for fetching health parameters');
+        return null;
+      }
+
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('health_parameters')
+          .orderBy('createdAt', descending: true)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs.first.data() as Map<String, dynamic>;
+      }
+
+      return null;
+    } catch (e) {
+      print('Error fetching health parameters: $e');
+      return null;
+    }
+  }
+
+  /// Get health parameter history
+  static Future<List<Map<String, dynamic>>> getHealthParameterHistory({
+    int limit = 10,
+  }) async {
+    try {
+      String? userId = getCurrentUserId();
+      if (userId == null) {
+        print('No user ID available for fetching health parameter history');
+        return [];
+      }
+
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('health_parameters')
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+          .toList();
+    } catch (e) {
+      print('Error fetching health parameter history: $e');
       return [];
     }
   }
