@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../models/user_profile.dart';
 import '../models/health_data.dart';
 import '../services/firebase_service.dart';
-import '../services/ocr_service.dart';
+import '../services/iot_data_service.dart';
 import 'workout_recommendations_screen.dart';
-import 'profile_creation_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -13,16 +14,89 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with TickerProviderStateMixin {
   UserProfile? _userProfile;
   List<Map<String, dynamic>> _reports = [];
   List<HealthData> _recentHealthData = [];
   bool _isLoading = true;
 
+  // Heart Rate Animation
+  late AnimationController _heartAnimationController;
+  late Animation<double> _heartAnimation;
+
+  // ECG Animation
+  late AnimationController _ecgAnimationController;
+  List<FlSpot> _ecgData = [];
+
+  // IoT Data
+  Map<String, dynamic>? _currentIoTData;
+  Map<String, dynamic> _deviceStatus = {};
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _initializeAnimations();
+    _loadIoTData();
+    _startECGAnimation();
+  }
+
+  void _initializeAnimations() {
+    _heartAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _heartAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(
+        parent: _heartAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _ecgAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+  }
+
+  void _startECGAnimation() {
+    _ecgAnimationController.addListener(() {
+      setState(() {
+        _updateECGData();
+      });
+    });
+
+    _ecgAnimationController.repeat();
+  }
+
+  void _updateECGData() {
+    if (_currentIoTData != null) {
+      double heartRate = (_currentIoTData!['BPM'] ?? 75).toDouble();
+      _ecgData = IoTDataService.generateSimulatedECGData(heartRate)
+          .map(
+            (point) =>
+                FlSpot(point['index'].toDouble(), point['voltage'] + 0.5),
+          )
+          .toList();
+    }
+  }
+
+  Future<void> _loadIoTData() async {
+    try {
+      _deviceStatus = await IoTDataService.getDeviceStatus();
+      setState(() {});
+    } catch (e) {
+      print('Error loading IoT data: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _heartAnimationController.dispose();
+    _ecgAnimationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -31,17 +105,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      // Load user profile
       _userProfile = await FirebaseService.getUserProfile();
-      print('Profile loaded: ${_userProfile != null}');
-
-      // Load user reports
       _reports = await FirebaseService.getUserReports();
-      print('Reports loaded: ${_reports.length}');
-
-      // Load recent health data
       _recentHealthData = await FirebaseService.getLatestHealthData(limit: 10);
-      print('Health data loaded: ${_recentHealthData.length}');
     } catch (e) {
       print('Error loading user data: $e');
     } finally {
@@ -49,6 +115,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  void _navigateToUpdateProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ProfileScreen(existingProfile: _userProfile, isUpdate: true),
+      ),
+    ).then((_) => _loadUserData()); // Refresh data when returning
+  }
+
+  void _navigateToWorkoutPlan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorkoutRecommendationsScreen(
+          userProfile: _userProfile,
+          latestReportData: _reports.isNotEmpty ? _reports.first : null,
+        ),
+      ),
+    );
   }
 
   Widget _buildWelcomeHeader() {
@@ -93,17 +181,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Welcome back!',
-                      style: TextStyle(
+                    Text(
+                      _userProfile != null
+                          ? 'Welcome back, ${_userProfile!.gender == 'Male' ? 'Mr.' : 'Ms.'} User!'
+                          : 'Welcome back!',
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       _userProfile != null
-                          ? 'Ready to achieve your ${_userProfile!.personalGoal.toLowerCase()} goal?'
+                          ? 'Monitoring your health with IoT technology'
                           : 'Your health journey continues...',
                       style: const TextStyle(
                         color: Colors.white70,
@@ -134,23 +224,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
-            'Health Data',
-            '${_recentHealthData.length}',
-            Icons.monitor_heart,
-            Colors.green,
+            'IoT Status',
+            _deviceStatus['isConnected'] == true ? 'Online' : 'Offline',
+            Icons.sensors,
+            _deviceStatus['isConnected'] == true ? Colors.green : Colors.red,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
-            'Age',
-            '${_userProfile?.age ?? 0}',
-            Icons.cake,
-            Colors.purple,
+            'BMI',
+            _userProfile != null ? _userProfile!.bmi.toStringAsFixed(1) : '0',
+            Icons.monitor_weight,
+            _getBMIColor(),
           ),
         ),
       ],
     );
+  }
+
+  Color _getBMIColor() {
+    if (_userProfile == null) return Colors.grey;
+    double bmi = _userProfile!.bmi;
+    if (bmi < 18.5) return Colors.blue;
+    if (bmi < 25) return Colors.green;
+    if (bmi < 30) return Colors.orange;
+    return Colors.red;
   }
 
   Widget _buildStatCard(
@@ -198,546 +297,437 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHealthMetricsCard() {
-    if (_reports.isEmpty) {
-      return Card(
+  Widget _buildIoTHeartRateCard() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [Colors.red[50]!, Colors.pink[50]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.upload_file, size: 48, color: Colors.grey[400]),
-              const SizedBox(height: 12),
-              const Text(
-                'No Medical Reports Yet',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Upload your medical reports to get AI-powered health insights',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Get latest report
-    Map<String, dynamic> latestReport = _reports.first;
-    Map<String, dynamic> extractedValues =
-        latestReport['extractedValues'] ?? {};
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.analytics, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  'Latest Report Metrics',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (extractedValues['hba1c'] != null)
-              _buildMetricRow(
-                'HbA1c',
-                '${extractedValues['hba1c'].toStringAsFixed(1)}%',
-                _getHbA1cStatus(extractedValues['hba1c']),
-                'Diabetes control indicator',
-              ),
-            if (extractedValues['glucose'] != null)
-              _buildMetricRow(
-                'Glucose',
-                '${extractedValues['glucose'].toStringAsFixed(0)} ${extractedValues['glucoseUnit'] ?? 'mg/dL'}',
-                _getGlucoseStatus(extractedValues['glucose']),
-                'Blood sugar level',
-              ),
-            if (extractedValues['systolicBP'] != null &&
-                extractedValues['diastolicBP'] != null)
-              _buildMetricRow(
-                'Blood Pressure',
-                '${extractedValues['systolicBP']}/${extractedValues['diastolicBP']} mmHg',
-                _getBPStatus(
-                  extractedValues['systolicBP'],
-                  extractedValues['diastolicBP'],
-                ),
-                'Cardiovascular health',
-              ),
-            if (extractedValues['cholesterol'] != null)
-              _buildMetricRow(
-                'Total Cholesterol',
-                '${extractedValues['cholesterol'].toStringAsFixed(0)} ${extractedValues['cholesterolUnit'] ?? 'mg/dL'}',
-                _getCholesterolStatus(extractedValues['cholesterol']),
-                'Heart health indicator',
-              ),
-            if (extractedValues['hdl'] != null)
-              _buildMetricRow(
-                'HDL Cholesterol',
-                '${extractedValues['hdl'].toStringAsFixed(0)} ${extractedValues['hdlUnit'] ?? 'mg/dL'}',
-                _getHDLStatus(extractedValues['hdl']),
-                'Good cholesterol',
-              ),
-            if (extractedValues['creatinine'] != null)
-              _buildMetricRow(
-                'Creatinine',
-                '${extractedValues['creatinine'].toStringAsFixed(1)} ${extractedValues['creatinineUnit'] ?? 'mg/dL'}',
-                _getCreatinineStatus(extractedValues['creatinine']),
-                'Kidney function',
-              ),
-            if (extractedValues.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  'Report processed but no specific health values were extracted. Please ensure your report contains numerical health data.',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetricRow(
-    String label,
-    String value,
-    Color statusColor,
-    String description,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 40,
-            decoration: BoxDecoration(
-              color: statusColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  description,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getHbA1cStatus(double hba1c) {
-    if (hba1c < 5.7) return Colors.green;
-    if (hba1c < 6.5) return Colors.orange;
-    return Colors.red;
-  }
-
-  Color _getGlucoseStatus(double glucose) {
-    if (glucose < 100) return Colors.green;
-    if (glucose < 126) return Colors.orange;
-    return Colors.red;
-  }
-
-  Color _getBPStatus(int systolic, int diastolic) {
-    if (systolic < 120 && diastolic < 80) return Colors.green;
-    if (systolic < 140 || diastolic < 90) return Colors.orange;
-    return Colors.red;
-  }
-
-  Color _getCholesterolStatus(double cholesterol) {
-    if (cholesterol < 200) return Colors.green;
-    if (cholesterol < 240) return Colors.orange;
-    return Colors.red;
-  }
-
-  Color _getHDLStatus(double hdl) {
-    if (hdl >= 40) return Colors.green;
-    return Colors.orange;
-  }
-
-  Color _getCreatinineStatus(double creatinine) {
-    if (creatinine <= 1.3) return Colors.green;
-    if (creatinine <= 2.0) return Colors.orange;
-    return Colors.red;
-  }
-
-  Widget _buildRealtimeHealthData() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.monitor_heart, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  'Real-time Health Data',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            StreamBuilder<List<HealthData>>(
-              stream: FirebaseService.getHealthDataStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Container(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.sensors_off,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'No Real-time Data',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Connect your health devices to see live data',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
+                    child: Icon(
+                      Icons.monitor_heart,
+                      color: Colors.red[600],
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'IoT Heart Rate Monitor',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: _deviceStatus['isConnected'] == true
+                          ? Colors.green
+                          : Colors.red,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              (_deviceStatus['isConnected'] == true
+                                      ? Colors.green
+                                      : Colors.red)
+                                  .withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 4,
                         ),
                       ],
                     ),
-                  );
-                }
-
-                HealthData latestData = snapshot.data!.first;
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.red[50]!, Colors.pink[50]!],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              Text(
+                _deviceStatus['isConnected'] == true
+                    ? 'Connected to FitgenMedical IoT'
+                    : 'Disconnected from IoT Device',
+                style: TextStyle(
+                  color: _deviceStatus['isConnected'] == true
+                      ? Colors.green[700]
+                      : Colors.red[700],
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              StreamBuilder<Map<String, dynamic>?>(
+                stream: IoTDataService.getRealtimeHeartRateStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingWidget();
+                  }
+
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return _buildNoDataWidget();
+                  }
+
+                  _currentIoTData = snapshot.data!;
+                  double currentBPM = (_currentIoTData!['BPM'] ?? 0).toDouble();
+
+                  if (currentBPM > 0 &&
+                      !_heartAnimationController.isAnimating) {
+                    _startHeartAnimation(currentBPM);
+                  }
+
+                  return Column(
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Heart Rate',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
+                          AnimatedBuilder(
+                            animation: _heartAnimation,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _heartAnimation.value,
+                                child: const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                  size: 50,
+                                ),
+                              );
+                            },
                           ),
-                          Row(
+                          const SizedBox(width: 20),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                '${latestData.heartRate.toInt()} BPM',
+                                '${currentBPM.toInt()}',
                                 style: const TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 48,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.red,
+                                ),
+                              ),
+                              const Text(
+                                'BPM',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 20),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'IBM: ${_currentIoTData!['IBM'] ?? 0}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Status: ${_getHeartRateStatus(currentBPM)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _getHeartRateStatusColor(currentBPM),
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Last Updated',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
+                      const SizedBox(height: 20),
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getHeartRateStatusColor(currentBPM),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _getHeartRateStatus(currentBPM),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
-                          Text(
-                            _formatDateTime(latestData.timestamp),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Source',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: latestData.source == 'esp32'
-                                  ? Colors.green[100]
-                                  : Colors.blue[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              latestData.source.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: latestData.source == 'esp32'
-                                    ? Colors.green[700]
-                                    : Colors.blue[700],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 24),
+
+                      _buildECGChart(currentBPM),
+                      const SizedBox(height: 20),
+
+                      _buildDataInfoRow(),
                     ],
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHealthInsights() {
-    if (_reports.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    Map<String, dynamic> latestReport = _reports.first;
-    Map<String, dynamic> extractedValues =
-        latestReport['extractedValues'] ?? {};
-
-    String insights = OCRService.getHealthInsight(
-      extractedValues,
-      _userProfile?.diabetes ?? false,
-      _userProfile?.hypertension ?? false,
-    );
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.lightbulb, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  'AI Health Insights',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
+                  );
+                },
               ),
-              child: Text(
-                insights.isNotEmpty
-                    ? insights
-                    : 'No specific insights available',
-                style: const TextStyle(fontSize: 14, height: 1.5),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPersonalInfo() {
-    if (_userProfile == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.person, color: Colors.orange[600]),
-                const SizedBox(width: 8),
-                const Text(
-                  'Personal Information',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildInfoRow('Age', '${_userProfile!.age} years', Icons.cake),
-            _buildInfoRow('Gender', _userProfile!.gender, Icons.wc),
-            _buildInfoRow('Goal', _userProfile!.personalGoal, Icons.flag),
-            const SizedBox(height: 12),
-            const Text(
-              'Medical Conditions:',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              children: [
-                if (_userProfile!.diabetes)
-                  _buildConditionChip(
-                    'Diabetes (${_userProfile!.diabetesType})',
-                    Colors.red,
-                  ),
-                if (_userProfile!.hypertension)
-                  _buildConditionChip('Hypertension', Colors.orange),
-                if (_userProfile!.ckd)
-                  _buildConditionChip('Chronic Kidney Disease', Colors.purple),
-                if (_userProfile!.liverDisease)
-                  _buildConditionChip('Liver Disease', Colors.brown),
-                if (!_userProfile!.diabetes &&
-                    !_userProfile!.hypertension &&
-                    !_userProfile!.ckd &&
-                    !_userProfile!.liverDisease)
-                  _buildConditionChip('None reported', Colors.green),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
-            ),
+            ],
           ),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildECGChart(double heartRate) {
+    if (_ecgData.isEmpty) {
+      _ecgData = IoTDataService.generateSimulatedECGData(heartRate)
+          .map(
+            (point) =>
+                FlSpot(point['index'].toDouble(), point['voltage'] + 0.5),
+          )
+          .toList();
+    }
+
+    return Container(
+      height: 150,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green, width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.timeline, color: Colors.green, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    'LIVE ECG - ${heartRate.toInt()} BPM',
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'LIVE',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: true,
+                    drawHorizontalLine: true,
+                    verticalInterval: 10,
+                    horizontalInterval: 0.2,
+                    getDrawingVerticalLine: (value) {
+                      return FlLine(
+                        color: Colors.green.withOpacity(0.2),
+                        strokeWidth: 0.5,
+                      );
+                    },
+                    getDrawingHorizontalLine: (value) {
+                      return FlLine(
+                        color: Colors.green.withOpacity(0.2),
+                        strokeWidth: 0.5,
+                      );
+                    },
+                  ),
+                  titlesData: const FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: 100,
+                  minY: 0,
+                  maxY: 1.5,
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: _ecgData,
+                      isCurved: false,
+                      color: Colors.green,
+                      barWidth: 2,
+                      isStrokeCapRound: false,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(show: false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataInfoRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Last Updated',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+            Text(
+              _currentIoTData != null
+                  ? _formatDateTime(
+                      DateTime.parse(_currentIoTData!['timestamp']),
+                    )
+                  : 'Never',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              'Device',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.sensors, size: 16, color: Colors.blue[700]),
+                  const SizedBox(width: 4),
+                  Text(
+                    'FitgenMedical',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: const Column(
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Connecting to IoT Device...',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildConditionChip(String condition, Color color) {
+  Widget _buildNoDataWidget() {
     return Container(
-      margin: const EdgeInsets.only(right: 8, bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        condition,
-        style: TextStyle(
-          color: _getColorShade700(color),
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Icon(Icons.sensors_off, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          const Text(
+            'No IoT Data Available',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Check your FitgenMedical device connection',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: _loadIoTData,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry Connection'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Helper method to get darker shade of color (replaces .shade700)
-  Color _getColorShade700(Color color) {
-    final hslColor = HSLColor.fromColor(color);
-    return hslColor.withLightness(0.3).toColor();
+  void _startHeartAnimation(double heartRate) {
+    if (heartRate <= 0) return;
+
+    int bpm = heartRate.toInt();
+    Duration duration = Duration(milliseconds: (60000 / bpm).round());
+
+    _heartAnimationController.duration = duration;
+    _heartAnimationController.repeat(reverse: true);
+  }
+
+  Color _getHeartRateStatusColor(double heartRate) {
+    if (heartRate < 60) return Colors.blue;
+    if (heartRate > 100) return Colors.red;
+    return Colors.green;
+  }
+
+  String _getHeartRateStatus(double heartRate) {
+    if (heartRate < 60) return 'Low (Bradycardia)';
+    if (heartRate > 100) return 'High (Tachycardia)';
+    return 'Normal';
   }
 
   String _formatDateTime(DateTime dateTime) {
@@ -750,50 +740,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Health Dashboard'),
         centerTitle: true,
+        automaticallyImplyLeading:
+            false, // Remove back button since this is main screen
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadUserData,
-            tooltip: 'Refresh Data',
+            onPressed: () {
+              _loadUserData();
+              _loadIoTData();
+            },
+            tooltip: 'Refresh All Data',
           ),
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Loading your health dashboard...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: _loadUserData,
+              onRefresh: () async {
+                await _loadUserData();
+                await _loadIoTData();
+              },
               color: Colors.orange,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -809,23 +775,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildQuickStats(),
                     const SizedBox(height: 20),
 
-                    // Personal Information
-                    _buildPersonalInfo(),
+                    // IoT Heart Rate Monitor (MAIN FEATURE)
+                    _buildIoTHeartRateCard(),
+                    const SizedBox(height: 20),
+
+                    // Action Buttons Section
+                    Row(
+                      children: [
+                        // Update Profile Button
+                        Expanded(
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.blue[400]!, Colors.blue[600]!],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.3),
+                                  spreadRadius: 1,
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _navigateToUpdateProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Update Profile',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
 
-                    // Health Metrics from Reports
-                    _buildHealthMetricsCard(),
-                    const SizedBox(height: 16),
-
-                    // Real-time Health Data
-                    _buildRealtimeHealthData(),
-                    const SizedBox(height: 16),
-
-                    // AI Health Insights
-                    _buildHealthInsights(),
-                    const SizedBox(height: 24),
-
-                    // Workout Recommendations Button
+                    // Workout Plan Button
                     Container(
                       width: double.infinity,
                       height: 56,
@@ -846,20 +858,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  WorkoutRecommendationsScreen(
-                                    userProfile: _userProfile,
-                                    latestReportData: _reports.isNotEmpty
-                                        ? _reports.first
-                                        : null,
-                                  ),
-                            ),
-                          );
-                        },
+                        onPressed: _navigateToWorkoutPlan,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -877,7 +876,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             SizedBox(width: 12),
                             Text(
-                              'Get Workout Recommendations',
+                              'View Workout Plan',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -887,192 +886,105 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // NEW: Profile Creation Button (Added Here)
-                    Container(
-                      width: double.infinity,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue[400]!, Colors.blue[600]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
-                            spreadRadius: 1,
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const ProfileCreationScreen(),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.person_add,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Go to Profile Creation',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Additional Action Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.orange),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Navigate to add new report screen
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Add new report feature coming soon!',
-                                    ),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.orange,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              icon: const Icon(Icons.add_circle_outline),
-                              label: const Text(
-                                'Add Report',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.orange),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Navigate to health tracking screen
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Health tracking feature coming soon!',
-                                    ),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.orange,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              icon: const Icon(Icons.track_changes),
-                              label: const Text(
-                                'Track Health',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                     const SizedBox(height: 20),
 
-                    // Health Tip of the Day
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue[50]!, Colors.cyan[50]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue[200]!),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                    // User Profile Summary Card (if profile exists)
+                    if (_userProfile != null) ...[
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.tips_and_updates,
-                                color: Colors.blue[600],
+                              Row(
+                                children: [
+                                  Icon(Icons.person, color: Colors.orange[600]),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Profile Summary',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Health Tip of the Day',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue[700],
-                                ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildProfileStat(
+                                      'Age',
+                                      '${_userProfile!.age} years',
+                                      Icons.cake,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _buildProfileStat(
+                                      'Height',
+                                      '${_userProfile!.height.toInt()} cm',
+                                      Icons.height,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _buildProfileStat(
+                                      'Weight',
+                                      '${_userProfile!.weight.toInt()} kg',
+                                      Icons.monitor_weight,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'BMI: ${_userProfile!.bmi.toStringAsFixed(1)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        _userProfile!.bmiCategory,
+                                        style: TextStyle(
+                                          color: _getBMIColor(),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        'Goal: ${_userProfile!.personalGoal}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${_userProfile!.selectedConditionsCount} conditions',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _getHealthTip(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.blue[700],
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -1080,20 +992,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  String _getHealthTip() {
-    final tips = [
-      "Drink at least 8 glasses of water daily to stay hydrated and support your metabolism.",
-      "Aim for 150 minutes of moderate exercise per week to maintain cardiovascular health.",
-      "Include colorful fruits and vegetables in your diet for essential vitamins and antioxidants.",
-      "Get 7-9 hours of quality sleep each night to support your immune system and mental health.",
-      "Practice deep breathing exercises for 5 minutes daily to reduce stress and improve focus.",
-      "Take regular breaks from sitting - stand and move for 2 minutes every hour.",
-      "Limit processed foods and choose whole, natural ingredients for better nutrition.",
-      "Regular health check-ups can help detect and prevent health issues early.",
-    ];
-
-    final now = DateTime.now();
-    final index = now.day % tips.length;
-    return tips[index];
+  Widget _buildProfileStat(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.orange[600], size: 20),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+      ],
+    );
   }
 }
