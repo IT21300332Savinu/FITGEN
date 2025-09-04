@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'services/firebase_service.dart';
-import 'screens/profile_creation_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/user_profile.dart';
 
@@ -201,9 +201,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
                 Text(
                   'Connection Error',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -229,8 +229,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     }
 
-    return _hasProfile
-        ? const DashboardScreen()
-        : const ProfileCreationScreen();
+    return _hasProfile ? const DashboardScreen() : const ProfileScreen();
   }
 }
