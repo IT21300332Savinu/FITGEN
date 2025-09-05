@@ -15,7 +15,6 @@ class FirebaseService {
     try {
       print('Attempting anonymous sign in...');
 
-      // Check if already signed in
       if (_auth.currentUser != null) {
         print('User already signed in: ${_auth.currentUser!.uid}');
         return _auth.currentUser;
@@ -47,7 +46,6 @@ class FirebaseService {
 
       print('Creating profile for user: $userId');
 
-      // Update the profile with the correct user ID
       final updatedProfile = profile.copyWith(id: userId);
 
       await _firestore
@@ -73,7 +71,6 @@ class FirebaseService {
 
       print('Updating profile for user: $userId');
 
-      // Update the profile with the correct user ID
       final updatedProfile = profile.copyWith(id: userId);
 
       await _firestore
@@ -117,7 +114,7 @@ class FirebaseService {
     }
   }
 
-  // Report Management
+  // Report Management - Fixed
   static Future<String?> uploadReport(File file, String fileName) async {
     try {
       String? userId = getCurrentUserId();
@@ -128,7 +125,6 @@ class FirebaseService {
 
       print('Uploading report: $fileName for user: $userId');
 
-      // Create a unique filename to avoid conflicts
       String uniqueFileName =
           '${DateTime.now().millisecondsSinceEpoch}_$fileName';
 
@@ -146,7 +142,6 @@ class FirebaseService {
     }
   }
 
-  /// Save detailed report data with OCR results
   static Future<bool> saveReportData(Map<String, dynamic> reportData) async {
     try {
       String? userId = getCurrentUserId();
@@ -157,39 +152,17 @@ class FirebaseService {
 
       print('Saving report data for user: $userId');
 
-      // Add user ID and timestamp
+      // Add user ID to report data
       reportData['userId'] = userId;
       reportData['createdAt'] = FieldValue.serverTimestamp();
-      reportData['updatedAt'] = FieldValue.serverTimestamp();
 
-      // Save to reports collection
-      DocumentReference docRef = await _firestore
+      await _firestore
           .collection('users')
           .doc(userId)
           .collection('reports')
           .add(reportData);
 
-      // If extractedValues exist, also save to separate health_parameters collection for easy querying
-      if (reportData['extractedValues'] != null &&
-          (reportData['extractedValues'] as Map).isNotEmpty) {
-        Map<String, dynamic> healthParams = Map<String, dynamic>.from(
-          reportData['extractedValues'],
-        );
-        healthParams['reportId'] = docRef.id;
-        healthParams['reportDate'] = reportData['uploadDate'];
-        healthParams['userId'] = userId;
-        healthParams['createdAt'] = FieldValue.serverTimestamp();
-
-        await _firestore
-            .collection('users')
-            .doc(userId)
-            .collection('health_parameters')
-            .add(healthParams);
-
-        print('✅ Health parameters saved to separate collection');
-      }
-
-      print('Report data saved successfully with ID: ${docRef.id}');
+      print('Report data saved successfully');
       return true;
     } catch (e) {
       print('Error saving report data: $e');
@@ -197,7 +170,6 @@ class FirebaseService {
     }
   }
 
-  /// Get user reports with detailed OCR data
   static Future<List<Map<String, dynamic>>> getUserReports() async {
     try {
       String? userId = getCurrentUserId();
@@ -215,71 +187,41 @@ class FirebaseService {
           .orderBy('uploadDate', descending: true)
           .get();
 
-      List<Map<String, dynamic>> reports = snapshot.docs
-          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
-          .toList();
+      List<Map<String, dynamic>> reports = [];
+
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        reports.add(data);
+      }
 
       print('Found ${reports.length} reports');
       return reports;
     } catch (e) {
       print('Error fetching user reports: $e');
-      return [];
-    }
-  }
+      // Try alternative field name if uploadDate doesn't exist
+      try {
+        QuerySnapshot snapshot = await _firestore
+            .collection('users')
+            .doc(getCurrentUserId()!)
+            .collection('reports')
+            .orderBy('createdAt', descending: true)
+            .get();
 
-  /// Get latest health parameters from OCR
-  static Future<Map<String, dynamic>?> getLatestHealthParameters() async {
-    try {
-      String? userId = getCurrentUserId();
-      if (userId == null) {
-        print('No user ID available for fetching health parameters');
-        return null;
-      }
+        List<Map<String, dynamic>> reports = [];
 
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('health_parameters')
-          .orderBy('createdAt', descending: true)
-          .limit(1)
-          .get();
+        for (var doc in snapshot.docs) {
+          var data = doc.data() as Map<String, dynamic>;
+          data['id'] = doc.id;
+          reports.add(data);
+        }
 
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data() as Map<String, dynamic>;
-      }
-
-      return null;
-    } catch (e) {
-      print('Error fetching health parameters: $e');
-      return null;
-    }
-  }
-
-  /// Get health parameter history
-  static Future<List<Map<String, dynamic>>> getHealthParameterHistory({
-    int limit = 10,
-  }) async {
-    try {
-      String? userId = getCurrentUserId();
-      if (userId == null) {
-        print('No user ID available for fetching health parameter history');
+        print('Found ${reports.length} reports (using createdAt)');
+        return reports;
+      } catch (e2) {
+        print('Error with alternative query: $e2');
         return [];
       }
-
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('health_parameters')
-          .orderBy('createdAt', descending: true)
-          .limit(limit)
-          .get();
-
-      return snapshot.docs
-          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
-          .toList();
-    } catch (e) {
-      print('Error fetching health parameter history: $e');
-      return [];
     }
   }
 
@@ -367,9 +309,9 @@ class FirebaseService {
     try {
       print('Testing Firebase connection...');
 
-      // Try to write a test document
       await _firestore.collection('test').doc('connection').set({
         'timestamp': FieldValue.serverTimestamp(),
+        'status': 'connected',
       });
 
       print('Firebase connection test successful');
@@ -377,6 +319,55 @@ class FirebaseService {
     } catch (e) {
       print('Firebase connection test failed: $e');
       return false;
+    }
+  }
+
+  // Debug method to check collections
+  static Future<void> debugCollections() async {
+    try {
+      String? userId = getCurrentUserId();
+      if (userId == null) {
+        print('No user ID for debugging');
+        return;
+      }
+
+      print('=== DEBUGGING FIREBASE COLLECTIONS ===');
+
+      // Check user profile
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      print('User profile exists: ${userDoc.exists}');
+      if (userDoc.exists) {
+        print('User data: ${userDoc.data()}');
+      }
+
+      // Check reports subcollection
+      QuerySnapshot reportsSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('reports')
+          .get();
+
+      print('Reports found: ${reportsSnapshot.docs.length}');
+      for (var doc in reportsSnapshot.docs) {
+        print('Report: ${doc.id} - ${doc.data()}');
+      }
+
+      // Check FitgenMedical IoT collection
+      QuerySnapshot iotSnapshot = await _firestore
+          .collection('FitgenMedical')
+          .limit(5)
+          .get();
+
+      print('IoT data entries: ${iotSnapshot.docs.length}');
+      for (var doc in iotSnapshot.docs) {
+        print('IoT: ${doc.id} - ${doc.data()}');
+      }
+    } catch (e) {
+      print('Debug error: $e');
     }
   }
 }
