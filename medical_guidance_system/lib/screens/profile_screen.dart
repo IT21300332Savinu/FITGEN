@@ -18,6 +18,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
@@ -55,6 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _populateExistingData() {
     final profile = widget.existingProfile!;
+    _nameController.text = profile.name;
     _ageController.text = profile.age.toString();
     _heightController.text = profile.height.toString();
     _weightController.text = profile.weight.toString();
@@ -70,6 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _ageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
@@ -148,7 +151,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (ocrResult['success']) {
         Map<String, dynamic> extractedValues = ocrResult['extractedValues'];
 
-        // Auto-suggest conditions based on OCR results
         Map<String, bool> conditionRisks = OCRService.assessConditionRisks(
           extractedValues,
         );
@@ -293,12 +295,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
 
+      print('=== DEBUG: Current state values ===');
+      print('_hasDiabetes: $_hasDiabetes');
+      print('_hasHypertension: $_hasHypertension');
+      print('_hasCKD: $_hasCKD');
+      print('_hasLiverDisease: $_hasLiverDisease');
+      print('_hasFattyLiver: $_hasFattyLiver');
+      print('=====================================');
+
       // Create or update user profile
       UserProfile profile = UserProfile(
         id:
             widget.existingProfile?.id ??
             FirebaseService.getCurrentUserId() ??
             '',
+        name: _nameController.text.trim(),
         age: int.parse(_ageController.text),
         gender: _selectedGender,
         height: double.parse(_heightController.text),
@@ -310,10 +321,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ckd: _hasCKD,
         liverDisease: _hasLiverDisease,
         fattyLiver: _hasFattyLiver,
-        reportUrls: reportUrls,
+        reportUrls: [
+          ...(widget.existingProfile?.reportUrls ?? []),
+          ...reportUrls,
+        ], // Merge existing and new report URLs
         createdAt: widget.existingProfile?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
+      print('Profile data being saved:');
+      print('Diabetes: $_hasDiabetes');
+      print('Hypertension: $_hasHypertension');
+      print('CKD: $_hasCKD');
+      print('Liver Disease: $_hasLiverDisease');
+      print('Fatty Liver: $_hasFattyLiver');
+      print('Profile object: ${profile.toMap()}'); // If you have a toMap method
 
       bool success;
       if (widget.isUpdate) {
@@ -459,7 +481,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text(
                             widget.isUpdate
                                 ? 'Update Your Health Profile'
-                                : 'Welcome to Smart Gym & Health',
+                                : 'Welcome to Fitgen Health Tracker',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -502,6 +524,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Name Input
+                            TextFormField(
+                              controller: _nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Full Name',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.person_outline),
+                                hintText: 'Enter your full name',
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter your name';
+                                }
+                                if (value.trim().length < 2) {
+                                  return 'Name must be at least 2 characters';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 16),
 
@@ -620,7 +663,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               },
                             ),
 
-                            // BMI Display (if height and weight are entered)
+                            // BMI Display
                             if (_heightController.text.isNotEmpty &&
                                 _weightController.text.isNotEmpty) ...[
                               const SizedBox(height: 16),
