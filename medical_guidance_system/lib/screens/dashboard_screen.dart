@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'dart:math';
 import '../models/user_profile.dart';
-import '../models/health_data.dart';
 import '../services/firebase_service.dart';
 import '../services/iot_data_service.dart';
 import 'workout_recommendations_screen.dart';
@@ -18,8 +18,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   UserProfile? _userProfile;
   List<Map<String, dynamic>> _reports = [];
-  List<HealthData> _recentHealthData = [];
   bool _isLoading = true;
+  String _userName = 'User';
 
   // Heart Rate Animation
   late AnimationController _heartAnimationController;
@@ -32,17 +32,23 @@ class _DashboardScreenState extends State<DashboardScreen>
   // IoT Data
   Map<String, dynamic>? _currentIoTData;
   Map<String, dynamic> _deviceStatus = {};
+  List<Map<String, dynamic>> _historicalHRData = [];
+  Map<String, dynamic> _hrStatistics = {};
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _initializeAnimations();
-    _loadIoTData();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await _initializeAnimations();
+    await _loadUserData();
+    await _loadIoTData();
     _startECGAnimation();
   }
 
-  void _initializeAnimations() {
+  Future<void> _initializeAnimations() async {
     _heartAnimationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -85,10 +91,26 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _loadIoTData() async {
     try {
+      await IoTDataService.initializeIoTConnection();
+      bool connected = await IoTDataService.testConnection();
+      debugPrint('IoT Connection test result: $connected');
+
       _deviceStatus = await IoTDataService.getDeviceStatus();
+      debugPrint('Device status: $_deviceStatus');
+
+      _historicalHRData = await IoTDataService.getHistoricalHeartRateData(
+        limit: 50,
+      );
+      debugPrint('Historical HR data points: ${_historicalHRData.length}');
+
+      _hrStatistics = await IoTDataService.getHeartRateStatistics();
+      debugPrint('HR Statistics: $_hrStatistics');
+
+      await IoTDataService.debugDataCollection();
+
       setState(() {});
     } catch (e) {
-      print('Error loading IoT data: $e');
+      debugPrint('Error loading IoT data: $e');
     }
   }
 
@@ -107,9 +129,26 @@ class _DashboardScreenState extends State<DashboardScreen>
     try {
       _userProfile = await FirebaseService.getUserProfile();
       _reports = await FirebaseService.getUserReports();
-      _recentHealthData = await FirebaseService.getLatestHealthData(limit: 10);
+
+      // Set user name based on profile data
+      if (_userProfile != null && _userProfile!.name.isNotEmpty) {
+        _userName = _userProfile!.name;
+      } else if (_userProfile != null) {
+        // Fallback to gender-based greeting if name is empty
+        _userName = _userProfile!.gender == 'Male'
+            ? 'Mr. User'
+            : _userProfile!.gender == 'Female'
+            ? 'Ms. User'
+            : 'User';
+      } else {
+        _userName = 'User';
+      }
+
+      debugPrint('User profile loaded: ${_userProfile != null}');
+      debugPrint('Reports loaded: ${_reports.length}');
+      debugPrint('User name set to: $_userName');
     } catch (e) {
-      print('Error loading user data: $e');
+      debugPrint('Error loading user data: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -124,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         builder: (context) =>
             ProfileScreen(existingProfile: _userProfile, isUpdate: true),
       ),
-    ).then((_) => _loadUserData()); // Refresh data when returning
+    ).then((_) => _loadUserData());
   }
 
   void _navigateToWorkoutPlan() {
@@ -182,29 +221,76 @@ class _DashboardScreenState extends State<DashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _userProfile != null
-                          ? 'Welcome back, ${_userProfile!.gender == 'Male' ? 'Mr.' : 'Ms.'} User!'
-                          : 'Welcome back!',
+                      'Welcome back, $_userName!',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      _userProfile != null
-                          ? 'Monitoring your health with IoT technology'
-                          : 'Your health journey continues...',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
+                    const Text(
+                      'Monitoring your health with IoT technology',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
               ),
             ],
           ),
+
+          // Profile Summary
+          if (_userProfile != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Profile Summary:',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Age: ${_userProfile!.age} • BMI: ${_userProfile!.bmi.toStringAsFixed(1)} (${_userProfile!.bmiCategory})',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Goal: ${_userProfile!.personalGoal} • Conditions: ${_userProfile!.selectedConditionsCount}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  if (_reports.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Reports Uploaded: ${_reports.length}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -332,7 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(width: 16),
                   const Expanded(
                     child: Text(
-                      'IoT Heart Rate Monitor',
+                      'Fitgen Heart Rate Monitor',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -365,17 +451,28 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               const SizedBox(height: 8),
 
-              Text(
-                _deviceStatus['isConnected'] == true
-                    ? 'Connected to FitgenMedical IoT'
-                    : 'Disconnected from IoT Device',
-                style: TextStyle(
-                  color: _deviceStatus['isConnected'] == true
-                      ? Colors.green[700]
-                      : Colors.red[700],
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
+              Row(
+                children: [
+                  Text(
+                    _deviceStatus['isConnected'] == true
+                        ? 'Connected to Fitgen Device'
+                        : 'Disconnected from Fitgen Device',
+                    style: TextStyle(
+                      color: _deviceStatus['isConnected'] == true
+                          ? Colors.green[700]
+                          : Colors.red[700],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_deviceStatus['minutesSinceUpdate'] != null &&
+                      _deviceStatus['minutesSinceUpdate'] >= 0)
+                    Text(
+                      '${_deviceStatus['minutesSinceUpdate']}m ago',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                ],
               ),
               const SizedBox(height: 20),
 
@@ -386,12 +483,21 @@ class _DashboardScreenState extends State<DashboardScreen>
                     return _buildLoadingWidget();
                   }
 
+                  if (snapshot.hasError) {
+                    return _buildErrorWidget('Stream Error: ${snapshot.error}');
+                  }
+
                   if (!snapshot.hasData || snapshot.data == null) {
                     return _buildNoDataWidget();
                   }
 
-                  _currentIoTData = snapshot.data!;
-                  double currentBPM = (_currentIoTData!['BPM'] ?? 0).toDouble();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      _currentIoTData = snapshot.data!;
+                    });
+                  });
+
+                  double currentBPM = (_currentIoTData?['BPM'] ?? 0).toDouble();
 
                   if (currentBPM > 0 &&
                       !_heartAnimationController.isAnimating) {
@@ -443,7 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'IBM: ${_currentIoTData!['IBM'] ?? 0}',
+                                'IBM: ${_currentIoTData?['IBM']?.toInt() ?? 0}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -495,6 +601,236 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildHistoricalHRChart() {
+    if (_historicalHRData.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              const Text(
+                'No Historical Data',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Heart rate history will appear here once data is collected',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    List<Map<String, dynamic>> chartData = _historicalHRData
+        .take(20)
+        .toList()
+        .reversed
+        .toList();
+
+    List<FlSpot> hrSpots = [];
+    for (int i = 0; i < chartData.length; i++) {
+      double bpm = chartData[i]['BPM']?.toDouble() ?? 0.0;
+      if (bpm > 0) {
+        hrSpots.add(FlSpot(i.toDouble(), bpm));
+      }
+    }
+
+    if (hrSpots.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            'No valid heart rate data available',
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+        ),
+      );
+    }
+
+    double minY = hrSpots.map((spot) => spot.y).reduce(min) - 10;
+    double maxY = hrSpots.map((spot) => spot.y).reduce(max) + 10;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.show_chart, color: Colors.orange[600]),
+                const SizedBox(width: 8),
+                const Text(
+                  'Heart Rate History',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Last ${chartData.length} readings',
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+
+            SizedBox(
+              height: 200,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: true,
+                    drawHorizontalLine: true,
+                    getDrawingHorizontalLine: (value) {
+                      return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
+                    },
+                    getDrawingVerticalLine: (value) {
+                      return FlLine(color: Colors.grey[300]!, strokeWidth: 1);
+                    },
+                  ),
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                        interval: 5,
+                        getTitlesWidget: (double value, TitleMeta meta) {
+                          int index = value.toInt();
+                          if (index < chartData.length) {
+                            String ts = chartData[index]['timestamp'];
+                            DateTime time;
+                            try {
+                              time = DateTime.parse(ts);
+                            } catch (_) {
+                              time = DateTime.now();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                '${time.hour}:${time.minute.toString().padLeft(2, '0')}',
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            );
+                          }
+                          return const Text('');
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                        interval: 20,
+                        getTitlesWidget: (double value, TitleMeta meta) {
+                          return Text(
+                            '${value.toInt()}',
+                            style: const TextStyle(fontSize: 12),
+                          );
+                        },
+                      ),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: Border.all(color: Colors.grey[300]!, width: 1),
+                  ),
+                  minX: 0,
+                  maxX: (chartData.length - 1).toDouble(),
+                  minY: minY,
+                  maxY: maxY,
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: hrSpots,
+                      isCurved: true,
+                      gradient: LinearGradient(
+                        colors: [Colors.red[400]!, Colors.red[600]!],
+                      ),
+                      barWidth: 3,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, percent, barData, index) {
+                          return FlDotCirclePainter(
+                            radius: 4,
+                            color: Colors.red[600]!,
+                            strokeWidth: 2,
+                            strokeColor: Colors.white,
+                          );
+                        },
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.red[200]!.withOpacity(0.3),
+                            Colors.red[100]!.withOpacity(0.1),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            if (_hrStatistics.isNotEmpty)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatistic(
+                    'Avg',
+                    '${_hrStatistics['average']?.toStringAsFixed(0) ?? '0'} BPM',
+                  ),
+                  _buildStatistic(
+                    'Min',
+                    '${_hrStatistics['min']?.toStringAsFixed(0) ?? '0'} BPM',
+                  ),
+                  _buildStatistic(
+                    'Max',
+                    '${_hrStatistics['max']?.toStringAsFixed(0) ?? '0'} BPM',
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatistic(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.red,
+          ),
+        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+      ],
     );
   }
 
@@ -615,9 +951,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
             Text(
               _currentIoTData != null
-                  ? _formatDateTime(
-                      DateTime.parse(_currentIoTData!['timestamp']),
-                    )
+                  ? _formatDateTime(_currentIoTData!['timestamp'])
                   : 'Never',
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
@@ -642,7 +976,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Icon(Icons.sensors, size: 16, color: Colors.blue[700]),
                   const SizedBox(width: 4),
                   Text(
-                    'FitgenMedical',
+                    'Fitgen',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -668,9 +1002,33 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           SizedBox(height: 16),
           Text(
-            'Connecting to IoT Device...',
+            'Connecting to Fitgen Device...',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(String error) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const Icon(Icons.error, color: Colors.red, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            'Connection Error',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _loadIoTData, child: const Text('Retry')),
         ],
       ),
     );
@@ -689,7 +1047,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Check your FitgenMedical device connection',
+            'Check your Fitgen device connection.\nData collection: ${_deviceStatus['dataCount'] ?? 0} records',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey[500], fontSize: 14),
           ),
@@ -730,8 +1088,22 @@ class _DashboardScreenState extends State<DashboardScreen>
     return 'Normal';
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  String _formatDateTime(dynamic timestamp) {
+    if (timestamp == null) return 'Never';
+    try {
+      if (timestamp is String) {
+        DateTime dt = DateTime.parse(timestamp);
+        return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (timestamp is DateTime) {
+        return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
+      } else if (timestamp is int) {
+        DateTime dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+      }
+    } catch (e) {
+      return 'Invalid';
+    }
+    return 'Never';
   }
 
   @override
@@ -740,8 +1112,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       appBar: AppBar(
         title: const Text('Health Dashboard'),
         centerTitle: true,
-        automaticallyImplyLeading:
-            false, // Remove back button since this is main screen
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -767,22 +1138,16 @@ class _DashboardScreenState extends State<DashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Welcome Header
                     _buildWelcomeHeader(),
                     const SizedBox(height: 20),
-
-                    // Quick Stats
                     _buildQuickStats(),
                     const SizedBox(height: 20),
-
-                    // IoT Heart Rate Monitor (MAIN FEATURE)
                     _buildIoTHeartRateCard(),
                     const SizedBox(height: 20),
-
-                    // Action Buttons Section
+                    _buildHistoricalHRChart(),
+                    const SizedBox(height: 20),
                     Row(
                       children: [
-                        // Update Profile Button
                         Expanded(
                           child: Container(
                             height: 56,
@@ -836,8 +1201,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ],
                     ),
                     const SizedBox(height: 16),
-
-                    // Workout Plan Button
                     Container(
                       width: double.infinity,
                       height: 56,
@@ -887,122 +1250,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // User Profile Summary Card (if profile exists)
-                    if (_userProfile != null) ...[
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.person, color: Colors.orange[600]),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Profile Summary',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildProfileStat(
-                                      'Age',
-                                      '${_userProfile!.age} years',
-                                      Icons.cake,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _buildProfileStat(
-                                      'Height',
-                                      '${_userProfile!.height.toInt()} cm',
-                                      Icons.height,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _buildProfileStat(
-                                      'Weight',
-                                      '${_userProfile!.weight.toInt()} kg',
-                                      Icons.monitor_weight,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'BMI: ${_userProfile!.bmi.toStringAsFixed(1)}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      Text(
-                                        _userProfile!.bmiCategory,
-                                        style: TextStyle(
-                                          color: _getBMIColor(),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        'Goal: ${_userProfile!.personalGoal}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${_userProfile!.selectedConditionsCount} conditions',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _buildProfileStat(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.orange[600], size: 20),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-      ],
     );
   }
 }
