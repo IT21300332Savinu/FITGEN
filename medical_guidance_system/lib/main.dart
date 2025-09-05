@@ -4,14 +4,12 @@ import 'services/firebase_service.dart';
 import 'screens/profile_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/user_profile.dart';
+import './services/firebase_config .dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Firebase
-  await Firebase.initializeApp();
-
-  runApp(const MyApp());
+  await FirebaseConfig.initializeFirebase(); // Replace with your config function
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
