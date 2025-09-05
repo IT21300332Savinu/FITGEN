@@ -4,13 +4,13 @@ class FirebaseConfig {
   static Future<void> initializeFirebase() async {
     // Initialize your main app's Firebase (for user profiles, reports, etc.)
     await Firebase.initializeApp(
-      name: 'HealthTracker', // Your main app
+      name: 'Fitgen', // Your main app
       options: const FirebaseOptions(
         // Your main app's Firebase configuration
-        apiKey: 'your-main-app-api-key',
-        appId: 'your-main-app-id',
-        messagingSenderId: 'your-sender-id',
-        projectId: 'your-main-project-id',
+        apiKey: 'AIzaSyC4m5cSrqo4a4noB3NWyMUDsJfEerZ3WpI',
+        appId: '1:28582013230:android:38837813f1fa72da8af2bf',
+        messagingSenderId: '28582013230',
+        projectId: 'fitgen-8df00',
         // Add other required options
       ),
     );
@@ -20,11 +20,11 @@ class FirebaseConfig {
       name: 'FitgenMedical', // IoT database
       options: const FirebaseOptions(
         // Your IoT Firebase configuration
-        apiKey: 'fitgen-medical-api-key',
-        appId: 'fitgen-medical-app-id',
-        messagingSenderId: 'fitgen-medical-sender-id',
+        apiKey: 'AIzaSyCM1GSBbBwBBOa-mxHNKNL6teLiPkmHTyk',
+        appId: '1:872949407728:android:70f26d18948b36e9228735',
+        messagingSenderId: '872949407728',
         projectId:
-            'fitgen-medical-project-id', // This should be 'fitgenmedical' based on your screenshot
+            'fitgenmedical', // This should be 'fitgenmedical' based on your screenshot
         // Add other required options
       ),
     );
@@ -34,5 +34,5 @@ class FirebaseConfig {
   static FirebaseApp get iotApp => Firebase.app('FitgenMedical');
 
   // Helper method to get main app Firebase instance
-  static FirebaseApp get mainApp => Firebase.app('HealthTracker');
+  static FirebaseApp get mainApp => Firebase.app('Fitgen');
 }
