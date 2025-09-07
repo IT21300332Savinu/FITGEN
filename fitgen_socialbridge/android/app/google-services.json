@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "358273804497",
+    "project_id": "fitgen-socialbridge-ihkwov",
+    "storage_bucket": "fitgen-socialbridge-ihkwov.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358273804497:android:fbd7d465f7eaac02c2bdf0",
+        "android_client_info": {
+          "package_name": "com.mycompany.fitgensocialbridge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-G2dda6ASOdbmMz5qmFNzz2cmYDvMMTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
