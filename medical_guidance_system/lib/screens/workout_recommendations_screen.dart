@@ -1,783 +1,250 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import '../services/predict_service.dart';
 
-class WorkoutRecommendationsScreen extends StatelessWidget {
+class WorkoutRecommendationsScreen extends StatefulWidget {
   final UserProfile? userProfile;
-  final Map<String, dynamic>? latestReportData;
+  final String? selectedLevel;
 
   const WorkoutRecommendationsScreen({
     super.key,
     this.userProfile,
-    this.latestReportData,
+    this.selectedLevel,
   });
 
-  List<Map<String, dynamic>> _generateRecommendations() {
-    List<Map<String, dynamic>> recommendations = [];
+  @override
+  State<WorkoutRecommendationsScreen> createState() =>
+      _WorkoutRecommendationsScreenState();
+}
 
-    if (userProfile == null) {
-      return [
-        {
-          'title': 'General Fitness',
-          'description': 'Basic workout routine for overall health',
-          'exercises': [
-            'Walking 30 minutes',
-            'Basic stretching',
-            'Light strength training',
-          ],
-          'duration': '30-45 minutes',
-          'frequency': '3-4 times per week',
-          'intensity': 'Low to Moderate',
-        },
-      ];
-    }
+class _WorkoutRecommendationsScreenState
+    extends State<WorkoutRecommendationsScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
-    // Base recommendations on personal goal and BMI
-    double bmi = userProfile!.bmi;
-    String bmiCategory = userProfile!.bmiCategory;
+  Map<String, dynamic>? _apiResponse;
+  bool _isLoadingPrediction = false;
+  String? _selectedWorkoutType;
+  String? _errorMessage;
 
-    switch (userProfile!.personalGoal) {
-      case 'Weight Loss':
-        recommendations.addAll([
-          {
-            'title': 'Cardio Focus for Weight Loss',
-            'description':
-                'High-intensity cardio optimized for your BMI ($bmiCategory)',
-            'exercises': [
-              bmi > 30
-                  ? 'Low-impact walking 25-30 minutes'
-                  : 'Brisk walking/jogging 20-30 minutes',
-              bmi > 30 ? 'Stationary cycling 20 minutes' : 'Cycling 25 minutes',
-              'Swimming 20 minutes (joint-friendly)',
-              bmi <= 25
-                  ? 'High-intensity interval training (HIIT)'
-                  : 'Moderate interval training',
-            ],
-            'duration': bmi > 30 ? '35-45 minutes' : '45-60 minutes',
-            'frequency': '5-6 times per week',
-            'intensity': bmi > 30 ? 'Low to Moderate' : 'Moderate to High',
-            'caloriesBurn': '300-500 per session',
-          },
-          {
-            'title': 'Strength Training for Metabolism',
-            'description': 'Build lean muscle to boost metabolism',
-            'exercises': [
-              'Bodyweight squats 3 sets of 12-15',
-              bmi > 30
-                  ? 'Wall push-ups 3 sets of 8-12'
-                  : 'Push-ups 3 sets of 8-12',
-              'Lunges 3 sets of 10 per leg',
-              'Plank hold 30-60 seconds',
-              'Resistance band exercises',
-            ],
-            'duration': '30-40 minutes',
-            'frequency': '3 times per week',
-            'intensity': 'Moderate',
-            'caloriesBurn': '200-350 per session',
-          },
-        ]);
-        break;
-
-      case 'Muscle Gain':
-        recommendations.addAll([
-          {
-            'title': 'Progressive Strength Training',
-            'description':
-                'Focus on compound movements with progressive overload',
-            'exercises': [
-              'Squats 4 sets of 6-8 reps',
-              'Deadlifts 4 sets of 5-6 reps (or alternatives if back issues)',
-              'Bench press 4 sets of 6-8 reps',
-              'Pull-ups/Rows 4 sets of 6-10 reps',
-              'Overhead press 3 sets of 8-10 reps',
-            ],
-            'duration': '60-75 minutes',
-            'frequency': '4-5 times per week',
-            'intensity': 'High',
-            'restPeriods': '2-3 minutes between sets',
-          },
-          {
-            'title': 'Accessory Work',
-            'description':
-                'Target specific muscle groups for balanced development',
-            'exercises': [
-              'Bicep curls 3 sets of 10-12',
-              'Tricep dips 3 sets of 8-12',
-              'Lateral raises 3 sets of 12-15',
-              'Calf raises 3 sets of 15-20',
-              'Core strengthening exercises',
-            ],
-            'duration': '30-45 minutes',
-            'frequency': '2-3 times per week',
-            'intensity': 'Moderate',
-          },
-        ]);
-        break;
-
-      case 'Maintain Healthy Life':
-        recommendations.addAll([
-          {
-            'title': 'Balanced Fitness Routine',
-            'description':
-                'Mix of cardio, strength, and flexibility for overall wellness',
-            'exercises': [
-              'Moderate cardio 20-30 minutes',
-              'Full-body strength training',
-              'Yoga or stretching 15 minutes',
-              'Core strengthening exercises',
-              'Balance and coordination drills',
-            ],
-            'duration': '45-60 minutes',
-            'frequency': '4-5 times per week',
-            'intensity': 'Low to Moderate',
-          },
-        ]);
-        break;
-    }
-
-    // Add medical condition specific modifications
-    _addMedicalConditionModifications(recommendations);
-
-    return recommendations;
+  @override
+  void initState() {
+    super.initState();
+    _initializeAnimations();
+    _loadPredictions();
   }
 
-  void _addMedicalConditionModifications(
-    List<Map<String, dynamic>> recommendations,
-  ) {
-    if (userProfile!.diabetes) {
-      recommendations.add({
-        'title': 'Diabetes-Friendly Exercise',
-        'description': 'Specialized routine for blood sugar management',
-        'exercises': [
-          'Low-impact cardio (walking, swimming)',
-          'Resistance training with light to moderate weights',
-          'Flexibility exercises',
-          'Balance training to prevent falls',
-        ],
-        'duration': '30-45 minutes',
-        'frequency': 'Most days of the week',
-        'intensity': 'Low to Moderate',
-        'special_notes': [
-          '🩸 Check blood sugar before and after exercising',
-          '🍬 Carry glucose tablets or snacks',
-          '💧 Stay well hydrated',
-          '📈 Start slowly and gradually increase intensity',
-          '⏰ Best times: 1-3 hours after meals',
-        ],
-        'bloodSugarTargets': {
-          'pre_exercise': '100-180 mg/dL',
-          'post_exercise': 'Monitor for 2-4 hours',
-        },
-      });
-    }
+  void _initializeAnimations() {
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
 
-    if (userProfile!.hypertension) {
-      recommendations.add({
-        'title': 'Blood Pressure Management',
-        'description': 'Focus on moderate-intensity aerobic exercise',
-        'exercises': [
-          'Brisk walking',
-          'Swimming',
-          'Cycling',
-          'Light weight training (avoid heavy lifting)',
-          'Tai Chi or gentle yoga',
-        ],
-        'duration': '30-45 minutes',
-        'frequency': '5-7 days per week',
-        'intensity': 'Low to Moderate',
-        'special_notes': [
-          '⚠️ Avoid heavy lifting or straining (Valsalva maneuver)',
-          '📊 Monitor blood pressure regularly',
-          '🔄 Include proper warm-up and cool-down',
-          '🛑 Stop if you feel dizzy or short of breath',
-          '💊 Take medications as prescribed',
-        ],
-        'bpTargets': 'Keep systolic <140 mmHg during exercise',
-      });
-    }
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
-    if (userProfile!.ckd) {
-      recommendations.add({
-        'title': 'Kidney-Friendly Exercise',
-        'description':
-            'Low to moderate intensity activities to support kidney health',
-        'exercises': [
-          'Walking at comfortable pace',
-          'Light swimming (if no fluid restrictions)',
-          'Chair exercises',
-          'Gentle stretching',
-          'Breathing exercises',
-        ],
-        'duration': '20-30 minutes',
-        'frequency': '3-5 times per week',
-        'intensity': 'Low',
-        'special_notes': [
-          '🚫 Avoid high-intensity workouts',
-          '💧 Follow fluid restrictions if prescribed',
-          '😴 Monitor for excessive fatigue',
-          '👨‍⚕️ Get clearance from nephrologist before starting',
-          '📋 Regular kidney function monitoring',
-        ],
-        'limitations': 'May need to adjust based on kidney function stage',
-      });
-    }
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
-    if (userProfile!.liverDisease) {
-      recommendations.add({
-        'title': 'Liver Health Support',
-        'description':
-            'Gentle exercise to support liver function without overexertion',
-        'exercises': [
-          'Walking',
-          'Light yoga',
-          'Swimming (if no ascites)',
-          'Breathing exercises',
-          'Gentle stretching',
-        ],
-        'duration': '20-40 minutes',
-        'frequency': '4-6 times per week',
-        'intensity': 'Low',
-        'special_notes': [
-          '🎯 Avoid overexertion',
-          '👂 Listen to your body',
-          '💧 Stay hydrated but not overhydrated',
-          '📅 Regular medical monitoring',
-          '🍎 Combine with liver-healthy nutrition',
-        ],
-      });
-    }
+    _animationController.forward();
+  }
 
-    if (userProfile!.fattyLiver) {
-      recommendations.add({
-        'title': 'Fatty Liver Management',
-        'description': 'Exercise routine to help reduce liver fat content',
-        'exercises': [
-          'Moderate aerobic exercise',
-          'Resistance training 2x per week',
-          'Walking after meals',
-          'Swimming',
-          'Cycling',
-        ],
-        'duration': '30-45 minutes',
-        'frequency': '5-6 times per week',
-        'intensity': 'Moderate',
-        'special_notes': [
-          '🎯 Aim for gradual weight loss (1-2 lbs/week)',
-          '🥗 Combine with healthy diet',
-          '📊 Regular liver function tests',
-          '💪 Resistance training helps reduce liver fat',
-        ],
-        'benefits': 'Can reduce liver fat by 20-30% in 3-6 months',
+  Future<void> _loadPredictions() async {
+    if (widget.userProfile == null) return;
+
+    setState(() {
+      _isLoadingPrediction = true;
+      _errorMessage = null;
+    });
+
+    try {
+      print('Loading predictions for user profile...');
+      final response = await PredictService.getPrediction(widget.userProfile!);
+
+      if (response != null) {
+        print('Received response: $response');
+        setState(() {
+          _apiResponse = response;
+          // Set the first predicted type as default selection
+          if (response['predicted_types'] != null &&
+              (response['predicted_types'] as List).isNotEmpty) {
+            _selectedWorkoutType = response['predicted_types'][0];
+          }
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to get predictions from server';
+        });
+        _showErrorSnackBar(_errorMessage!);
+      }
+    } catch (e) {
+      print('Error loading predictions: $e');
+      setState(() {
+        _errorMessage = 'Network error: ${e.toString()}';
       });
+      _showErrorSnackBar(_errorMessage!);
+    } finally {
+      setState(() => _isLoadingPrediction = false);
     }
   }
 
-  Color _getIntensityColor(String intensity) {
-    switch (intensity.toLowerCase()) {
-      case 'low':
-        return Colors.green;
-      case 'moderate':
-      case 'low to moderate':
-        return Colors.orange;
-      case 'high':
-      case 'moderate to high':
-        return Colors.red;
-      default:
-        return Colors.blue;
-    }
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Retry',
+          textColor: Colors.white,
+          onPressed: _loadPredictions,
+        ),
+      ),
+    );
   }
 
-  IconData _getWorkoutIcon(String title) {
-    if (title.toLowerCase().contains('cardio')) return Icons.directions_run;
-    if (title.toLowerCase().contains('strength')) return Icons.fitness_center;
-    if (title.toLowerCase().contains('diabetes')) return Icons.bloodtype;
-    if (title.toLowerCase().contains('blood pressure')) return Icons.favorite;
-    if (title.toLowerCase().contains('kidney')) return Icons.water_drop;
-    if (title.toLowerCase().contains('liver')) return Icons.medical_services;
-    return Icons.sports_gymnastics;
+  String _formatWorkoutTypeName(String type) {
+    return type.replaceAll('_', ' ').toUpperCase();
+  }
+
+  Color _getProbabilityColor(double probability) {
+    if (probability >= 0.18) return Colors.green;
+    if (probability >= 0.15) return Colors.orange;
+    return Colors.red;
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> recommendations = _generateRecommendations();
-
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Workout Recommendations'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        title: const Text(
+          'AI Workout Recommendations',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        backgroundColor: Colors.deepPurple[600],
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          if (!_isLoadingPrediction)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _loadPredictions,
+              tooltip: 'Refresh Predictions',
+            ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Personalized Header
-            if (userProfile != null) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.orange[400]!, Colors.orange[600]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Personalized Workout Plan',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Tailored for your ${userProfile!.personalGoal.toLowerCase()} goal',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        _buildProfileChip(
-                          'Age: ${userProfile!.age}',
-                          Icons.cake,
-                        ),
-                        const SizedBox(width: 12),
-                        _buildProfileChip(
-                          'BMI: ${userProfile!.bmi.toStringAsFixed(1)}',
-                          Icons.monitor_weight,
-                        ),
-                        const SizedBox(width: 12),
-                        _buildProfileChip(
-                          '${userProfile!.selectedConditionsCount} conditions',
-                          Icons.medical_services,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
+      body: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: _buildBody(),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
+  Widget _buildBody() {
+    if (_isLoadingPrediction) {
+      return _buildLoadingView();
+    }
+
+    if (_errorMessage != null || _apiResponse == null) {
+      return _buildErrorView();
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeaderSection(),
+          const SizedBox(height: 24),
+          _buildPredictionResults(),
+          const SizedBox(height: 24),
+          _buildWorkoutTypeSelector(),
+          const SizedBox(height: 24),
+          if (_selectedWorkoutType != null) _buildSelectedWorkoutPlan(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: Colors.deepPurple[600],
+            strokeWidth: 3,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'AI Model Processing...',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Analyzing your health data with machine learning',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
             const Text(
-              'Recommended Workouts',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              'Failed to load recommendations',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
-              'Based on your health profile and medical conditions',
-              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              _errorMessage ?? 'Please check your connection and try again',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
-
-            // Workout Recommendations
-            ...recommendations.asMap().entries.map((entry) {
-              int index = entry.key;
-              Map<String, dynamic> recommendation = entry.value;
-              bool isSpecialCondition = recommendation['special_notes'] != null;
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                child: Card(
-                  elevation: isSpecialCondition ? 4 : 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: isSpecialCondition
-                        ? BorderSide(color: Colors.amber[300]!, width: 2)
-                        : BorderSide.none,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: isSpecialCondition
-                          ? LinearGradient(
-                              colors: [Colors.amber[50]!, Colors.orange[50]!],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: _getIntensityColor(
-                                    recommendation['intensity'] ?? 'moderate',
-                                  ).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  _getWorkoutIcon(recommendation['title']),
-                                  color: _getIntensityColor(
-                                    recommendation['intensity'] ?? 'moderate',
-                                  ),
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      recommendation['title'],
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      recommendation['description'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Exercise List
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey[200]!),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.list,
-                                      size: 20,
-                                      color: Colors.blue,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Exercises:',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                ...List<String>.from(
-                                  recommendation['exercises'],
-                                ).map(
-                                  (exercise) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          margin: const EdgeInsets.only(
-                                            top: 8,
-                                            right: 12,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: _getIntensityColor(
-                                              recommendation['intensity'] ??
-                                                  'moderate',
-                                            ),
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            exercise,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              height: 1.4,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Workout Details
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildDetailItem(
-                                        Icons.schedule,
-                                        'Duration',
-                                        recommendation['duration'],
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 1,
-                                      height: 40,
-                                      color: Colors.grey[300],
-                                    ),
-                                    Expanded(
-                                      child: _buildDetailItem(
-                                        Icons.repeat,
-                                        'Frequency',
-                                        recommendation['frequency'],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (recommendation['intensity'] != null) ...[
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildDetailItem(
-                                          Icons.speed,
-                                          'Intensity',
-                                          recommendation['intensity'],
-                                          color: _getIntensityColor(
-                                            recommendation['intensity'],
-                                          ),
-                                        ),
-                                      ),
-                                      if (recommendation['caloriesBurn'] !=
-                                          null) ...[
-                                        Container(
-                                          width: 1,
-                                          height: 40,
-                                          color: Colors.grey[300],
-                                        ),
-                                        Expanded(
-                                          child: _buildDetailItem(
-                                            Icons.local_fire_department,
-                                            'Calories',
-                                            recommendation['caloriesBurn'],
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-
-                          // Special Medical Notes
-                          if (recommendation['special_notes'] != null) ...[
-                            const SizedBox(height: 20),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.amber[50],
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.amber[200]!),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.warning_amber,
-                                        color: Colors.amber,
-                                        size: 24,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Medical Considerations:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.orange,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ...List<String>.from(
-                                    recommendation['special_notes'],
-                                  ).map(
-                                    (note) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 6),
-                                      child: Text(
-                                        note,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-
-                          // Additional Info (targets, benefits, etc.)
-                          if (recommendation['bloodSugarTargets'] != null ||
-                              recommendation['bpTargets'] != null ||
-                              recommendation['benefits'] != null) ...[
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[50],
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.blue[200]!),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.info,
-                                        color: Colors.blue,
-                                        size: 20,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Additional Information:',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (recommendation['bloodSugarTargets'] !=
-                                      null)
-                                    Text(
-                                      'Target Blood Sugar: ${recommendation['bloodSugarTargets']['pre_exercise']}',
-                                    ),
-                                  if (recommendation['bpTargets'] != null)
-                                    Text(
-                                      'BP Target: ${recommendation['bpTargets']}',
-                                    ),
-                                  if (recommendation['benefits'] != null)
-                                    Text(
-                                      'Expected Benefits: ${recommendation['benefits']}',
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadPredictions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
                 ),
-              );
-            }),
-
-            const SizedBox(height: 30),
-
-            // Medical Disclaimer
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.red[50],
-                border: Border.all(color: Colors.red[200]!),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.medical_services, color: Colors.red, size: 24),
-                      SizedBox(width: 12),
-                      Text(
-                        'Medical Disclaimer:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'These recommendations are AI-generated suggestions based on your health profile. '
-                    'Always consult with your healthcare provider before starting any new exercise program, '
-                    'especially if you have medical conditions. Stop exercising immediately if you '
-                    'experience chest pain, dizziness, shortness of breath, or unusual fatigue.',
-                    style: TextStyle(fontSize: 14, height: 1.5),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'For diabetes: Monitor blood sugar levels closely. For hypertension: Avoid heavy lifting. '
-                    'For kidney/liver conditions: Follow your doctor\'s activity restrictions.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.red,
-                    ),
-                  ),
-                ],
               ),
             ),
           ],
@@ -786,24 +253,183 @@ class WorkoutRecommendationsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileChip(String text, IconData icon) {
+  Widget _buildHeaderSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        gradient: LinearGradient(
+          colors: [Colors.deepPurple[400]!, Colors.deepPurple[600]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.3),
+            spreadRadius: 0,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
         children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.psychology, size: 48, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'AI Workout Analysis Complete',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
               color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Level: ${widget.selectedLevel ?? "Not specified"}',
+            style: const TextStyle(fontSize: 16, color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPredictionResults() {
+    List<dynamic> predictedTypes = _apiResponse!['predicted_types'] ?? [];
+    Map<String, dynamic> probabilities = _apiResponse!['probabilities'] ?? {};
+    double threshold = _apiResponse!['threshold'] ?? 0.0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.green[200]!, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.auto_awesome,
+                  color: Colors.green[700],
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'AI Prediction Results',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Primary Recommendations
+          if (predictedTypes.isNotEmpty) ...[
+            const Text(
+              'Recommended Workout Types:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: predictedTypes.map<Widget>((type) {
+                double probability = probabilities[type] ?? 0.0;
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getProbabilityColor(probability).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _getProbabilityColor(probability),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _formatWorkoutTypeName(type),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _getProbabilityColor(probability),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        '${(probability * 100).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: _getProbabilityColor(probability),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Threshold Info
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'AI Confidence Threshold:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '${(threshold * 100).toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple[600],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -811,35 +437,355 @@ class WorkoutRecommendationsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(
-    IconData icon,
-    String label,
-    String value, {
-    Color? color,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, color: color ?? Colors.grey[600], size: 20),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
+  Widget _buildWorkoutTypeSelector() {
+    List<dynamic> predictedTypes = _apiResponse!['predicted_types'] ?? [];
+
+    if (predictedTypes.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: color ?? Colors.black87,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Select Workout Type to View Plan:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+          const SizedBox(height: 16),
+
+          ...predictedTypes.map<Widget>((type) {
+            bool isSelected = _selectedWorkoutType == type;
+            Map<String, dynamic> probabilities =
+                _apiResponse!['probabilities'] ?? {};
+            double probability = probabilities[type] ?? 0.0;
+
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedWorkoutType = type;
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.deepPurple[50] : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? Colors.deepPurple[600]!
+                        : Colors.grey[300]!,
+                    width: isSelected ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? Colors.deepPurple[600]
+                            : Colors.transparent,
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.deepPurple[600]!
+                              : Colors.grey[400]!,
+                          width: 2,
+                        ),
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              size: 12,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _formatWorkoutTypeName(type),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.deepPurple[600]
+                                  : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            'Confidence: ${(probability * 100).toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: isSelected
+                          ? Colors.deepPurple[600]
+                          : Colors.grey[400],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedWorkoutPlan() {
+    if (_selectedWorkoutType == null) return const SizedBox.shrink();
+
+    Map<String, dynamic> workoutPlans = _apiResponse!['workout_plans'] ?? {};
+    Map<String, dynamic>? selectedPlan = workoutPlans[_selectedWorkoutType];
+
+    if (selectedPlan == null) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue[200]!, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.fitness_center,
+                  color: Colors.blue[700],
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Your Workout Plan',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      _formatWorkoutTypeName(_selectedWorkoutType!),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Weekly Schedule
+          ...selectedPlan.entries.map<Widget>((entry) {
+            String day = entry.key;
+            List<dynamic> exercises = entry.value;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.calendar_today,
+                          color: Colors.blue[700],
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        day,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${exercises.length} exercises',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  ...exercises.asMap().entries.map<Widget>((exerciseEntry) {
+                    int index = exerciseEntry.key;
+                    String exercise = exerciseEntry.value;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.blue[600],
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              exercise,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            );
+          }).toList(),
+
+          const SizedBox(height: 20),
+
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _loadPredictions,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Regenerate'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: Colors.deepPurple[600]!),
+                    foregroundColor: Colors.deepPurple[600],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Workout plan saved successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save Plan'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green[600],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

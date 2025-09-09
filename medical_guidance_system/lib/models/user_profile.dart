@@ -1,6 +1,6 @@
 class UserProfile {
   final String id;
-  final String name; // Added name field
+  final String username;
   final int age;
   final String gender;
   final double height; // in cm
@@ -18,7 +18,7 @@ class UserProfile {
 
   UserProfile({
     required this.id,
-    required this.name, // Added name parameter
+    required this.username,
     required this.age,
     required this.gender,
     required this.height,
@@ -71,7 +71,7 @@ class UserProfile {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name, // Added name to map
+      'username': username,
       'age': age,
       'gender': gender,
       'height': height,
@@ -92,7 +92,7 @@ class UserProfile {
   factory UserProfile.fromMap(Map<String, dynamic> map) {
     return UserProfile(
       id: map['id'] ?? '',
-      name: map['name'] ?? '', // Added name from map with fallback
+      username: map['username'] ?? '',
       age: map['age'] ?? 0,
       gender: map['gender'] ?? '',
       height: (map['height'] ?? 0.0).toDouble(),
@@ -116,7 +116,7 @@ class UserProfile {
 
   UserProfile copyWith({
     String? id,
-    String? name, // Added name parameter
+    String? username,
     int? age,
     String? gender,
     double? height,
@@ -134,7 +134,7 @@ class UserProfile {
   }) {
     return UserProfile(
       id: id ?? this.id,
-      name: name ?? this.name, // Added name to copyWith
+      username: username ?? this.username,
       age: age ?? this.age,
       gender: gender ?? this.gender,
       height: height ?? this.height,

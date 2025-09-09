@@ -4,7 +4,7 @@ class FirebaseConfig {
   static Future<void> initializeFirebase() async {
     // Initialize your main app's Firebase (for user profiles, reports, etc.)
     await Firebase.initializeApp(
-      name: 'Fitgen', // Your main app
+      name: 'fitgen', // Your main app
       options: const FirebaseOptions(
         // Your main app's Firebase configuration
         apiKey: 'AIzaSyC4m5cSrqo4a4noB3NWyMUDsJfEerZ3WpI',
@@ -34,5 +34,5 @@ class FirebaseConfig {
   static FirebaseApp get iotApp => Firebase.app('FitgenMedical');
 
   // Helper method to get main app Firebase instance
-  static FirebaseApp get mainApp => Firebase.app('Fitgen');
+  static FirebaseApp get mainApp => Firebase.app('fitgen');
 }

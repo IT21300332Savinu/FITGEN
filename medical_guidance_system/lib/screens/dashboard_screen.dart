@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:text_recognition_new/screens/fitness_assessment_screen.dart';
 import 'dart:math';
 import '../models/user_profile.dart';
 import '../services/firebase_service.dart';
 import '../services/iot_data_service.dart';
 import 'workout_recommendations_screen.dart';
 import 'profile_screen.dart';
+import 'break_screen.dart';
+import '../screens/fitness_assessment_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,7 +22,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   UserProfile? _userProfile;
   List<Map<String, dynamic>> _reports = [];
   bool _isLoading = true;
-  String _userName = 'User';
 
   // Heart Rate Animation
   late AnimationController _heartAnimationController;
@@ -34,11 +36,16 @@ class _DashboardScreenState extends State<DashboardScreen>
   Map<String, dynamic> _deviceStatus = {};
   List<Map<String, dynamic>> _historicalHRData = [];
   Map<String, dynamic> _hrStatistics = {};
+  DateTime? _latestReportDate;
+
+  late final Stream<Map<String, dynamic>?> _heartRateStream;
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
+
+    _heartRateStream = IoTDataService.getRealtimeHeartRateStream();
   }
 
   Future<void> _initializeApp() async {
@@ -91,26 +98,30 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _loadIoTData() async {
     try {
+      // Initialize IoT connection
       await IoTDataService.initializeIoTConnection();
+
+      // Test the connection
       bool connected = await IoTDataService.testConnection();
-      debugPrint('IoT Connection test result: $connected');
+      print('IoT Connection test result: $connected');
 
+      // Load device status
       _deviceStatus = await IoTDataService.getDeviceStatus();
-      debugPrint('Device status: $_deviceStatus');
+      print('Device status: $_deviceStatus');
 
+      // Load historical data for graphs
       _historicalHRData = await IoTDataService.getHistoricalHeartRateData(
         limit: 50,
       );
-      debugPrint('Historical HR data points: ${_historicalHRData.length}');
+      print('Historical HR data points: ${_historicalHRData.length}');
 
+      // Get statistics
       _hrStatistics = await IoTDataService.getHeartRateStatistics();
-      debugPrint('HR Statistics: $_hrStatistics');
-
-      await IoTDataService.debugDataCollection();
+      print('HR Statistics: $_hrStatistics');
 
       setState(() {});
     } catch (e) {
-      debugPrint('Error loading IoT data: $e');
+      print('Error loading IoT data: $e');
     }
   }
 
@@ -129,26 +140,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     try {
       _userProfile = await FirebaseService.getUserProfile();
       _reports = await FirebaseService.getUserReports();
-
-      // Set user name based on profile data
-      if (_userProfile != null && _userProfile!.name.isNotEmpty) {
-        _userName = _userProfile!.name;
-      } else if (_userProfile != null) {
-        // Fallback to gender-based greeting if name is empty
-        _userName = _userProfile!.gender == 'Male'
-            ? 'Mr. User'
-            : _userProfile!.gender == 'Female'
-            ? 'Ms. User'
-            : 'User';
-      } else {
-        _userName = 'User';
-      }
-
-      debugPrint('User profile loaded: ${_userProfile != null}');
-      debugPrint('Reports loaded: ${_reports.length}');
-      debugPrint('User name set to: $_userName');
+      _latestReportDate = await FirebaseService.getLatestReportDate();
     } catch (e) {
-      debugPrint('Error loading user data: $e');
+      print('Error loading user data: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -170,10 +164,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => WorkoutRecommendationsScreen(
-          userProfile: _userProfile,
-          latestReportData: _reports.isNotEmpty ? _reports.first : null,
-        ),
+        builder: (context) =>
+            FitnessAssessmentScreen(userProfile: _userProfile),
       ),
     );
   }
@@ -221,76 +213,29 @@ class _DashboardScreenState extends State<DashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Welcome back, $_userName!',
+                      _userProfile != null
+                          ? 'Welcome back, ${_userProfile!.username.isNotEmpty ? _userProfile!.username : (_userProfile!.gender == 'Male' ? 'Mr.' : 'Ms.') + ' User'}!'
+                          : 'Welcome back!',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(
-                      'Monitoring your health with IoT technology',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    Text(
+                      _userProfile != null
+                          ? 'Monitoring your health with IoT technology'
+                          : 'Your health journey continues...',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-
-          // Profile Summary
-          if (_userProfile != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Profile Summary:',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Age: ${_userProfile!.age} • BMI: ${_userProfile!.bmi.toStringAsFixed(1)} (${_userProfile!.bmiCategory})',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Goal: ${_userProfile!.personalGoal} • Conditions: ${_userProfile!.selectedConditionsCount}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  if (_reports.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Reports Uploaded: ${_reports.length}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -418,7 +363,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(width: 16),
                   const Expanded(
                     child: Text(
-                      'Fitgen Heart Rate Monitor',
+                      ' Heart Rate Monitor',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -455,8 +400,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                 children: [
                   Text(
                     _deviceStatus['isConnected'] == true
-                        ? 'Connected to Fitgen Device'
-                        : 'Disconnected from Fitgen Device',
+                        ? 'Connected to FitgenMedical '
+                        : 'Disconnected from  Device',
                     style: TextStyle(
                       color: _deviceStatus['isConnected'] == true
                           ? Colors.green[700]
@@ -477,7 +422,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               const SizedBox(height: 20),
 
               StreamBuilder<Map<String, dynamic>?>(
-                stream: IoTDataService.getRealtimeHeartRateStream(),
+                stream: _heartRateStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingWidget();
@@ -491,11 +436,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     return _buildNoDataWidget();
                   }
 
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    setState(() {
-                      _currentIoTData = snapshot.data!;
-                    });
-                  });
+                  _currentIoTData = snapshot.data!;
 
                   double currentBPM = (_currentIoTData?['BPM'] ?? 0).toDouble();
 
@@ -549,7 +490,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'IBM: ${_currentIoTData?['IBM']?.toInt() ?? 0}',
+                                'IBM: ${_currentIoTData?['IBM'] ?? 0}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -593,6 +534,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       const SizedBox(height: 20),
 
                       _buildDataInfoRow(),
+                      const SizedBox(height: 12),
+                      _buildHighHeartRateHint(currentBPM),
                     ],
                   );
                 },
@@ -605,34 +548,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildHistoricalHRChart() {
-    if (_historicalHRData.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
-              const SizedBox(height: 12),
-              const Text(
-                'No Historical Data',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Heart rate history will appear here once data is collected',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
+    // Prepare data for chart (last 20 points for readability)
     List<Map<String, dynamic>> chartData = _historicalHRData
         .take(20)
         .toList()
@@ -794,7 +710,8 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
             const SizedBox(height: 16),
 
-            if (_hrStatistics.isNotEmpty)
+            // Statistics Row
+            if (_hrStatistics.isNotEmpty) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -812,6 +729,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ],
               ),
+            ],
           ],
         ),
       ),
@@ -976,7 +894,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Icon(Icons.sensors, size: 16, color: Colors.blue[700]),
                   const SizedBox(width: 4),
                   Text(
-                    'Fitgen',
+                    'FitgenMedical',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1002,7 +920,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           SizedBox(height: 16),
           Text(
-            'Connecting to Fitgen Device...',
+            'Connecting to IoT Device...',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ],
@@ -1047,7 +965,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Check your Fitgen device connection.\nData collection: ${_deviceStatus['dataCount'] ?? 0} records',
+            'Check your FitgenMedical device connection.\nData collection: ${_deviceStatus['dataCount'] ?? 0} records',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey[500], fontSize: 14),
           ),
@@ -1088,17 +1006,90 @@ class _DashboardScreenState extends State<DashboardScreen>
     return 'Normal';
   }
 
+  bool _shouldShowReportReminder() {
+    if (_latestReportDate == null) return true; // Never uploaded
+    final nextDue = _latestReportDate!.add(const Duration(days: 90));
+    final now = DateTime.now();
+    return now.isAfter(nextDue.subtract(const Duration(days: 7)));
+  }
+
+  Widget _buildReportReminderBanner() {
+    final dueText = _latestReportDate == null
+        ? 'No report uploaded yet'
+        : 'Last report: ${_latestReportDate!.toLocal().toString().split(' ').first}';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber[50],
+        border: Border.all(color: Colors.amber[200]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.notification_important, color: Colors.amber),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Time to re-upload your medical report (every 3 months). $dueText',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          TextButton(
+            onPressed: _navigateToUpdateProfile,
+            child: const Text('Upload'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighHeartRateHint(double bpm) {
+    if (bpm <= 100) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red[200]!),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.warning, color: Colors.red),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Heart rate is high. Consider taking a short break.',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => BreakScreen(bpm: bpm.toInt()),
+                ),
+              );
+            },
+            child: const Text('Take Break'),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatDateTime(dynamic timestamp) {
     if (timestamp == null) return 'Never';
     try {
       if (timestamp is String) {
-        DateTime dt = DateTime.parse(timestamp);
-        return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+        return DateTime.parse(timestamp).toLocal().toString();
       } else if (timestamp is DateTime) {
-        return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
+        return timestamp.toLocal().toString();
       } else if (timestamp is int) {
-        DateTime dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
-        return '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+        // Unix timestamp
+        return DateTime.fromMillisecondsSinceEpoch(
+          timestamp,
+        ).toLocal().toString();
       }
     } catch (e) {
       return 'Invalid';
@@ -1138,16 +1129,26 @@ class _DashboardScreenState extends State<DashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Welcome Header
                     _buildWelcomeHeader(),
                     const SizedBox(height: 20),
+
+                    // Quick Stats
                     _buildQuickStats(),
                     const SizedBox(height: 20),
+
+                    // IoT Heart Rate Monitor (MAIN FEATURE)
                     _buildIoTHeartRateCard(),
                     const SizedBox(height: 20),
+
+                    // Historical HR Chart (NEW FEATURE)
                     _buildHistoricalHRChart(),
                     const SizedBox(height: 20),
+
+                    // Action Buttons Section
                     Row(
                       children: [
+                        // Update Profile Button
                         Expanded(
                           child: Container(
                             height: 56,
@@ -1201,6 +1202,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // Workout Plan Button
                     Container(
                       width: double.infinity,
                       height: 56,
@@ -1250,6 +1253,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                       ),
                     ),
+
+                    // Report Reminder Section
+                    if (_shouldShowReportReminder()) ...[
+                      const SizedBox(height: 20),
+                      _buildReportReminderBanner(),
+                    ],
                   ],
                 ),
               ),

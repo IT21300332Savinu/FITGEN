@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "374430418123",
-    "project_id": "crudapp-35a42",
-    "storage_bucket": "crudapp-35a42.firebasestorage.app"
+    "project_number": "28582013230",
+    "project_id": "fitgen-8df00",
+    "storage_bucket": "fitgen-8df00.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:374430418123:android:438cb108f3e7c2f3da874e",
+        "mobilesdk_app_id": "1:28582013230:android:38837813f1fa72da8af2bf",
         "android_client_info": {
-          "package_name": "com.example.crud_app"
+          "package_name": "com.example.fitgen"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDPteuQXgJZScp7neoYN6AAYr19V4czVWs"
+          "current_key": "AIzaSyC4m5cSrqo4a4noB3NWyMUDsJfEerZ3WpI"
         }
       ],
       "services": {
@@ -26,15 +26,15 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:374430418123:android:3ab60007e48537ccda874e",
+        "mobilesdk_app_id": "1:28582013230:android:60c99e45827724df8af2bf",
         "android_client_info": {
-          "package_name": "com.example.medical_guidance_system"
+          "package_name": "com.package.fitgen"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDPteuQXgJZScp7neoYN6AAYr19V4czVWs"
+          "current_key": "AIzaSyC4m5cSrqo4a4noB3NWyMUDsJfEerZ3WpI"
         }
       ],
       "services": {

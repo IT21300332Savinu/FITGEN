@@ -1,6 +1,6 @@
 {
-    "name": "medical_guidance_system",
-    "short_name": "medical_guidance_system",
+    "name": "fitgen",
+    "short_name": "fitgen",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

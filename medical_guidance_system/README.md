@@ -1,20 +1,16 @@
-# AI Medical Guidance for Smart Gym
+# fitgen
 
+A new Flutter project.
 
-AI Medical Guidance for Smart Gym
+## Getting Started
 
+This project is a starting point for a Flutter application.
 
-Our AI Medical Guidance system transforms the gym experience for users with chronic health conditions. By intelligently monitoring vital signs through wearable devices and analyzing exercise patterns, it provides real-time, personalized workout recommendations tailored to specific medical conditions like diabetes, hypertension, and Chorinc kidney disease,hypercholestromia, fallyliver. The system detects potentially harmful movements during exercise, offers immediate feedback to prevent injuries, and creates customized recovery plans. With seamless integration of health monitoring and AI-driven recommendations, users can exercise safely and effectively while managing their health conditions.
+A few resources to get you started if this is your first Flutter project:
 
-Main Objective
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-To main objective of Research to implement an AI-powered medical guidance system for smart gyms real-time health monitoring and injury prevention, specifically designed for Person with chronic health conditions, by integrating data from both wearable and non-wearable devices to provide comprehensive health tracking and personalized exercise recommendations.
-
-Specific Objectives
-
-•	Integration of Medical Guidance into Workout
-•	Real Time Health Monitoring and Alert system
-•	Disease Specific Fitness Program
-
-
-
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

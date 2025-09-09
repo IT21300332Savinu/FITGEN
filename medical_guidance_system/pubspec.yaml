@@ -1,4 +1,4 @@
-name: text_recognition_new
+name: fitgen
 description: "Smart Gym & Health Tracker - A Flutter application with OCR capabilities for medical reports"
 publish_to: 'none'
 
@@ -22,7 +22,6 @@ dependencies:
   # Charts and Data Visualization
   fl_chart: ^0.65.0
   
-  # Image handling
   image_picker: ^1.1.2
 
   # OCR Dependencies - FIXED COMPATIBLE VERSIONS
@@ -36,6 +35,11 @@ dependencies:
   http: ^1.1.0
   intl: ^0.18.1
   shared_preferences: ^2.2.2
+  
+  # ML and CSV dependencies
+  tflite_flutter: ^0.10.4
+  csv: ^5.0.2
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -45,7 +49,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Add assets for future use
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  assets:
+    - assets/models/
+    - assets/data/workouts/
