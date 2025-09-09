@@ -4,7 +4,7 @@ import 'services/firebase_service.dart';
 import 'screens/profile_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'models/user_profile.dart';
-import './services/firebase_config .dart';
+import 'services/firebase_config .dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
