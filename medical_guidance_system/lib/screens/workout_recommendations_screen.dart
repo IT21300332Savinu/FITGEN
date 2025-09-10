@@ -67,7 +67,11 @@ class _WorkoutRecommendationsScreenState
 
     try {
       print('Loading predictions for user profile...');
-      final response = await PredictService.getPrediction(widget.userProfile!);
+      print('Selected fitness level: ${widget.selectedLevel}');
+      final response = await PredictService.getPrediction(
+        widget.userProfile!,
+        fitnessLevel: widget.selectedLevel,
+      );
 
       if (response != null) {
         print('Received response: $response');
@@ -136,7 +140,7 @@ class _WorkoutRecommendationsScreenState
           'AI Workout Recommendations',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.deepPurple[600],
+        backgroundColor: const Color.fromARGB(255, 210, 112, 42),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -259,14 +263,17 @@ class _WorkoutRecommendationsScreenState
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.deepPurple[400]!, Colors.deepPurple[600]!],
+          colors: [
+            const Color.fromARGB(255, 210, 112, 42)!,
+            const Color.fromARGB(255, 210, 112, 42)!,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.3),
+            color: const Color.fromARGB(255, 95, 42, 210).withOpacity(0.3),
             spreadRadius: 0,
             blurRadius: 20,
             offset: const Offset(0, 8),
@@ -576,7 +583,7 @@ class _WorkoutRecommendationsScreenState
         border: Border.all(color: Colors.blue[200]!, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.1),
+            color: const Color.fromARGB(255, 210, 112, 42).withOpacity(0.1),
             spreadRadius: 0,
             blurRadius: 15,
             offset: const Offset(0, 4),
@@ -596,7 +603,7 @@ class _WorkoutRecommendationsScreenState
                 ),
                 child: Icon(
                   Icons.fitness_center,
-                  color: Colors.blue[700],
+                  color: const Color.fromARGB(255, 210, 112, 42),
                   size: 24,
                 ),
               ),
@@ -616,7 +623,7 @@ class _WorkoutRecommendationsScreenState
                       _formatWorkoutTypeName(_selectedWorkoutType!),
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.blue[600],
+                        color: const Color.fromARGB(255, 210, 112, 42),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -653,7 +660,7 @@ class _WorkoutRecommendationsScreenState
                         ),
                         child: Icon(
                           Icons.calendar_today,
-                          color: Colors.blue[700],
+                          color: const Color.fromARGB(255, 210, 112, 42),
                           size: 16,
                         ),
                       ),
@@ -706,7 +713,7 @@ class _WorkoutRecommendationsScreenState
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: Colors.blue[600],
+                              color: const Color.fromARGB(255, 210, 112, 42),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Center(
@@ -748,11 +755,13 @@ class _WorkoutRecommendationsScreenState
                 child: OutlinedButton.icon(
                   onPressed: _loadPredictions,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Regenerate'),
+                  label: const Text('Start'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Colors.deepPurple[600]!),
-                    foregroundColor: Colors.deepPurple[600],
+                    side: BorderSide(
+                      color: const Color.fromARGB(255, 210, 112, 42)!,
+                    ),
+                    foregroundColor: const Color.fromARGB(255, 210, 112, 42),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
