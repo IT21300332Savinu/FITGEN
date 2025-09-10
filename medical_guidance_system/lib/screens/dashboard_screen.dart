@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:text_recognition_new/screens/fitness_assessment_screen.dart';
+import '../screens/fitness_assessment_screen.dart';
 import 'dart:math';
 import '../models/user_profile.dart';
 import '../services/firebase_service.dart';
