@@ -3,53 +3,96 @@ import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
 
 class PredictService {
-  static const String _baseUrl = 'https://b22a11c6f901.ngrok-free.app';
+  // Use correct host depending on environment
+  // Android emulator -> http://10.0.2.2:5000
+  // iOS simulator   -> http://127.0.0.1:5000
+  // Real device     -> http://<your-computer-LAN-IP>:5000
+  static const String _baseUrl = 'http://192.168.8.130:5000';
 
-  /// Calls the /predict endpoint with user profile data.
-  /// Returns decoded JSON response or null on error.
   static Future<Map<String, dynamic>?> getPrediction(
-    UserProfile userProfile,
-  ) async {
+    UserProfile userProfile, {
+    String? fitnessLevel,
+  }) async {
     try {
-      // Prepare the request body to match your Flask API expectations
-      final requestBody = {
-        'age': userProfile.age.toDouble(),
-        'gender': userProfile.gender.toLowerCase(),
-        'height': userProfile.height / 100, // Convert cm to meters
-        'weight': userProfile.weight.toDouble(),
-        'goal': _mapGoalToNumber(userProfile.personalGoal),
-        'normal_diabetes': _hasNormalDiabetes(userProfile),
-        'high_diabetes': _hasHighDiabetes(userProfile),
-        'liver_disease': userProfile.liverDisease,
-        'chronic_kidney_disease': userProfile.ckd,
-        'hypertension': userProfile.hypertension,
+      // Goal flags
+      final int weightLossFlag =
+          _goalIs(userProfile.personalGoal, const [
+            'weight loss',
+            'lose weight',
+          ])
+          ? 1
+          : 0;
+      final int muscleGainFlag =
+          _goalIs(userProfile.personalGoal, const [
+            'muscle gain',
+            'gain muscle',
+            'build muscle',
+          ])
+          ? 1
+          : 0;
+      final int maintainFlag =
+          _goalIs(userProfile.personalGoal, const [
+            'maintain weight',
+            'maintain healthy weight',
+            'maintenance',
+          ])
+          ? 1
+          : 0;
+
+      // Diabetes flags
+      final bool normalDia = _hasNormalDiabetes(userProfile);
+      final bool highDia = _hasHighDiabetes(userProfile);
+
+      // Input object
+      final Map<String, dynamic> input = {
+        'age': userProfile.age,
+        'height': userProfile.height / 100,
+        'weight': userProfile.weight,
+        'weight_loss': weightLossFlag,
+        'muscle_gain': muscleGainFlag,
+        'maintain_healthy_weight': maintainFlag,
+        'normal_diabetes': normalDia ? 1 : 0,
+        'high_diabetes': highDia ? 1 : 0,
+        'liver_disease': userProfile.liverDisease ? 1 : 0,
+        'chronic_kidney_disease': userProfile.ckd ? 1 : 0,
+        'hypertension': userProfile.hypertension ? 1 : 0,
+        'gender_male': userProfile.gender.toLowerCase() == 'male' ? 1 : 0,
       };
 
-      print('API Request URL: $_baseUrl/predict');
-      print('Request body: ${jsonEncode(requestBody)}');
+      // Use the provided fitness level or default to 'Intermediate'
+      final String levelToUse = fitnessLevel ?? 'Intermediate';
+      final Map<String, dynamic> bodyToSend = {
+        'input': input,
+        'level': levelToUse,
+      };
+
+      final uri = Uri.parse('$_baseUrl/predict');
+
+      print('🏋️ Using fitness level: $levelToUse');
+      print('API Request URL: $uri');
+      print('Request body: ${jsonEncode(bodyToSend)}');
 
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/predict'),
+            uri,
             headers: {
               'Content-Type': 'application/json',
-              'ngrok-skip-browser-warning': 'true', // Required for ngrok
+              'ngrok-skip-browser-warning': 'true',
             },
-            body: jsonEncode(requestBody),
+            body: jsonEncode(bodyToSend),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final body = response.body.isNotEmpty ? json.decode(response.body) : {};
-        if (body is Map<String, dynamic>) {
-          return body;
-        }
-        return {"data": body};
+        final dynamic parsed = response.body.isNotEmpty
+            ? json.decode(response.body)
+            : {};
+        if (parsed is Map<String, dynamic>) return parsed;
+        return {'data': parsed};
       }
-
       return null;
     } catch (e) {
       print('Error calling predict endpoint: $e');
@@ -57,67 +100,21 @@ class PredictService {
     }
   }
 
-  /// Maps user goal to number format expected by the backend
-  static String _mapGoalToNumber(String goal) {
-    switch (goal.toLowerCase()) {
-      case 'weight loss':
-      case 'lose weight':
-        return '1';
-      case 'muscle gain':
-      case 'gain muscle':
-      case 'build muscle':
-        return '2';
-      case 'maintain weight':
-      case 'maintain healthy weight':
-      case 'maintenance':
-        return '3';
-      default:
-        return '3'; // Default to maintenance
-    }
+  // ---------- Helpers ----------
+  static bool _goalIs(String goal, List<String> synonyms) {
+    final g = goal.toLowerCase().trim();
+    return synonyms.any((s) => g == s);
   }
 
-  /// Determines if user has normal diabetes
-  static bool _hasNormalDiabetes(UserProfile userProfile) {
-    if (!userProfile.diabetes) return false;
-    return userProfile.diabetesType?.toLowerCase() == 'prediabetes' ||
-        userProfile.diabetesType?.toLowerCase() == 'gestational';
+  static bool _hasNormalDiabetes(UserProfile u) {
+    if (!(u.diabetes == true)) return false;
+    final type = u.diabetesType?.toLowerCase().trim();
+    return type == 'prediabetes' || type == 'gestational';
   }
 
-  /// Determines if user has high diabetes
-  static bool _hasHighDiabetes(UserProfile userProfile) {
-    if (!userProfile.diabetes) return false;
-    return userProfile.diabetesType?.toLowerCase() == 'type 1' ||
-        userProfile.diabetesType?.toLowerCase() == 'type 2';
-  }
-
-  /// Generic method for other API calls if needed
-  static Future<Map<String, dynamic>?> getGenericPrediction({
-    Map<String, dynamic>? queryParams,
-  }) async {
-    try {
-      final uri = Uri.parse(
-        '$_baseUrl/predict',
-      ).replace(queryParameters: queryParams?.map((k, v) => MapEntry(k, '$v')));
-
-      final response = await http
-          .get(
-            uri,
-            headers: {
-              "Content-Type": "application/json",
-              'ngrok-skip-browser-warning': 'true',
-            },
-          )
-          .timeout(const Duration(seconds: 15));
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final body = response.body.isNotEmpty ? json.decode(response.body) : {};
-        if (body is Map<String, dynamic>) return body;
-        return {"data": body};
-      }
-
-      return null;
-    } catch (_) {
-      return null;
-    }
+  static bool _hasHighDiabetes(UserProfile u) {
+    if (!(u.diabetes == true)) return false;
+    final type = u.diabetesType?.toLowerCase().trim();
+    return type == 'type 1' || type == 'type 2';
   }
 }
