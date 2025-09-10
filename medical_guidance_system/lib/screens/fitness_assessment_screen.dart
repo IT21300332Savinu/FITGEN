@@ -36,7 +36,10 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
     Question(
       title: "What is your current level of gym experience?",
       icon: Icons.fitness_center,
-      gradient: [Colors.purple.shade400, Colors.purple.shade600],
+      gradient: [
+        const Color.fromARGB(255, 210, 112, 42),
+        const Color.fromARGB(255, 210, 112, 42),
+      ],
       options: [
         "Never exercised before",
         "Some experience with basic workouts",
@@ -47,14 +50,20 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
     Question(
       title: "How many days per week can you commit to exercise?",
       icon: Icons.calendar_today,
-      gradient: [Colors.blue.shade400, Colors.blue.shade600],
+      gradient: [
+        const Color.fromARGB(255, 210, 112, 42),
+        const Color.fromARGB(255, 210, 112, 42),
+      ],
       options: ["1-2 days", "3-4 days", "5-6 days", "7 days"],
     ),
     Question(
       title:
           "Do you experience fatigue, dizziness, or discomfort during physical activity?",
       icon: Icons.health_and_safety,
-      gradient: [Colors.red.shade400, Colors.red.shade600],
+      gradient: [
+        const Color.fromARGB(255, 210, 112, 42),
+        const Color.fromARGB(255, 210, 112, 42),
+      ],
       options: ["Frequently", "Sometimes", "Rarely", "Never"],
     ),
   ];
@@ -280,7 +289,7 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
           'Fitness Assessment',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.indigo[600],
+        backgroundColor: const Color.fromARGB(255, 210, 112, 42),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -533,8 +542,10 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                 label: const Text('Previous'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: Colors.indigo[600]!),
-                  foregroundColor: Colors.indigo[600],
+                  side: BorderSide(
+                    color: const Color.fromARGB(255, 210, 112, 42)!,
+                  ),
+                  foregroundColor: const Color.fromARGB(255, 210, 112, 42),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -562,7 +573,7 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo[600],
+                backgroundColor: const Color.fromARGB(255, 210, 112, 42),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 disabledBackgroundColor: Colors.grey[300],
@@ -593,14 +604,22 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                 padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.indigo.shade400, Colors.indigo.shade600],
+                    colors: [
+                      const Color.fromARGB(255, 210, 112, 422),
+                      const Color.fromARGB(255, 210, 112, 42),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.indigo.withOpacity(0.3),
+                      color: const Color.fromARGB(
+                        255,
+                        210,
+                        112,
+                        42,
+                      ).withOpacity(0.3),
                       spreadRadius: 0,
                       blurRadius: 20,
                       offset: const Offset(0, 10),
@@ -819,7 +838,7 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo[600],
+                    backgroundColor: const Color.fromARGB(255, 210, 112, 42),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
