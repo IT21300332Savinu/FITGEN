@@ -252,15 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             Colors.blue,
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            'IoT Status',
-            _deviceStatus['isConnected'] == true ? 'Online' : 'Offline',
-            Icons.sensors,
-            _deviceStatus['isConnected'] == true ? Colors.green : Colors.red,
-          ),
-        ),
+
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
