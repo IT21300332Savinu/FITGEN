@@ -6,6 +6,7 @@ import '../models/user_profile.dart';
 import '../services/firebase_service.dart';
 import '../services/ocr_service.dart';
 import 'dashboard_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserProfile? existingProfile;
