@@ -234,7 +234,7 @@ class _SPUSportSelectionPageWidgetState
                           controller:
                               _model.selectSportDropDownValueController ??=
                                   FormFieldController<String>(null),
-                          options: ['     badminton', '     football'],
+                          options: ['badminton', 'football'],
                           onChanged: (val) => safeSetState(
                               () => _model.selectSportDropDownValue = val),
                           width: double.infinity,
