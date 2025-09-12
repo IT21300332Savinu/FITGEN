@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../screens/fitness_assessment_screen.dart';
+import 'package:text_recognition_new/screens/fitness_assessment_screen.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:math';
 import '../models/user_profile.dart';
 import '../services/firebase_service.dart';
 import '../services/iot_data_service.dart';
-import 'workout_recommendations_screen.dart';
 import 'profile_screen.dart';
 import 'break_screen.dart';
-import '../screens/fitness_assessment_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -246,20 +245,19 @@ class _DashboardScreenState extends State<DashboardScreen>
       children: [
         Expanded(
           child: _buildStatCard(
-            'Reports',
-            '${_reports.length}',
-            Icons.description,
-            Colors.blue,
-          ),
-        ),
-
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
             'BMI',
             _userProfile != null ? _userProfile!.bmi.toStringAsFixed(1) : '0',
             Icons.monitor_weight,
             _getBMIColor(),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            'BMR',
+            _userProfile != null ? '${_calculateBMR()} cal' : '0 cal',
+            Icons.local_fire_department,
+            Colors.orange,
           ),
         ),
       ],
@@ -273,6 +271,26 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (bmi < 25) return Colors.green;
     if (bmi < 30) return Colors.orange;
     return Colors.red;
+  }
+
+  int _calculateBMR() {
+    if (_userProfile == null) return 0;
+
+    double weight = _userProfile!.weight;
+    double height = _userProfile!.height;
+    int age = _userProfile!.age;
+    String gender = _userProfile!.gender;
+
+    // Harris-Benedict Formula
+    double bmr;
+    if (gender == 'Male') {
+      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    }
+
+    // Round to nearest multiple of 10 for cleaner display
+    return ((bmr / 10).round() * 10).toInt();
   }
 
   Widget _buildStatCard(
@@ -437,6 +455,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                     _startHeartAnimation(currentBPM);
                   }
 
+                  // Check for high heart rate and show alert
+                  if (currentBPM > 100) {
+                    _checkHeartRateAndNotify(currentBPM);
+                  }
+
                   return Column(
                     children: [
                       Row(
@@ -556,15 +579,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
 
     if (hrSpots.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text(
-            'No valid heart rate data available',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ),
-      );
+      return const SizedBox.shrink(); // Return empty widget instead of error card
     }
 
     double minY = hrSpots.map((spot) => spot.y).reduce(min) - 10;
@@ -984,6 +999,93 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     _heartAnimationController.duration = duration;
     _heartAnimationController.repeat(reverse: true);
+  }
+
+  DateTime? _lastAlertTime;
+  FlutterTts? _flutterTts;
+
+  Future<void> _initializeTts() async {
+    _flutterTts = FlutterTts();
+    await _flutterTts?.setLanguage('en-US');
+    await _flutterTts?.setPitch(1.0);
+    await _flutterTts?.setVolume(1.0);
+  }
+
+  Future<void> _speakMessage(String message) async {
+    if (_flutterTts == null) {
+      await _initializeTts();
+    }
+    await _flutterTts?.speak(message);
+  }
+
+  void _checkHeartRateAndNotify(double heartRate) {
+    // Avoid showing multiple alerts
+    final now = DateTime.now();
+    if (_lastAlertTime != null &&
+        now.difference(_lastAlertTime!) < const Duration(minutes: 5)) {
+      return; // Don't show alert if less than 5 minutes since last alert
+    }
+    _lastAlertTime = now;
+
+    // Play voice alert
+    _speakMessage(
+      'Your heart rate is high. You need to take a break and do some breathing exercises.',
+    ); // Show visual alert dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red[700]),
+              const SizedBox(width: 8),
+              const Text('High Heart Rate Alert!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Your heart rate is ${heartRate.toInt()} BPM',
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'It\'s recommended to take a break and do some breathing exercises.',
+                style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Later'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BreakScreen(bpm: heartRate.toInt()),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Take Break Now'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Color _getHeartRateStatusColor(double heartRate) {
