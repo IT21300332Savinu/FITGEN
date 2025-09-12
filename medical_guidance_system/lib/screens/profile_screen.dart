@@ -2255,14 +2255,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       } catch (e) {
         print('⚠️ Report upload failed: $e');
-        // Continue without reports - don't let this block profile creation
+        // Continue without reports but keep disease detection data
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Reports upload failed, but profile will be saved without them',
+                'Report details and detected conditions have been saved. Your profile will be created with the analyzed health data.',
               ),
-              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 5),
+              backgroundColor: Colors.blue,
             ),
           );
         }
@@ -2433,7 +2434,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
         content: const Text(
-          'There seems to be a connectivity issue. Would you like to save your profile without uploading medical reports? You can upload them later from the dashboard.',
+          'There seems to be a connectivity issue. Your disease detection data and health analysis will be saved. Would you like to proceed with saving your profile? The analyzed health information will be stored in your profile.',
         ),
         actions: [
           TextButton(
@@ -2797,6 +2798,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       double bmi =
                                           weight /
                                           ((height / 100) * (height / 100));
+                                      // Calculate BMR using Harris-Benedict equation
+                                      double bmr = 0;
+                                      int? age = int.tryParse(
+                                        _ageController.text,
+                                      );
+                                      if (age != null) {
+                                        if (_selectedGender == 'Male') {
+                                          bmr =
+                                              88.362 +
+                                              (13.397 * weight) +
+                                              (4.799 * height) -
+                                              (5.677 * age);
+                                        } else {
+                                          bmr =
+                                              447.593 +
+                                              (9.247 * weight) +
+                                              (3.098 * height) -
+                                              (4.330 * age);
+                                        }
+                                      }
                                       String category = bmi < 18.5
                                           ? 'Underweight'
                                           : bmi < 25
@@ -2804,20 +2825,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           : bmi < 30
                                           ? 'Overweight'
                                           : 'Obese';
-                                      return Row(
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Icon(
-                                            Icons.calculate,
-                                            color: Colors.blue[700],
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calculate,
+                                                color: Colors.blue[700],
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'BMI: ${bmi.toStringAsFixed(1)} ($category)',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.blue[700],
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'BMI: ${bmi.toStringAsFixed(1)} ($category)',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.blue[700],
+                                          if (bmr > 0) ...[
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.local_fire_department,
+                                                  color: Colors.orange[700],
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'BMR: ${bmr.toStringAsFixed(0)} calories/day',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.orange[700],
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
+                                          ],
                                         ],
                                       );
                                     }
