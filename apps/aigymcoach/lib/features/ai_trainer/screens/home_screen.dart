@@ -1,0 +1,600 @@
+import 'package:flutter/material.dart';
+import 'workout_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _userName = 'User'; // You can load this from your user profile
+  int _totalWorkouts = 0;
+  int _totalCalories = 0;
+  int _totalMinutes = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _startExercise(String exerciseName, String workoutType) {
+    try {
+      // Check if it's the new AI bicep curl
+      if (exerciseName.toLowerCase().contains('bicep curl') || 
+          exerciseName == 'Bicep Curl (AI)') {
+        
+        // Navigate to the new AI-powered bicep curl workout
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WorkoutScreen(
+              exerciseName: 'Bicep Curl',
+              workoutType: 'strength',
+            ),
+          ),
+        ).then((result) {
+          // Handle result when returning from workout screen
+          if (result != null && result is Map<String, dynamic>) {
+            if (result['completed'] == true) {
+              final repCount = result['repCount'] ?? 0;
+              final duration = result['duration'] ?? 0;
+              final formScore = result['formScore']?.toInt() ?? 0;
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Bicep Curl Complete! $repCount reps in ${_formatDuration(duration)} with $formScore% form',
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+              
+              // Refresh data after workout
+              if (mounted) {
+                _loadUserData();
+              }
+            }
+          }
+        });
+        return;
+      }
+      
+      // Handle other exercises
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Starting $exerciseName workout...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      
+    } catch (e) {
+      debugPrint('Error starting exercise: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting workout: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _loadUserData() {
+    // Implement your data loading logic here
+    setState(() {
+      // For now, these are placeholder values
+      // You would load these from Firebase/your data source
+      _totalWorkouts = 5;
+      _totalCalories = 245;
+      _totalMinutes = 120;
+    });
+    debugPrint('Loading user data...');
+  }
+
+  void _showWorkoutOptions() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose Your Workout'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // AI Bicep Curl - Featured
+                _buildWorkoutOption(
+                  title: 'Bicep Curl (AI Trainer)',
+                  subtitle: 'AI-powered form analysis with real-time feedback',
+                  icon: Icons.fitness_center,
+                  color: Colors.blue,
+                  featured: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _startExercise('Bicep Curl (AI)', 'strength');
+                  },
+                ),
+                const SizedBox(height: 8),
+                // Other workout options
+                _buildWorkoutOption(
+                  title: 'Strength Training',
+                  subtitle: 'Traditional strength exercises',
+                  icon: Icons.fitness_center,
+                  color: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showExerciseSelection('strength');
+                  },
+                ),
+                _buildWorkoutOption(
+                  title: 'Cardio',
+                  subtitle: 'Cardiovascular exercises',
+                  icon: Icons.directions_run,
+                  color: Colors.red,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showExerciseSelection('cardio');
+                  },
+                ),
+                _buildWorkoutOption(
+                  title: 'Flexibility',
+                  subtitle: 'Stretching and mobility',
+                  icon: Icons.self_improvement,
+                  color: Colors.purple,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showExerciseSelection('flexibility');
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showExerciseSelection(String workoutType) {
+    List<Map<String, String>> exercises = [];
+    
+    if (workoutType == 'strength') {
+      exercises = [
+        {'name': 'Bicep Curl (AI)', 'description': 'AI-powered bicep curl analysis'},
+        {'name': 'Push-ups', 'description': 'Upper body strength'},
+        {'name': 'Squats', 'description': 'Lower body strength'},
+        {'name': 'Planks', 'description': 'Core stability'},
+      ];
+    } else if (workoutType == 'cardio') {
+      exercises = [
+        {'name': 'Jumping Jacks', 'description': 'Full body cardio'},
+        {'name': 'High Knees', 'description': 'Leg cardio'},
+        {'name': 'Burpees', 'description': 'High intensity'},
+      ];
+    } else if (workoutType == 'flexibility') {
+      exercises = [
+        {'name': 'Forward Bend', 'description': 'Hamstring stretch'},
+        {'name': 'Shoulder Rolls', 'description': 'Upper body mobility'},
+        {'name': 'Hip Circles', 'description': 'Hip mobility'},
+      ];
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${_capitalizeFirst(workoutType)} Exercises'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: exercises.map((exercise) =>
+              ListTile(
+                title: Text(exercise['name']!),
+                subtitle: Text(exercise['description']!),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startExercise(exercise['name']!, workoutType);
+                },
+              )
+            ).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Back'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkoutOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool featured = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        gradient: featured ? LinearGradient(
+          colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ) : null,
+        border: Border.all(
+          color: featured ? color : Colors.grey[300]!,
+          width: featured ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: featured ? FontWeight.bold : FontWeight.w600,
+            fontSize: featured ? 16 : 14,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: featured ? color : Colors.grey[400],
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('FITGEN', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {
+              // Handle notifications
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () {
+              // Handle profile
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back, $_userName!',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Ready to crush your fitness goals?',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _showWorkoutOptions,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).primaryColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    child: const Text(
+                      'START WORKOUT',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Stats Summary
+            const Text(
+              'Your Progress',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.fitness_center,
+                    title: 'Workouts',
+                    value: '$_totalWorkouts',
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.local_fire_department,
+                    title: 'Calories',
+                    value: '$_totalCalories',
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.timer,
+                    title: 'Minutes',
+                    value: '$_totalMinutes',
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Featured Workout
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.star, color: Colors.blue[600], size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Featured: AI Trainer',
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Try our AI-powered bicep curl trainer with real-time form analysis and rep counting!',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () => _startExercise('Bicep Curl (AI)', 'strength'),
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Try AI Trainer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Quick Actions
+            const Text(
+              'Quick Start',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.fitness_center,
+                    title: 'Strength',
+                    color: Colors.orange,
+                    onTap: () => _showExerciseSelection('strength'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.directions_run,
+                    title: 'Cardio',
+                    color: Colors.red,
+                    onTap: () => _showExerciseSelection('cardio'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.self_improvement,
+                    title: 'Flexibility',
+                    color: Colors.purple,
+                    onTap: () => _showExerciseSelection('flexibility'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showWorkoutOptions,
+        icon: const Icon(Icons.play_arrow),
+        label: const Text('Workout'),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
