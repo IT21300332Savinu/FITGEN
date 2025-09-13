@@ -1,0 +1,30 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "meetup",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "meetup_date",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "meetup_time",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "level_counters",
+      "fieldPath": "docidcounters",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
+}
