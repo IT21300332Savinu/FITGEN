@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fitgen/screens/meal_detail_screen.dart';
+import '../screens/meal_detail_screen.dart';
 import '../services/meal_suggestions_service.dart';
 
 class MealSuggestionScreen extends StatefulWidget {

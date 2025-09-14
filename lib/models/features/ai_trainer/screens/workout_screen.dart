@@ -1,7 +1,6 @@
 // lib/features/ai_trainer/screens/workout_screen.dart
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import '../../painters/form_feedback_painter.dart';
 import 'package:flutter/material.dart';
@@ -414,7 +413,8 @@ class WorkoutScreenState extends State<WorkoutScreen>
   InputImage? _inputImageFromCameraImage(CameraImage image) {
     final camera = _cameraController!.description;
     final sensorOrientation = camera.sensorOrientation;
-    
+
+    // Determine rotation
     InputImageRotation? rotation;
     if (Platform.isIOS) {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
@@ -425,38 +425,33 @@ class WorkoutScreenState extends State<WorkoutScreen>
       }
       rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
     }
-    
     if (rotation == null) return null;
 
-    final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? 
-                   InputImageFormat.nv21;
+    // Determine format
+    final format =
+        InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
 
-    final planeData = image.planes.map((plane) {
-      return InputImagePlaneMetadata(
-        bytesPerRow: plane.bytesPerRow,
-        height: plane.height,
-        width: plane.width,
-      );
-    }).toList();
-
-    final inputImageData = InputImageData(
+    // Build metadata using the new google_mlkit_commons API (0.8.x)
+    final metadata = InputImageMetadata(
       size: Size(image.width.toDouble(), image.height.toDouble()),
-      imageRotation: rotation,
-      inputImageFormat: format,
-      planeData: planeData,
+      rotation: rotation,
+      format: format,
+      // Not used on Android; on iOS provide first plane row stride
+      bytesPerRow: image.planes.isNotEmpty ? image.planes.first.bytesPerRow : 0,
     );
 
     _absoluteImageSize = Size(image.width.toDouble(), image.height.toDouble());
 
+    // Concatenate bytes from all planes
     final WriteBuffer allBytes = WriteBuffer();
     for (final plane in image.planes) {
       allBytes.putUint8List(plane.bytes);
     }
-    final bytes = allBytes.done().buffer.asUint8List();
+    final Uint8List bytes = allBytes.done().buffer.asUint8List();
 
     return InputImage.fromBytes(
       bytes: bytes,
-      inputImageData: inputImageData,
+      metadata: metadata,
     );
   }
 

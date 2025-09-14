@@ -10,6 +10,7 @@ import '/s_p_u_sports/badmintonfeedbackcomponent/badmintonfeedbackcomponent_widg
 import '/s_p_u_sports/completeworkout/completeworkout_widget.dart';
 import '/s_p_u_sports/exercisepageinfo/exercisepageinfo_widget.dart';
 import '/s_p_u_sports/startworkoutinfo/startworkoutinfo_widget.dart';
+import '/models/features/ai_trainer/screens/workout_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
     as smooth_page_indicator;
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -71,6 +72,18 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
     _model.dispose();
 
     super.dispose();
+  }
+
+  void _goToBicepCurlCamera() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorkoutScreen(
+          exerciseName: 'Bicep Curl',
+          workoutType: 'strength',
+        ),
+      ),
+    );
   }
 
   @override
@@ -350,12 +363,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -553,12 +569,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -757,12 +776,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -1376,12 +1398,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -1567,12 +1592,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -1757,12 +1785,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -2364,12 +2395,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -2554,12 +2588,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -2744,12 +2781,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -3351,12 +3391,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -3541,12 +3584,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -3719,12 +3765,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -4321,12 +4370,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -4511,12 +4563,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(
@@ -4700,12 +4755,15 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       0.0,
                                                                       10.0,
                                                                       0.0),
-                                                          child: Icon(
-                                                            Icons.security,
-                                                            color: FlutterFlowTheme
-                                                                    .of(context)
-                                                                .primaryText,
-                                                            size: 24.0,
+                                                          child: InkWell(
+                                                            onTap: _goToBicepCurlCamera,
+                                                            child: Icon(
+                                                              Icons.security,
+                                                              color: FlutterFlowTheme
+                                                                      .of(context)
+                                                                  .primaryText,
+                                                              size: 24.0,
+                                                            ),
                                                           ),
                                                         ),
                                                         Text(

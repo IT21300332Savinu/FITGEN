@@ -182,7 +182,7 @@ class PoseAnalyzerService {
     }
   }
 
-  /// Convert CameraImage to InputImage (v0.6.0 compatible)
+  /// Convert CameraImage to InputImage (google_mlkit_commons 0.8.x)
   InputImage? _convertCameraImageToInputImage(
     CameraImage image,
     CameraDescription camera,
@@ -204,21 +204,13 @@ class PoseAnalyzerService {
         return null;
       }
 
-      // Create plane metadata for v0.6.0 API
-      final planeData = image.planes.map((plane) {
-        return InputImagePlaneMetadata(
-          bytesPerRow: plane.bytesPerRow,
-          height: plane.height,
-          width: plane.width,
-        );
-      }).toList();
-
-      // Create input image data
-      final inputImageData = InputImageData(
+      // Build metadata for new API
+      final metadata = InputImageMetadata(
         size: Size(image.width.toDouble(), image.height.toDouble()),
-        imageRotation: rotation,
-        inputImageFormat: format,
-        planeData: planeData,
+        rotation: rotation,
+        format: format,
+        // Not used on Android; required on iOS
+        bytesPerRow: image.planes.isNotEmpty ? image.planes.first.bytesPerRow : 0,
       );
 
       // Get bytes from all planes
@@ -229,7 +221,7 @@ class PoseAnalyzerService {
 
       return InputImage.fromBytes(
         bytes: Uint8List.fromList(allBytes),
-        inputImageData: inputImageData,
+        metadata: metadata,
       );
     } catch (e) {
       debugPrint('Error converting camera image: $e');
