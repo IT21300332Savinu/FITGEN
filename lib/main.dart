@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -10,6 +9,7 @@ import 'features/ai_trainer/screens/login_screen.dart';
 import 'features/ai_trainer/screens/signup_screen.dart';
 import 'features/ai_trainer/screens/profile_setup_screen.dart';
 import 'features/ai_trainer/services/firebase_service.dart';
+import 'features/gamification/widgets/auth_wrapper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -169,7 +169,7 @@ class MyApp extends StatelessWidget {
         // Remove dark theme completely
         themeMode: ThemeMode.light, // Force light theme only
 
-        home: const AuthenticationWrapper(),
+        home: const AuthWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
@@ -195,69 +195,5 @@ class MyApp extends StatelessWidget {
       );
     }
     return MaterialColor(color.value, swatch);
-  }
-}
-
-class AuthenticationWrapper extends StatelessWidget {
-  const AuthenticationWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
-          final User? user = snapshot.data;
-
-          if (user == null) {
-            return const LoginScreen();
-          }
-
-          // Check if user has a profile
-          return FutureBuilder<bool>(
-            future: _hasUserProfile(context, user.uid),
-            builder: (context, profileSnapshot) {
-              if (profileSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  backgroundColor: Colors.white, // Light background
-                  body: Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFFF97000), // Orange loading indicator
-                    ),
-                  ),
-                );
-              }
-
-              final hasProfile = profileSnapshot.data ?? false;
-
-              if (hasProfile) {
-                return const HomeScreen();
-              } else {
-                return const ProfileSetupScreen();
-              }
-            },
-          );
-        }
-
-        // Show a loading screen while checking authentication state
-        return const Scaffold(
-          backgroundColor: Colors.white, // Light background
-          body: Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFFF97000), // Orange loading indicator
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<bool> _hasUserProfile(BuildContext context, String userId) async {
-    final firebaseService = Provider.of<FirebaseService>(
-      context,
-      listen: false,
-    );
-    final profile = await firebaseService.getUserProfile();
-    return profile != null;
   }
 }

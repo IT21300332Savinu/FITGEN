@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'workout_screen.dart';
 import 'exercise_instruction_screen.dart';
+import '../../gamification/screens/gamification_hub_screen.dart';
+import 'login_screen.dart';
+import '../../gamification/services/gamification_firebase_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -18,6 +22,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload data when returning to this screen
     _loadUserData();
   }
 
@@ -106,22 +117,147 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _handleSignout() async {
+    try {
+      // Get current user info for confirmation
+      final user = FirebaseAuth.instance.currentUser;
+      final userName = user?.email ?? 'User';
+      
+      // Show confirmation dialog with user info
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Sign Out'),
+            content: Text(
+              'Are you sure you want to sign out from "$userName"?\n\nYou can log back in anytime with your account.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Sign Out'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm == true) {
+        // Show signing out message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Signing out...'),
+              backgroundColor: Colors.blue,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+        
+        // Sign out from Firebase Auth
+        await FirebaseAuth.instance.signOut();
+        
+        debugPrint('👋 User signed out successfully');
+        
+        // Navigate back to login screen
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error signing out: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error signing out: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   String _formatDuration(int seconds) {
     final minutes = (seconds / 60).floor();
     final remainingSeconds = seconds % 60;
     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
-  void _loadUserData() {
-    // Implement your data loading logic here
-    setState(() {
-      // For now, these are placeholder values
-      // You would load these from Firebase/your data source
-      _totalWorkouts = 5;
-      _totalCalories = 245;
-      _totalMinutes = 120;
-    });
-    debugPrint('Loading user data...');
+  Future<void> _loadUserData() async {
+    debugPrint('🔍 Loading user data...');
+    
+    try {
+      // Load user from Firebase Auth
+      final user = FirebaseAuth.instance.currentUser;
+      final userId = user?.uid;
+      final userName = user?.email ?? 'User';
+      
+      debugPrint('🆔 Firebase Auth User - ID: $userId, Email: $userName');
+      
+      if (userId != null) {
+        debugPrint('📊 Loading Firebase stats for user: $userId');
+        
+        // Always fetch fresh data from Firebase
+        final userStats = await GamificationFirebaseService.getUserStats(userId);
+        
+        debugPrint('📈 Firebase Stats Result: ${userStats?.toJson()}');
+        
+        if (userStats != null) {
+          setState(() {
+            _userName = userName;
+            _totalWorkouts = userStats.totalWorkouts;
+            _totalCalories = userStats.totalCalories;
+            _totalMinutes = userStats.totalMinutes;
+          });
+          
+          debugPrint('✅ UI Updated - $_userName: $_totalWorkouts workouts, $_totalCalories calories, $_totalMinutes minutes');
+        } else {
+          debugPrint('⚠️ No stats found in Firebase, initializing...');
+          // Initialize user stats if they don't exist
+          await GamificationFirebaseService.initializeUserStats(userId, userName);
+          
+          setState(() {
+            _userName = userName;
+            _totalWorkouts = 0;
+            _totalCalories = 0;
+            _totalMinutes = 0;
+          });
+        }
+      } else {
+        debugPrint('⚠️ No user session found, using defaults');
+        setState(() {
+          _userName = 'User';
+          _totalWorkouts = 0;
+          _totalCalories = 0;
+          _totalMinutes = 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading user data: $e');
+      // Show error to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading your progress: $e'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _loadUserData(),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   void _showWorkoutOptions() {
@@ -367,27 +503,56 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () {
-              // Handle profile
+              // Navigate to gamification hub - where user can see their gaming features
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GamificationHubScreen(),
+                ),
+              );
             },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) async {
+              if (value == 'signout') {
+                await _handleSignout();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'signout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Sign Out'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).primaryColor,
-                    Theme.of(context).primaryColor.withOpacity(0.8),
-                  ],
-                  begin: Alignment.topLeft,
+      body: RefreshIndicator(
+        onRefresh: _loadUserData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
@@ -595,6 +760,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
       ),
       // Removed floatingActionButton as it was covering the diet plan button
     );

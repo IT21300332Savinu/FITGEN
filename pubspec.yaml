@@ -30,6 +30,7 @@ dependencies:
   path_provider: ^2.1.1
   provider: ^6.1.1
   intl: ^0.19.0
+  shared_preferences: ^2.5.3
   
   # Bluetooth (for wearables - optional)
   flutter_blue_plus: ^1.35.3
@@ -42,6 +43,7 @@ dependencies:
   
   # Permissions
   permission_handler: ^11.0.0
+  image_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:

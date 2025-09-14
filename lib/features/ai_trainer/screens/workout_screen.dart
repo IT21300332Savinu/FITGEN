@@ -15,6 +15,7 @@ import '../exercise/exercise_detector.dart';
 import '../exercise/unified_exercise_detector.dart';
 import '../models/exercise_models.dart';
 import '../services/voice_coach_service.dart';
+import '../../gamification/services/workout_integration_service.dart';
 
 class WorkoutScreen extends StatefulWidget {
   final String exerciseName;
@@ -515,6 +516,41 @@ class WorkoutScreenState extends State<WorkoutScreen>
       // Save to Firebase
       await firebaseService.saveWorkoutSession(session);
 
+      // Update gamification stats
+      try {
+        final gamificationResult = await WorkoutIntegrationService.onWorkoutCompleted(
+          exerciseType: widget.exerciseName,
+          repCount: _repCount,
+          formScore: _formQuality * 100,
+          durationMinutes: (_durationSeconds / 60).ceil(),
+        );
+
+        if (gamificationResult['success'] == true) {
+          final xpEarned = gamificationResult['xpEarned'] as int;
+          final newAchievements = gamificationResult['newAchievements'] as List<String>;
+          final motivationMessage = WorkoutIntegrationService.getMotivationMessage(gamificationResult);
+          
+          debugPrint('🎮 Gamification updated: +$xpEarned XP');
+          if (newAchievements.isNotEmpty) {
+            debugPrint('🏆 New achievements: ${newAchievements.join(", ")}');
+          }
+
+          // Show motivation message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(motivationMessage),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('⚠️ Gamification update failed: $e');
+        // Continue without gamification if it fails
+      }
+
       // Voice coach completion
       if (_voiceCoachEnabled && _voiceCoach != null) {
         await _voiceCoach!.announceWorkoutComplete(
@@ -531,12 +567,14 @@ class WorkoutScreenState extends State<WorkoutScreen>
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
       );
 
-      // Navigate back with completion data
+      // Navigate back with completion data including gamification results
       Navigator.pop(context, {
         'completed': true,
         'repCount': _repCount,
         'duration': _durationSeconds,
         'formScore': _formQuality * 100,
+        'exerciseType': widget.exerciseName,
+        'hasGamification': true,
       });
     } catch (e) {
       debugPrint('❌ Error saving workout: $e');
