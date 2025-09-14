@@ -1,10 +1,12 @@
-// Create a new file: lib/features/ai_trainer/services/pose_analyzer_service.dart
+// lib/features/ai_trainer/services/pose_analyzer_service.dart
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
+import 'dart:ui';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
-import 'package:flutter/foundation.dart' show WriteBuffer, debugPrint, kIsWeb;
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:flutter/foundation.dart';
 
 /// Result class for pose analysis
 class PoseAnalysisResult {
@@ -29,53 +31,54 @@ class PoseAnalyzerService {
 
   // Tracking state
   int _repCount = 0;
-  double _formQualitySum = 0.0;
-  int _formQualityCount = 0;
   bool _wasInBottomPosition = false;
-  bool _wasInTopPosition = true; // Start in top position
+  bool _wasInTopPosition = true;
 
   // Exercise-specific settings
   Map<String, dynamic> _exerciseSettings = {};
-
-  // Current exercise
   String _currentExercise = '';
-
-  // Form issues
   final List<String> _currentFormIssues = [];
+
+  // Processing control
+  bool _isProcessing = false;
 
   /// Initialize the service with the exercise name
   Future<void> initialize(String exerciseName) async {
-    // Set current exercise
-    _currentExercise = exerciseName;
+    try {
+      _currentExercise = exerciseName;
 
-    // Initialize pose detector
-    _poseDetector = PoseDetector(
-      options: PoseDetectorOptions(
-        model: PoseDetectionModel.base,
-        mode: PoseDetectionMode.stream,
-      ),
-    );
+      // Initialize pose detector with v0.6.0 API
+      _poseDetector = PoseDetector(
+        options: PoseDetectorOptions(
+          model: PoseDetectionModel.base,
+          mode: PoseDetectionMode.stream,
+        ),
+      );
 
-    // Set exercise-specific settings
-    _setupExerciseSettings(exerciseName);
-
-    _isInitialized = true;
+      _setupExerciseSettings(exerciseName);
+      _isInitialized = true;
+      debugPrint('Pose analyzer initialized for: $exerciseName');
+    } catch (e) {
+      debugPrint('Error initializing pose analyzer: $e');
+      rethrow;
+    }
   }
 
-  /// Set up the settings for specific exercises
+  /// Set up exercise-specific settings
   void _setupExerciseSettings(String exerciseName) {
     switch (exerciseName.toLowerCase()) {
       case 'squat':
         _exerciseSettings = {
           'repThresholds': {
-            'bottom': 0.65, // Lower position threshold
-            'top': 0.45, // Upper position threshold
+            'bottom': 0.65,
+            'top': 0.45,
           },
           'formChecks': ['kneeAngle', 'hipAngle', 'backStraight'],
           'feedbackMessages': {
-            'kneeAngle': 'Bend your knees more for proper depth',
+            'kneeAngle': 'Keep your knees aligned with your toes',
             'hipAngle': 'Lower your hips more for full range of motion',
             'backStraight': 'Keep your back straight throughout the movement',
+            'bodyNotFullyVisible': 'Make sure your full body is visible in the camera',
           },
         };
         break;
@@ -83,28 +86,28 @@ class PoseAnalyzerService {
       case 'pushup':
         _exerciseSettings = {
           'repThresholds': {
-            'bottom': 0.6, // Lower position threshold
-            'top': 0.45, // Upper position threshold
+            'bottom': 0.6,
+            'top': 0.45,
           },
           'formChecks': ['elbowAngle', 'bodyAlignment', 'headPosition'],
           'feedbackMessages': {
             'elbowAngle': 'Bend your elbows more for proper depth',
             'bodyAlignment': 'Maintain a straight line from head to heels',
             'headPosition': 'Keep your neck in a neutral position',
+            'bodyNotFullyVisible': 'Position yourself so your full body is visible',
           },
         };
         break;
 
       default:
-        // Default settings
         _exerciseSettings = {
           'repThresholds': {'bottom': 0.6, 'top': 0.4},
           'formChecks': ['generalForm'],
           'feedbackMessages': {
             'generalForm': 'Maintain proper form throughout the exercise',
+            'bodyNotFullyVisible': 'Make sure you are fully visible in the camera',
           },
         };
-        break;
     }
   }
 
@@ -113,31 +116,31 @@ class PoseAnalyzerService {
     CameraImage image,
     CameraDescription camera,
   ) async {
-    if (!_isInitialized) return null;
+    if (!_isInitialized || _isProcessing) return null;
 
+    _isProcessing = true;
+    
     try {
-      // For web, we'll simulate results since camera processing is different
-      if (kIsWeb) {
-        return simulateResults();
-      }
-
-      // Convert CameraImage to InputImage
+      // Convert CameraImage to InputImage using v0.6.0 API
       final inputImage = _convertCameraImageToInputImage(image, camera);
+      if (inputImage == null) {
+        _isProcessing = false;
+        return _createErrorResult('Failed to process camera image');
+      }
 
       // Process the image to detect poses
       final List<Pose> poses = await _poseDetector.processImage(inputImage);
 
       if (poses.isEmpty) {
+        _isProcessing = false;
         return PoseAnalysisResult(
           repCount: _repCount,
           formQuality: 0.0,
-          formIssues: [
-            'No pose detected. Make sure your full body is visible.',
-          ],
+          formIssues: ['No pose detected. Make sure your full body is visible.'],
         );
       }
 
-      // Analyze the main pose (first detected pose)
+      // Analyze the main pose
       final pose = poses.first;
       final landmarks = pose.landmarks.values.toList();
 
@@ -147,147 +150,95 @@ class PoseAnalyzerService {
       // Update rep count
       _updateRepCount(analysisResults['position'] as double);
 
-      // Update form quality
-      _formQualitySum += analysisResults['formQuality'] as double;
-      _formQualityCount++;
+      // Get form quality for this frame
+      final currentFormQuality = analysisResults['formQuality'] as double;
 
       // Get current form issues
       _currentFormIssues.clear();
-      for (var issue in analysisResults['formIssues'] as List) {
+      final formIssues = analysisResults['formIssues'] as List<String>;
+      for (var issue in formIssues) {
         if (_exerciseSettings['feedbackMessages'].containsKey(issue)) {
           _currentFormIssues.add(_exerciseSettings['feedbackMessages'][issue]);
         }
       }
 
+      _isProcessing = false;
+
       return PoseAnalysisResult(
         repCount: _repCount,
-        formQuality: analysisResults['formQuality'] as double,
-        formIssues:
-            _currentFormIssues.isEmpty
-                ? ['Good form! Keep it up.']
-                : _currentFormIssues,
+        formQuality: currentFormQuality,
+        formIssues: _currentFormIssues.isEmpty 
+            ? ['Good form! Keep it up.'] 
+            : _currentFormIssues,
         landmarks: landmarks,
       );
+
     } catch (e) {
+      _isProcessing = false;
       debugPrint('Error analyzing pose: $e');
-      return PoseAnalysisResult(
-        repCount: _repCount,
-        formQuality: 0.0,
-        formIssues: ['Error analyzing pose. Please try again.'],
-      );
+      return _createErrorResult('Error analyzing pose: ${e.toString()}');
     }
   }
 
-  // Simulate results for web demo
-  PoseAnalysisResult simulateResults() {
-    // Create simulated landmarks for visualization
-    final simLandmarks = <PoseLandmark>[];
+  /// Convert CameraImage to InputImage (v0.6.0 compatible)
+  InputImage? _convertCameraImageToInputImage(
+    CameraImage image,
+    CameraDescription camera,
+  ) {
+    try {
+      // Get image rotation
+      final rotation = InputImageRotationValue.fromRawValue(
+        camera.sensorOrientation,
+      );
+      if (rotation == null) {
+        debugPrint('Failed to get rotation value');
+        return null;
+      }
 
-    // Return simulated result
+      // Get image format
+      final format = InputImageFormatValue.fromRawValue(image.format.raw);
+      if (format == null) {
+        debugPrint('Unsupported image format: ${image.format.raw}');
+        return null;
+      }
+
+      // Create simplified metadata
+      final metadata = InputImageMetadata(
+        size: Size(image.width.toDouble(), image.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: image.planes.first.bytesPerRow,
+      );
+
+      // Get bytes from all planes
+      final allBytes = <int>[];
+      for (final plane in image.planes) {
+        allBytes.addAll(plane.bytes);
+      }
+
+      return InputImage.fromBytes(
+        bytes: Uint8List.fromList(allBytes),
+        metadata: metadata,
+      );
+    } catch (e) {
+      debugPrint('Error converting camera image: $e');
+      return null;
+    }
+  }
+
+  /// Create error result
+  PoseAnalysisResult _createErrorResult(String message) {
     return PoseAnalysisResult(
       repCount: _repCount,
-      formQuality: 0.75,
-      formIssues: ['Web demo mode - actual pose analysis disabled'],
-      landmarks: simLandmarks,
+      formQuality: 0.0,
+      formIssues: [message],
     );
   }
-
-  /// Convert CameraImage to InputImage
-  /*
-  InputImage _convertCameraImageToInputImage(
-    CameraImage image, 
-    CameraDescription camera
-  ) {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
-    
-    final imageSize = ui.Size(image.width.toDouble(), image.height.toDouble());
-    
-    final inputImageRotation = InputImageRotation.values[
-      (camera.sensorOrientation ~/ 90) % 4
-    ];
-    
-    const inputImageFormat = InputImageFormat.nv21; // Most common format
-    
-    final planeData = image.planes.map(
-      (Plane plane) {
-        return InputImagePlaneMetadata(
-          bytesPerRow: plane.bytesPerRow,
-          height: plane.height,
-          width: plane.width,
-        );
-      },
-    ).toList();
-    
-    final inputImageData = InputImageData(
-      size: imageSize,
-      imageRotation: inputImageRotation,
-      inputImageFormat: inputImageFormat,
-      planeData: planeData,
-    );
-    
-    return InputImage.fromBytes(
-      bytes: bytes,
-      inputImageData: inputImageData,
-    );
-  }
-  */
-
-  /// Convert CameraImage to InputImage- v2
-  ///
-  /*
-InputImage _convertCameraImageToInputImage(
-  CameraImage image, 
-  CameraDescription camera
-) {
-  final WriteBuffer allBytes = WriteBuffer();
-  for (Plane plane in image.planes) {
-    allBytes.putUint8List(plane.bytes);
-  }
-  final bytes = allBytes.done().buffer.asUint8List();
-  
-  final imageSize = ui.Size(image.width.toDouble(), image.height.toDouble());
-  
-  // Get proper rotation
-  final inputImageRotation = InputImageRotation.values[
-    (camera.sensorOrientation ~/ 90) % 4
-  ];
-  
-  // For most cameras, this format works
-  final inputImageFormat = InputImageFormat.yuv420;
-  
-  final planeData = image.planes.map(
-    (Plane plane) {
-      return InputImagePlaneMetadata(
-        bytesPerRow: plane.bytesPerRow,
-        height: plane.height,
-        width: plane.width,
-      );
-    },
-  ).toList();
-  
-  final inputImageData = InputImageData(
-    size: imageSize,
-    imageRotation: inputImageRotation,
-    inputImageFormat: inputImageFormat,
-    planeData: planeData,
-  );
-  
-  return InputImage.fromBytes(
-    bytes: bytes,
-    inputImageData: inputImageData,
-  );
-}
-
-*/
 
   /// Analyze exercise form based on landmarks
   Map<String, dynamic> _analyzeExerciseForm(
-    List<PoseLandmark> landmarks, 
-    String exerciseType
+    List<PoseLandmark> landmarks,
+    String exerciseType,
   ) {
     switch (exerciseType.toLowerCase()) {
       case 'squat':
@@ -295,104 +246,29 @@ InputImage _convertCameraImageToInputImage(
       case 'pushup':
         return _analyzePushup(landmarks);
       default:
-        // Default analysis
         return {
-          'position': 0.5, // Neutral position
-          'formQuality': 0.8, // Default quality
-          'formIssues': [], // No specific issues
+          'position': 0.5,
+          'formQuality': 0.8,
+          'formIssues': <String>[],
         };
-    }
-  }
-
-  /// Convert CameraImage to InputImage- v3
-  ///
-  InputImage _convertCameraImageToInputImage(
-    CameraImage image,
-    CameraDescription camera,
-  ) {
-    // Try different approaches based on the image format
-    try {
-      // First approach - try with yuv420
-      final inputImageFormat = InputImageFormat.yuv420;
-
-      // Calculate rotation
-      final rotation =
-          InputImageRotationValue.fromRawValue(camera.sensorOrientation) ??
-          InputImageRotation.rotation0deg;
-
-      // Get image dimensions
-      final width = image.width;
-      final height = image.height;
-
-      // Create plane data
-      final planeData =
-          image.planes.map((Plane plane) {
-            return InputImagePlaneMetadata(
-              bytesPerRow: plane.bytesPerRow,
-              height: plane.height,
-              width: plane.width,
-            );
-          }).toList();
-
-      // Package image data
-      final inputImageData = InputImageData(
-        size: ui.Size(width.toDouble(), height.toDouble()),
-        imageRotation: rotation,
-        inputImageFormat: inputImageFormat,
-        planeData: planeData,
-      );
-
-      // Concatenate all plane bytes - important for proper format
-      final allBytes = WriteBuffer();
-      for (final plane in image.planes) {
-        allBytes.putUint8List(plane.bytes);
-      }
-      final bytes = allBytes.done().buffer.asUint8List();
-
-      // Create input image
-      return InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
-    } catch (e) {
-      debugPrint('Error converting image: $e');
-      rethrow;
     }
   }
 
   /// Analyze squat form
   Map<String, dynamic> _analyzeSquat(List<PoseLandmark> landmarks) {
-    // Find specific landmarks by their type
-    final leftHip = _findLandmarkByType(landmarks, PoseLandmarkType.leftHip);
-    final rightHip = _findLandmarkByType(landmarks, PoseLandmarkType.rightHip);
-    final leftKnee = _findLandmarkByType(landmarks, PoseLandmarkType.leftKnee);
-    final rightKnee = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.rightKnee,
-    );
-    final leftAnkle = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.leftAnkle,
-    );
-    final rightAnkle = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.rightAnkle,
-    );
-    final leftShoulder = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.leftShoulder,
-    );
-    final rightShoulder = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.rightShoulder,
-    );
+    final requiredLandmarks = {
+      'leftHip': _findLandmarkByType(landmarks, PoseLandmarkType.leftHip),
+      'rightHip': _findLandmarkByType(landmarks, PoseLandmarkType.rightHip),
+      'leftKnee': _findLandmarkByType(landmarks, PoseLandmarkType.leftKnee),
+      'rightKnee': _findLandmarkByType(landmarks, PoseLandmarkType.rightKnee),
+      'leftAnkle': _findLandmarkByType(landmarks, PoseLandmarkType.leftAnkle),
+      'rightAnkle': _findLandmarkByType(landmarks, PoseLandmarkType.rightAnkle),
+      'leftShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.leftShoulder),
+      'rightShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.rightShoulder),
+    };
 
-    // If missing critical landmarks, return basic info
-    if (leftHip == null ||
-        rightHip == null ||
-        leftKnee == null ||
-        rightKnee == null ||
-        leftAnkle == null ||
-        rightAnkle == null ||
-        leftShoulder == null ||
-        rightShoulder == null) {
+    // Check if all required landmarks are detected
+    if (requiredLandmarks.values.any((landmark) => landmark == null)) {
       return {
         'position': 0.5,
         'formQuality': 0.5,
@@ -400,45 +276,48 @@ InputImage _convertCameraImageToInputImage(
       };
     }
 
-    // Calculate relative position (0 = standing straight, 1 = deep squat)
-    // Use the y-coordinate of hips relative to knees and ankles
+    final leftHip = requiredLandmarks['leftHip']!;
+    final rightHip = requiredLandmarks['rightHip']!;
+    final leftKnee = requiredLandmarks['leftKnee']!;
+    final rightKnee = requiredLandmarks['rightKnee']!;
+    final leftAnkle = requiredLandmarks['leftAnkle']!;
+    final rightAnkle = requiredLandmarks['rightAnkle']!;
+    final leftShoulder = requiredLandmarks['leftShoulder']!;
+    final rightShoulder = requiredLandmarks['rightShoulder']!;
+
+    // Calculate relative position
     final hipY = (leftHip.y + rightHip.y) / 2;
-    final kneeY = (leftKnee.y + rightKnee.y) / 2;
+    final shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
     final ankleY = (leftAnkle.y + rightAnkle.y) / 2;
 
-    // Normalize the hip position between knees and shoulders
-    final shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+    // Calculate squat depth (0 = standing, 1 = deep squat)
     final totalHeight = shoulderY - ankleY;
-
-    // Calculate relative squat depth (0 = standing, 1 = deep squat)
-    double position = (hipY - shoulderY) / totalHeight;
+    double position = totalHeight > 0 ? (hipY - shoulderY) / totalHeight : 0.0;
     position = position.clamp(0.0, 1.0);
 
-    // Check for form issues
+    // Check form issues
     List<String> formIssues = [];
 
-    // Check knee alignment (knees should be aligned with ankles)
+    // Check knee alignment
     final leftKneeAnkleXDiff = (leftKnee.x - leftAnkle.x).abs();
     final rightKneeAnkleXDiff = (rightKnee.x - rightAnkle.x).abs();
-
     if (leftKneeAnkleXDiff > 0.1 || rightKneeAnkleXDiff > 0.1) {
       formIssues.add('kneeAngle');
     }
 
-    // Check hip depth (for deep enough squat)
+    // Check squat depth
     if (position < 0.4 && _wasInBottomPosition) {
       formIssues.add('hipAngle');
     }
 
     // Check back alignment
-    final shoulderHipXDiff =
-        ((leftShoulder.x + rightShoulder.x) / 2 - (leftHip.x + rightHip.x) / 2)
-            .abs();
+    final shoulderHipXDiff = ((leftShoulder.x + rightShoulder.x) / 2 - 
+                             (leftHip.x + rightHip.x) / 2).abs();
     if (shoulderHipXDiff > 0.1) {
       formIssues.add('backStraight');
     }
 
-    // Calculate form quality (0.0 to 1.0)
+    // Calculate form quality
     double formQuality = 1.0;
     if (formIssues.contains('kneeAngle')) formQuality -= 0.3;
     if (formIssues.contains('hipAngle')) formQuality -= 0.3;
@@ -453,45 +332,19 @@ InputImage _convertCameraImageToInputImage(
 
   /// Analyze pushup form
   Map<String, dynamic> _analyzePushup(List<PoseLandmark> landmarks) {
-    // Find specific landmarks by their type
-    final leftShoulder = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.leftShoulder,
-    );
-    final rightShoulder = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.rightShoulder,
-    );
-    final leftElbow = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.leftElbow,
-    );
-    final rightElbow = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.rightElbow,
-    );
-    final leftWrist = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.leftWrist,
-    );
-    final rightWrist = _findLandmarkByType(
-      landmarks,
-      PoseLandmarkType.rightWrist,
-    );
-    final nose = _findLandmarkByType(landmarks, PoseLandmarkType.nose);
-    final leftHip = _findLandmarkByType(landmarks, PoseLandmarkType.leftHip);
-    final rightHip = _findLandmarkByType(landmarks, PoseLandmarkType.rightHip);
+    final requiredLandmarks = {
+      'leftShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.leftShoulder),
+      'rightShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.rightShoulder),
+      'leftElbow': _findLandmarkByType(landmarks, PoseLandmarkType.leftElbow),
+      'rightElbow': _findLandmarkByType(landmarks, PoseLandmarkType.rightElbow),
+      'leftWrist': _findLandmarkByType(landmarks, PoseLandmarkType.leftWrist),
+      'rightWrist': _findLandmarkByType(landmarks, PoseLandmarkType.rightWrist),
+      'nose': _findLandmarkByType(landmarks, PoseLandmarkType.nose),
+      'leftHip': _findLandmarkByType(landmarks, PoseLandmarkType.leftHip),
+      'rightHip': _findLandmarkByType(landmarks, PoseLandmarkType.rightHip),
+    };
 
-    // Ensure all required landmarks are detected
-    if (leftShoulder == null ||
-        rightShoulder == null ||
-        leftElbow == null ||
-        rightElbow == null ||
-        leftWrist == null ||
-        rightWrist == null ||
-        nose == null ||
-        leftHip == null ||
-        rightHip == null) {
+    if (requiredLandmarks.values.any((landmark) => landmark == null)) {
       return {
         'position': 0.5,
         'formQuality': 0.5,
@@ -499,48 +352,49 @@ InputImage _convertCameraImageToInputImage(
       };
     }
 
-    // Calculate elbow angle
-    double leftElbowAngle = _calculateAngle(
-      leftShoulder.x,
-      leftShoulder.y,
-      leftElbow.x,
-      leftElbow.y,
-      leftWrist.x,
-      leftWrist.y,
+    final leftShoulder = requiredLandmarks['leftShoulder']!;
+    final rightShoulder = requiredLandmarks['rightShoulder']!;
+    final leftElbow = requiredLandmarks['leftElbow']!;
+    final rightElbow = requiredLandmarks['rightElbow']!;
+    final leftWrist = requiredLandmarks['leftWrist']!;
+    final rightWrist = requiredLandmarks['rightWrist']!;
+    final nose = requiredLandmarks['nose']!;
+    final leftHip = requiredLandmarks['leftHip']!;
+    final rightHip = requiredLandmarks['rightHip']!;
+
+    // Calculate elbow angles
+    final leftElbowAngle = _calculateAngle(
+      leftShoulder.x, leftShoulder.y,
+      leftElbow.x, leftElbow.y,
+      leftWrist.x, leftWrist.y,
     );
 
-    double rightElbowAngle = _calculateAngle(
-      rightShoulder.x,
-      rightShoulder.y,
-      rightElbow.x,
-      rightElbow.y,
-      rightWrist.x,
-      rightWrist.y,
+    final rightElbowAngle = _calculateAngle(
+      rightShoulder.x, rightShoulder.y,
+      rightElbow.x, rightElbow.y,
+      rightWrist.x, rightWrist.y,
     );
 
-    double avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
-
-    // Normalize position between 0 (arms extended) and 1 (arms bent)
+    final avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
     double position = (180 - avgElbowAngle) / 90;
     position = position.clamp(0.0, 1.0);
 
-    // Check for form issues
+    // Check form issues
     List<String> formIssues = [];
 
-    // Check elbow angle (should be approximately 90 degrees at bottom position)
+    // Check elbow angle
     if (position > 0.6 && (avgElbowAngle < 70 || avgElbowAngle > 110)) {
       formIssues.add('elbowAngle');
     }
 
-    // Check body alignment (head, shoulders, hips, knees, ankles should be in line)
+    // Check body alignment
     final shoulderY = (leftShoulder.y + rightShoulder.y) / 2;
     final hipY = (leftHip.y + rightHip.y) / 2;
-
     if ((shoulderY - hipY).abs() > 0.1) {
       formIssues.add('bodyAlignment');
     }
 
-    // Check head position (should be in line with body)
+    // Check head position
     final shoulderX = (leftShoulder.x + rightShoulder.x) / 2;
     if ((nose.x - shoulderX).abs() > 0.1) {
       formIssues.add('headPosition');
@@ -559,7 +413,7 @@ InputImage _convertCameraImageToInputImage(
     };
   }
 
-  /// Helper method to find a landmark by its type in the list
+  /// Helper method to find a landmark by its type
   PoseLandmark? _findLandmarkByType(
     List<PoseLandmark> landmarks,
     PoseLandmarkType type,
@@ -571,15 +425,8 @@ InputImage _convertCameraImageToInputImage(
     }
   }
 
-  /// Calculate the angle between three points
-  double _calculateAngle(
-    double ax,
-    double ay,
-    double bx,
-    double by,
-    double cx,
-    double cy,
-  ) {
+  /// Calculate angle between three points
+  double _calculateAngle(double ax, double ay, double bx, double by, double cx, double cy) {
     final abx = bx - ax;
     final aby = by - ay;
     final cbx = bx - cx;
@@ -589,57 +436,41 @@ InputImage _convertCameraImageToInputImage(
     final abMag = math.sqrt(abx * abx + aby * aby);
     final cbMag = math.sqrt(cbx * cbx + cby * cby);
 
-    final cosTheta = dot / (abMag * cbMag);
+    if (abMag == 0 || cbMag == 0) return 0;
 
-    return math.acos(cosTheta.clamp(-1.0, 1.0)) * 180 / math.pi;
+    final cosTheta = (dot / (abMag * cbMag)).clamp(-1.0, 1.0);
+    return math.acos(cosTheta) * 180 / math.pi;
   }
 
   /// Update rep count based on position
   void _updateRepCount(double position) {
-    // Get thresholds from settings
-    final bottomThreshold = _exerciseSettings['repThresholds']['bottom'];
-    final topThreshold = _exerciseSettings['repThresholds']['top'];
+    final bottomThreshold = _exerciseSettings['repThresholds']['bottom'] as double;
+    final topThreshold = _exerciseSettings['repThresholds']['top'] as double;
 
-    // Check if user moved to bottom position
-    if (position >= bottomThreshold &&
-        !_wasInBottomPosition &&
-        _wasInTopPosition) {
+    if (position >= bottomThreshold && !_wasInBottomPosition && _wasInTopPosition) {
       _wasInBottomPosition = true;
       _wasInTopPosition = false;
     }
 
-    // Check if user returned to top position
-    if (position <= topThreshold &&
-        _wasInBottomPosition &&
-        !_wasInTopPosition) {
+    if (position <= topThreshold && _wasInBottomPosition && !_wasInTopPosition) {
       _wasInBottomPosition = false;
       _wasInTopPosition = true;
-      // Increment rep count
       _repCount++;
     }
   }
 
-  /// Calculate form quality (0.0 to 1.0)
-  double _calculateFormQuality() {
-    if (_formQualityCount == 0) return 0.0;
-    return _formQualitySum / _formQualityCount;
-  }
-
-  /// Reset rep counter
-  void resetRepCounter() {
+  /// Reset counters
+  void resetCounters() {
     _repCount = 0;
     _wasInBottomPosition = false;
     _wasInTopPosition = true;
-  }
-
-  /// Reset form quality tracking
-  void resetFormQuality() {
-    _formQualitySum = 0.0;
-    _formQualityCount = 0;
+    _currentFormIssues.clear();
   }
 
   /// Dispose resources
   void dispose() {
-    _poseDetector.close();
+    if (_isInitialized) {
+      _poseDetector.close();
+    }
   }
 }

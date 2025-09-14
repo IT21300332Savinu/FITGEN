@@ -11,10 +11,10 @@ class WorkoutScreen extends StatefulWidget {
   final String workoutType;
 
   const WorkoutScreen({
-    Key? key,
+    super.key,
     required this.exerciseName,
     required this.workoutType,
-  }) : super(key: key);
+  });
 
   @override
   _WorkoutScreenState createState() => _WorkoutScreenState();

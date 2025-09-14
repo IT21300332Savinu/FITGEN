@@ -3,32 +3,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-// Import for web-specific features
 
+// Fixed import paths
 import 'features/ai_trainer/screens/home_screen.dart';
 import 'features/ai_trainer/screens/login_screen.dart';
 import 'features/ai_trainer/screens/signup_screen.dart';
 import 'features/ai_trainer/screens/profile_setup_screen.dart';
 import 'features/ai_trainer/services/firebase_service.dart';
 
-// Add the following imports to main.dart
-
-// // Add to your main.dart
-// void _checkCameraPermissions() async {
-//   if (kIsWeb) {
-//     // For web, we'll check at the time of camera initialization
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text('Please allow camera access when prompted'),
-//         duration: Duration(seconds: 3),
-//       ),
-//     );
-//   } else {
-//     // For mobile, check permissions here
-//   }
-//}
-
-// Then in the main() function:
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -58,7 +40,7 @@ Future<void> main() async {
 
   runApp(const MyApp());
 }
-// Rest of the code remains the same as in your previous main.dart
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -69,30 +51,122 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'FITGEN',
         theme: ThemeData(
+          // Light theme only - removed dark theme
           primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
           visualDensity: VisualDensity.adaptivePlatformDensity,
           brightness: Brightness.light,
+          
+          // Enhanced light theme
           colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: createMaterialColor(
-              const Color(0xFFF97000),
-            ), // Orange
+            primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
             brightness: Brightness.light,
             accentColor: const Color(0xFFF97000), // Orange accent
+            backgroundColor: Colors.white,
+          ).copyWith(
+            surface: Colors.white,
+            onSurface: Colors.black87,
+            secondary: const Color(0xFFF97000),
+            onSecondary: Colors.white,
+          ),
+          
+          // App bar theme
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFFF97000),
+            foregroundColor: Colors.white,
+            elevation: 2,
+            centerTitle: true,
+            titleTextStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          
+          // Scaffold theme
+          scaffoldBackgroundColor: Colors.white,
+          
+          // Card theme
+          cardTheme: const CardThemeData(
+            color: Colors.white,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          ),
+          
+          // Button themes
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF97000),
+              foregroundColor: Colors.white,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+          
+          floatingActionButtonTheme: const FloatingActionButtonThemeData(
+            backgroundColor: Color(0xFFF97000),
+            foregroundColor: Colors.white,
+          ),
+          
+          // Input decoration theme
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFF97000), width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+          ),
+          
+          // Text themes
+          textTheme: const TextTheme(
+            displayLarge: TextStyle(color: Colors.black87),
+            displayMedium: TextStyle(color: Colors.black87),
+            displaySmall: TextStyle(color: Colors.black87),
+            headlineLarge: TextStyle(color: Colors.black87),
+            headlineMedium: TextStyle(color: Colors.black87),
+            headlineSmall: TextStyle(color: Colors.black87),
+            titleLarge: TextStyle(color: Colors.black87),
+            titleMedium: TextStyle(color: Colors.black87),
+            titleSmall: TextStyle(color: Colors.black87),
+            bodyLarge: TextStyle(color: Colors.black87),
+            bodyMedium: TextStyle(color: Colors.black87),
+            bodySmall: TextStyle(color: Colors.black87),
+            labelLarge: TextStyle(color: Colors.black87),
+            labelMedium: TextStyle(color: Colors.black87),
+            labelSmall: TextStyle(color: Colors.black87),
+          ),
+          
+          // Bottom navigation theme
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Colors.white,
+            selectedItemColor: Color(0xFFF97000),
+            unselectedItemColor: Colors.grey,
+            elevation: 8,
+          ),
+          
+          // Divider theme
+          dividerTheme: DividerThemeData(
+            color: Colors.grey.shade300,
+            thickness: 1,
           ),
         ),
-        darkTheme: ThemeData(
-          primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          brightness: Brightness.dark,
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: createMaterialColor(
-              const Color(0xFFF97000),
-            ), // Orange
-            brightness: Brightness.dark,
-            accentColor: const Color(0xFFF97000), // Orange accent
-          ),
-        ),
-        themeMode: ThemeMode.system,
+        
+        // Remove dark theme completely
+        themeMode: ThemeMode.light, // Force light theme only
+        
         home: const AuthenticationWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),
@@ -104,7 +178,6 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  // Existing createMaterialColor method remains the same
   MaterialColor createMaterialColor(Color color) {
     List<double> strengths = <double>[.05, .1, .2, .3, .4, .5, .6, .7, .8, .9];
     Map<int, Color> swatch = {};
@@ -123,28 +196,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Rest of the code remains the same
-
-  // Existing createMaterialColor method remains the same
-  MaterialColor createMaterialColor(Color color) {
-    List<double> strengths = <double>[.05, .1, .2, .3, .4, .5, .6, .7, .8, .9];
-    Map<int, Color> swatch = {};
-    final int r = color.red, g = color.green, b = color.blue;
-
-    for (var strength in strengths) {
-      final double ds = 0.5 - strength;
-      swatch[(strength * 1000).round()] = Color.fromRGBO(
-        r + ((ds < 0 ? r : (255 - r)) * ds).round(),
-        g + ((ds < 0 ? g : (255 - g)) * ds).round(),
-        b + ((ds < 0 ? b : (255 - b)) * ds).round(),
-        1,
-      );
-    }
-    return MaterialColor(color.value, swatch);
-  }
-
-
-// Existing AuthenticationWrapper remains the same (from previous main.dart)
 class AuthenticationWrapper extends StatelessWidget {
   const AuthenticationWrapper({super.key});
 
@@ -166,7 +217,12 @@ class AuthenticationWrapper extends StatelessWidget {
             builder: (context, profileSnapshot) {
               if (profileSnapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
+                  backgroundColor: Colors.white, // Light background
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFFF97000), // Orange loading indicator
+                    ),
+                  ),
                 );
               }
 
@@ -182,7 +238,14 @@ class AuthenticationWrapper extends StatelessWidget {
         }
 
         // Show a loading screen while checking authentication state
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const Scaffold(
+          backgroundColor: Colors.white, // Light background
+          body: Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFF97000), // Orange loading indicator
+            ),
+          ),
+        );
       },
     );
   }

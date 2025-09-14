@@ -1,27 +1,19 @@
-// file: lib/screens/home_screen.dart
-
 import 'package:flutter/material.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
-import '../services/firebase_service.dart';
-import '../models/user_profile.dart';
-import '../models/workout_session.dart';
-import '../models/achievement.dart';
 import 'workout_screen.dart';
+import 'exercise_instruction_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-  UserProfile? _userProfile;
-  List<WorkoutSession> _recentWorkouts = [];
-  List<Achievement> _achievements = [];
-  bool _isLoading = true;
+  String _userName = 'User'; // You can load this from your user profile
+  int _totalWorkouts = 0;
+  int _totalCalories = 0;
+  int _totalMinutes = 0;
 
   @override
   void initState() {
@@ -29,580 +21,222 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  void _startExercise(String exerciseName, String workoutType) {
+    debugPrint('🏠 Home Screen: Starting exercise: $exerciseName, type: $workoutType');
     try {
-      final firebaseService = Provider.of<FirebaseService>(
-        context,
-        listen: false,
-      );
-
-      // Load user profile
-      final profile = await firebaseService.getUserProfile();
-      if (profile != null) {
-        setState(() {
-          _userProfile = profile;
-        });
-      }
-
-      // Load recent workouts
-      final workouts = await firebaseService.getWorkoutHistory();
-      setState(() {
-        _recentWorkouts = workouts.take(5).toList(); // Get last 5 workouts
-      });
-
-      // Load achievements (we'll need to add this method to FirebaseService)
-      // For now, using placeholder data
-      setState(() {
-        _achievements = [
-          Achievement(
-            id: 'first_workout',
-            title: 'First Workout',
-            description: 'Complete your first workout',
-            iconUrl: 'assets/icons/first_workout.png',
-            isUnlocked: true,
-            unlockedAt: DateTime.now().subtract(const Duration(days: 5)),
-          ),
-          Achievement(
-            id: 'streak_3',
-            title: '3 Day Streak',
-            description: 'Work out for 3 consecutive days',
-            iconUrl: 'assets/icons/streak_3.png',
-            isUnlocked: false,
-          ),
-        ];
-      });
-    } catch (e) {
-      print('Error loading user data: $e');
-      // Show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error loading your data. Please try again.'),
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('FITGEN'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Navigate to notifications screen
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              // Navigate to profile screen
-            },
-          ),
-        ],
-      ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildBody(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: 'Workouts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Progress',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events),
-            label: 'Achievements',
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Navigate to start workout screen
-          _showWorkoutOptionsDialog();
-        },
-        label: const Text('Start Workout'),
-        icon: const Icon(Icons.play_arrow),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    switch (_selectedIndex) {
-      case 0:
-        return _buildHomeTab();
-      case 1:
-        return _buildWorkoutsTab();
-      case 2:
-        return _buildProgressTab();
-      case 3:
-        return _buildAchievementsTab();
-      default:
-        return _buildHomeTab();
-    }
-  }
-
-  Widget _buildHomeTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome card
-          _buildWelcomeCard(),
-          const SizedBox(height: 24),
-
-          // Stats summary
-          _buildStatsSummary(),
-          const SizedBox(height: 24),
-
-          // Recent workouts
-          const Text(
-            'Recent Workouts',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          _recentWorkouts.isEmpty
-              ? _buildEmptyWorkoutsCard()
-              : Column(
-                children:
-                    _recentWorkouts
-                        .map((workout) => _buildWorkoutCard(workout))
-                        .toList(),
-              ),
-          const SizedBox(height: 24),
-
-          // Latest achievements
-          const Text(
-            'Recent Achievements',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          _buildAchievementsRow(),
-          const SizedBox(height: 80), // Extra space for FAB
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWelcomeCard() {
-    final greeting = _getGreeting();
-    final name = _userProfile?.name.split(' ').first ?? 'there';
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$greeting, $name!',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _getMotivationalMessage(),
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to start workout screen
-                _showWorkoutOptionsDialog();
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 24,
-                ),
-              ),
-              child: const Text('START WORKOUT'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsSummary() {
-    return Row(
-      children: [
-        _buildStatCard(
-          icon: Icons.calendar_today,
-          title: 'Workouts',
-          value: _userProfile?.totalWorkouts.toString() ?? '0',
-        ),
-        const SizedBox(width: 12),
-        _buildStatCard(
-          icon: Icons.local_fire_department,
-          title: 'Calories',
-          value: _userProfile?.totalCaloriesBurned.toString() ?? '0',
-        ),
-        const SizedBox(width: 12),
-        _buildStatCard(
-          icon: Icons.timer,
-          title: 'Minutes',
-          value: _userProfile?.totalWorkoutMinutes.toString() ?? '0',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Expanded(
-      child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              Icon(icon, color: Theme.of(context).primaryColor),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyWorkoutsCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Icon(Icons.fitness_center, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'No workouts yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Start your first workout to track your progress!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWorkoutCard(WorkoutSession workout) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: _getWorkoutTypeIcon(workout.workoutType),
-        title: Text(
-          '${workout.workoutType.toUpperCase()} Workout',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          '${workout.exercises.length} exercises • ${workout.durationMinutes} min • ${workout.caloriesBurned} cal',
-        ),
-        trailing: Text(
-          _formatDate(workout.timestamp),
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        onTap: () {
-          // Navigate to workout details screen
-        },
-      ),
-    );
-  }
-
-  Widget _buildAchievementsRow() {
-    return SizedBox(
-      height: 120,
-      child:
-          _achievements.isEmpty
-              ? const Center(
-                child: Text('No achievements yet. Start working out!'),
-              )
-              : ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _achievements.length,
-                itemBuilder: (context, index) {
-                  final achievement = _achievements[index];
-                  return Card(
-                    margin: const EdgeInsets.only(right: 12),
-                    child: Container(
-                      width: 100,
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.emoji_events,
-                            size: 32,
-                            color:
-                                achievement.isUnlocked
-                                    ? Colors.amber
-                                    : Colors.grey,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            achievement.title,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            achievement.isUnlocked ? 'Unlocked' : 'Locked',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color:
-                                  achievement.isUnlocked
-                                      ? Colors.green
-                                      : Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
+      // Check if it's any AI exercise
+      if (exerciseName.contains('(AI)')) {
+        debugPrint('🏠 Home Screen: This is an AI exercise, proceeding to instruction screen');
+        // Extract the exercise name without "(AI)" suffix
+        String cleanExerciseName = exerciseName.replaceAll(' (AI)', '');
+        debugPrint('🏠 Home Screen: Clean exercise name: $cleanExerciseName');
+        
+        // Navigate to instruction screen first
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ExerciseInstructionScreen(
+              exerciseType: cleanExerciseName,
+              onStartWorkout: () {
+                // Close instruction screen and go to workout
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WorkoutScreen(
+                      exerciseName: cleanExerciseName,
+                      workoutType: 'strength',
                     ),
-                  );
-                },
-              ),
-    );
-  }
-
-  Widget _buildWorkoutsTab() {
-    // This would normally show a list of available workouts
-    return const Center(child: Text('Workouts tab - Coming soon'));
-  }
-
-  Widget _buildProgressTab() {
-    // This would show progress charts and stats
-    return const Center(child: Text('Progress tab - Coming soon'));
-  }
-
-  Widget _buildAchievementsTab() {
-    // This would show all achievements
-    return const Center(child: Text('Achievements tab - Coming soon'));
-  }
-
-  Widget _getWorkoutTypeIcon(String workoutType) {
-    IconData iconData;
-    Color color;
-
-    switch (workoutType.toLowerCase()) {
-      case 'strength':
-        iconData = Icons.fitness_center;
-        color = Colors.blue;
-        break;
-      case 'cardio':
-        iconData = Icons.directions_run;
-        color = Colors.red;
-        break;
-      case 'flexibility':
-        iconData = Icons.self_improvement;
-        color = Colors.purple;
-        break;
-      default:
-        iconData = Icons.sports_gymnastics;
-        color = Colors.orange;
-    }
-
-    return CircleAvatar(
-      backgroundColor: color.withOpacity(0.2),
-      child: Icon(iconData, color: color),
-    );
-  }
-
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
-  String _getMotivationalMessage() {
-    final messages = [
-      'Ready for another great workout?',
-      'Time to crush your fitness goals!',
-      'Today is a perfect day to get stronger!',
-      'Let\'s build those healthy habits!',
-      'Your future self will thank you for today\'s effort!',
-    ];
-
-    return messages[DateTime.now().millisecondsSinceEpoch % messages.length];
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final dateToCheck = DateTime(date.year, date.month, date.day);
-
-    if (dateToCheck == today) {
-      return 'Today';
-    } else if (dateToCheck == yesterday) {
-      return 'Yesterday';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
-  void _showWorkoutOptionsDialog() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Start a Workout'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildWorkoutOption(
-                title: 'Strength Training',
-                icon: Icons.fitness_center,
-                color: Colors.blue,
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToExerciseSelection('strength');
-                },
-              ),
-              _buildWorkoutOption(
-                title: 'Cardio',
-                icon: Icons.directions_run,
-                color: Colors.red,
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToExerciseSelection('cardio');
-                },
-              ),
-              _buildWorkoutOption(
-                title: 'Flexibility',
-                icon: Icons.self_improvement,
-                color: Colors.purple,
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToExerciseSelection('flexibility');
-                },
-              ),
-              _buildWorkoutOption(
-                title: 'Custom Workout',
-                icon: Icons.add_circle_outline,
-                color: Colors.green,
-                onTap: () {
-                  Navigator.pop(context);
-                  _navigateToCustomWorkout();
-                },
-              ),
-            ],
+                  ),
+                ).then((result) {
+                  // Handle result when returning from workout screen
+                  if (result != null && result is Map<String, dynamic>) {
+                    if (result['completed'] == true) {
+                      final repCount = result['repCount'] ?? 0;
+                      final duration = result['duration'] ?? 0;
+                      final formScore = result['formScore']?.toInt() ?? 0;
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '$cleanExerciseName Complete! $repCount reps in ${_formatDuration(duration)} with $formScore% form',
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                      
+                      // Refresh data after workout
+                      if (mounted) {
+                        _loadUserData();
+                      }
+                    }
+                  }
+                });
+              },
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-// Helper method for building workout options in the dialog
-Widget _buildWorkoutOption({
-  required String title,
-  required IconData icon,
-  required Color color,
-  required VoidCallback onTap,
-}) {
-  return ListTile(
-    leading: CircleAvatar(
-      backgroundColor: color.withOpacity(0.2),
-      child: Icon(icon, color: color),
-    ),
-    title: Text(title),
-    onTap: onTap,
-  );
-}
-
-// Methods for handling navigation after workout type selection
-void _navigateToExerciseSelection(String workoutType) {
-  // Show a simplified exercise selection dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      // Define exercises based on workout type
-      List<Map<String, String>> exercises = [];
-      
-      if (workoutType == 'strength') {
-        exercises = [
-          {'name': 'Squat', 'description': 'Lower body strength exercise'},
-          {'name': 'Pushup', 'description': 'Upper body strength exercise'},
-          {'name': 'Plank', 'description': 'Core stability exercise'},
-        ];
-      } else if (workoutType == 'cardio') {
-        exercises = [
-          {'name': 'Jumping Jacks', 'description': 'Full body cardio exercise'},
-          {'name': 'High Knees', 'description': 'Leg cardio exercise'},
-        ];
-      } else if (workoutType == 'flexibility') {
-        exercises = [
-          {'name': 'Forward Bend', 'description': 'Hamstring stretch'},
-          {'name': 'Child\'s Pose', 'description': 'Lower back stretch'},
-        ];
+        );
+        return;
       }
       
-      return AlertDialog(
-        title: Text('Select ${_capitalizeFirstLetter(workoutType)} Exercise'),
+      // Handle other exercises
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Starting $exerciseName workout...'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      
+    } catch (e) {
+      debugPrint('Error starting exercise: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting workout: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _loadUserData() {
+    // Implement your data loading logic here
+    setState(() {
+      // For now, these are placeholder values
+      // You would load these from Firebase/your data source
+      _totalWorkouts = 5;
+      _totalCalories = 245;
+      _totalMinutes = 120;
+    });
+    debugPrint('Loading user data...');
+  }
+
+  void _showWorkoutOptions() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose Your Workout'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // AI Bicep Curl - Featured
+                _buildWorkoutOption(
+                  title: 'Bicep Curl (AI Trainer)',
+                  subtitle: 'AI-powered form analysis with real-time feedback',
+                  icon: Icons.fitness_center,
+                  color: Colors.blue,
+                  featured: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _startExercise('Bicep Curl (AI)', 'strength');
+                  },
+                ),
+                const SizedBox(height: 8),
+                // Other workout options
+                _buildWorkoutOption(
+                  title: 'Strength Training',
+                  subtitle: 'Traditional strength exercises',
+                  icon: Icons.fitness_center,
+                  color: Colors.orange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showExerciseSelection('strength');
+                  },
+                ),
+                _buildWorkoutOption(
+                  title: 'Cardio',
+                  subtitle: 'Cardiovascular exercises',
+                  icon: Icons.directions_run,
+                  color: Colors.red,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showExerciseSelection('cardio');
+                  },
+                ),
+                _buildWorkoutOption(
+                  title: 'Flexibility',
+                  subtitle: 'Stretching and mobility',
+                  icon: Icons.self_improvement,
+                  color: Colors.purple,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showExerciseSelection('flexibility');
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showExerciseSelection(String workoutType) {
+    List<Map<String, String>> exercises = [];
+    
+    debugPrint('🏠 Home Screen: Showing exercise selection for workout type: $workoutType');
+    
+    if (workoutType == 'strength') {
+      exercises = [
+        {'name': 'Bicep Curl (AI)', 'description': 'AI-powered bicep curl analysis'},
+        {'name': 'Pushup (AI)', 'description': 'AI-powered pushup form analysis'},
+        {'name': 'Squat (AI)', 'description': 'AI-powered squat form analysis'},
+        {'name': 'Shoulder Press (AI)', 'description': 'AI-powered shoulder press analysis'},
+        {'name': 'Arm Circling (AI)', 'description': 'AI-powered arm circling analysis'},
+        {'name': 'Planks', 'description': 'Core stability'},
+      ];
+      debugPrint('🏠 Home Screen: Added ${exercises.length} strength exercises');
+    } else if (workoutType == 'cardio') {
+      exercises = [
+        {'name': 'Jumping Jacks', 'description': 'Full body cardio'},
+        {'name': 'High Knees', 'description': 'Leg cardio'},
+        {'name': 'Burpees', 'description': 'High intensity'},
+      ];
+    } else if (workoutType == 'flexibility') {
+      exercises = [
+        {'name': 'Forward Bend', 'description': 'Hamstring stretch'},
+        {'name': 'Shoulder Rolls', 'description': 'Upper body mobility'},
+        {'name': 'Hip Circles', 'description': 'Hip mobility'},
+      ];
+    }
+
+    debugPrint('🏠 Home Screen: Total exercises to show: ${exercises.length}');
+    for (var exercise in exercises) {
+      debugPrint('🏠 Home Screen: - ${exercise['name']}: ${exercise['description']}');
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${_capitalizeFirst(workoutType)} Exercises (${exercises.length} total)'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: exercises.map((exercise) => 
+            children: exercises.map((exercise) =>
               ListTile(
                 title: Text(exercise['name']!),
                 subtitle: Text(exercise['description']!),
+                leading: exercise['name']!.contains('(AI)') 
+                  ? Icon(Icons.smart_toy, color: Colors.blue)
+                  : Icon(Icons.fitness_center),
                 onTap: () {
+                  debugPrint('🏠 Home Screen: User selected exercise: ${exercise['name']}');
                   Navigator.pop(context);
                   _startExercise(exercise['name']!, workoutType);
                 },
@@ -612,68 +246,441 @@ void _navigateToExerciseSelection(String workoutType) {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Back'),
           ),
         ],
-      );
-    },
-  );
-}
-
-void _navigateToCustomWorkout() {
-  // For now, show a message that this feature is coming soon
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Custom workout feature coming soon!'),
-      duration: Duration(seconds: 2),
-    ),
-  );
-}
-
-void _startExercise(String exerciseName, String workoutType) {
-  try {
-    // Navigate to workout screen with proper exercise parameters
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => WorkoutScreen(
-          exerciseName: exerciseName,
-          workoutType: workoutType,
-        ),
-      ),
-    ).then((result) {
-      // Handle result when returning from workout screen
-      if (result != null && result is Map<String, dynamic>) {
-        if (result['completed'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Great job! You completed ${result['repCount']} reps.',
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Refresh data after workout
-          _loadUserData();
-        }
-      }
-    });
-  } catch (e) {
-    print('Error navigating to workout screen: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error starting workout: $e'),
-        backgroundColor: Colors.red,
       ),
     );
   }
-}
 
-String _capitalizeFirstLetter(String text) {
-  if (text.isEmpty) return text;
-  return text[0].toUpperCase() + text.substring(1);
-}
+  Widget _buildWorkoutOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool featured = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        gradient: featured ? LinearGradient(
+          colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ) : null,
+        border: Border.all(
+          color: featured ? color : Colors.grey[300]!,
+          width: featured ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: featured ? FontWeight.bold : FontWeight.w600,
+            fontSize: featured ? 16 : 14,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: featured ? color : Colors.grey[400],
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('FITGEN', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {
+              // Handle notifications
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () {
+              // Handle profile
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back, $_userName!',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Ready to crush your fitness goals?',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _showWorkoutOptions,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).primaryColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    child: const Text(
+                      'START WORKOUT',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Stats Summary
+            const Text(
+              'Your Progress',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.fitness_center,
+                    title: 'Workouts',
+                    value: '$_totalWorkouts',
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.local_fire_department,
+                    title: 'Calories',
+                    value: '$_totalCalories',
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    icon: Icons.timer,
+                    title: 'Minutes',
+                    value: '$_totalMinutes',
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Featured Workout
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.star, color: Colors.blue[600], size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Featured: AI Trainer',
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Try our AI-powered bicep curl trainer with real-time form analysis and rep counting!',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () => _startExercise('Bicep Curl (AI)', 'strength'),
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Try AI Trainer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Quick Actions
+            const Text(
+              'Quick Start',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.fitness_center,
+                    title: 'Strength',
+                    color: Colors.orange,
+                    onTap: () => _showExerciseSelection('strength'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.directions_run,
+                    title: 'Cardio',
+                    color: Colors.red,
+                    onTap: () => _showExerciseSelection('cardio'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.self_improvement,
+                    title: 'Flexibility',
+                    color: Colors.purple,
+                    onTap: () => _showExerciseSelection('flexibility'),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Health & Nutrition Section
+            const Text(
+              'Health & Nutrition',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.account_circle,
+                    title: 'Create Health Profile',
+                    color: Colors.green,
+                    onTap: () => _createHealthProfile(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickAction(
+                    icon: Icons.restaurant_menu,
+                    title: 'Diet Plan Maker',
+                    color: Colors.teal,
+                    onTap: () => _createDietPlan(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      // Removed floatingActionButton as it was covering the diet plan button
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _createHealthProfile() {
+    // Call your teammate's health profile function here
+    // Example: HealthProfileService.createProfile(context);
+    // Or navigate to their health profile screen:
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => YourTeammateHealthProfileScreen(),
+    //   ),
+    // );
+    
+    debugPrint('🏥 Health Profile button tapped - ready for teammate integration');
+  }
+
+  void _createDietPlan() {
+    // Call your teammate's diet plan function here
+    // Example: DietPlanService.createPlan(context);
+    // Or navigate to their diet plan screen:
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => YourTeammateDietPlanScreen(),
+    //   ),
+    // );
+    
+    debugPrint('🍽️ Diet Plan button tapped - ready for teammate integration');
+  }
 }

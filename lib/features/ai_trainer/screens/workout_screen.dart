@@ -1,16 +1,20 @@
-// file: lib/features/ai_trainer/screens/workout_screen.dart
-
+// lib/features/ai_trainer/screens/workout_screen.dart
 import 'dart:async';
-import 'dart:math' as math;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:camera/camera.dart';
-import 'package:provider/provider.dart';
+import 'package:fitgen/features/painters/form_feedback_painter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:provider/provider.dart';
+
 import '../services/firebase_service.dart';
-import '../services/pose_analyzer_service.dart';
 import '../models/workout_session.dart';
-import '../widgets/pose_visualization.dart';
+import '../exercise/exercise_detector.dart';
+import '../exercise/unified_exercise_detector.dart';
+import '../models/exercise_models.dart';
+import '../services/voice_coach_service.dart';
 
 class WorkoutScreen extends StatefulWidget {
   final String exerciseName;
@@ -26,61 +30,174 @@ class WorkoutScreen extends StatefulWidget {
   State<WorkoutScreen> createState() => WorkoutScreenState();
 }
 
-class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserver {
-  // Platform check
-  final bool isWeb = kIsWeb;
+class WorkoutScreenState extends State<WorkoutScreen> 
+    with WidgetsBindingObserver {
   
   // Camera controller
   CameraController? _cameraController;
   bool _isCameraInitialized = false;
-  final bool _isFrontFacing = true;
+  List<CameraDescription> _cameras = [];
+  bool _isUsingFrontCamera = false;
 
-  // Pose detector
-  late PoseAnalyzerService _poseAnalyzer;
-  bool _poseAnalyzerInitialized = false;
-
+  // Pose detector and exercise detector
+  PoseDetector? _poseDetector;
+  UnifiedExerciseDetector? _exerciseDetector;
+  VoiceCoachService? _voiceCoach;
+  bool _poseDetectorInitialized = false;
+  
   // Workout state
   int _repCount = 0;
   double _formQuality = 0.75;
-  List<String> _formIssues = ['Getting ready...'];
-  List<PoseLandmark>? _landmarks;
+  List<String> _formIssues = ['Getting ready to detect your pose...'];
   final DateTime _startTime = DateTime.now();
   bool _isWorkoutActive = true;
+  
+  // Exercise analysis
+  List<Pose> _poses = [];
+  ExerciseMetrics? _exerciseMetrics;
+  Size? _absoluteImageSize;
   
   // Timer for workout duration
   int _durationSeconds = 0;
   Timer? _durationTimer;
   
-  // Simulation timer for web demo
-  Timer? _simulationTimer;
+  // Processing control
+  bool _isProcessingFrame = false;
+  bool _isDetecting = false;
+  
+  // Display settings
+  bool _showFormFeedback = true;
+  bool _showAllKeypoints = true;
+  bool _voiceCoachEnabled = true;
+  
+  // Full screen mode
+  bool _isFullScreen = true;
+  bool _showControls = true;
+  Timer? _controlsTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     
-    // Initialize pose analyzer
-    _initializePoseAnalyzer();
+    // Set full screen and hide system UI
+    _setFullScreenMode();
     
+    _initializeServices();
+  }
+
+  void _setFullScreenMode() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+      overlays: [],
+    );
+    
+    // Hide controls after 3 seconds
+    _resetControlsTimer();
+  }
+
+  void _resetControlsTimer() {
+    _controlsTimer?.cancel();
+    setState(() {
+      _showControls = true;
+    });
+    
+    _controlsTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _isFullScreen) {
+        setState(() {
+          _showControls = false;
+        });
+      }
+    });
+  }
+
+  void _toggleFullScreen() {
+    setState(() {
+      _isFullScreen = !_isFullScreen;
+    });
+    
+    if (_isFullScreen) {
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.immersiveSticky,
+        overlays: [],
+      );
+      _resetControlsTimer();
+    } else {
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+      );
+      _controlsTimer?.cancel();
+      setState(() {
+        _showControls = true;
+      });
+    }
+  }
+
+  Future<void> _initializeServices() async {
     // Start workout duration timer
     _startDurationTimer();
     
-    // Initialize camera with a slight delay to ensure UI is ready
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _initializeCamera();
-    });
+    // Initialize exercise detector
+    _exerciseDetector = UnifiedExerciseDetector();
+    
+    // Map exercise name to exercise type
+    ExerciseType exerciseType = _getExerciseTypeFromName(widget.exerciseName);
+    debugPrint('🏋️‍♂️ Setting exercise type: $exerciseType for exercise: ${widget.exerciseName}');
+    _exerciseDetector!.setExerciseType(exerciseType);
+    
+    // Initialize voice coach
+    _voiceCoach = VoiceCoachService();
+    _voiceCoach!.setExerciseType(exerciseType);
+    if (_voiceCoachEnabled) {
+      await _voiceCoach!.initialize();
+    }
+    
+    // Initialize pose detector
+    await _initializePoseDetector();
+    
+    // Then initialize camera
+    await _initializeCamera();
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle to properly manage camera
+    super.didChangeAppLifecycleState(state);
+    
+    if (!_isCameraInitialized || _cameraController == null) return;
+    
     if (state == AppLifecycleState.inactive) {
-      _cameraController?.stopImageStream();
-      _disposeCamera();
+      _stopImageStream();
     } else if (state == AppLifecycleState.resumed) {
-      if (_cameraController != null) {
-        _initializeCamera();
+      if (_cameraController != null && _cameraController!.value.isInitialized) {
+        _startImageStream();
       }
+    }
+  }
+
+  Future<void> _initializePoseDetector() async {
+    try {
+      debugPrint('🤖 Initializing pose detector...');
+      
+      _poseDetector = PoseDetector(
+        options: PoseDetectorOptions(
+          model: PoseDetectionModel.base,
+          mode: PoseDetectionMode.stream,
+        ),
+      );
+      
+      setState(() {
+        _poseDetectorInitialized = true;
+        _formIssues = ['Pose detector ready! Position yourself in the camera.'];
+      });
+      
+      debugPrint('✅ Pose detector initialized successfully');
+    } catch (e) {
+      debugPrint('❌ Error initializing pose detector: $e');
+      setState(() {
+        _poseDetectorInitialized = false;
+        _formIssues = ['Pose detection unavailable. Starting demo mode.'];
+      });
     }
   }
 
@@ -94,174 +211,259 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
     });
   }
 
-  Future<void> _initializePoseAnalyzer() async {
-    try {
-      _poseAnalyzer = PoseAnalyzerService();
-      await _poseAnalyzer.initialize(widget.exerciseName);
-      setState(() {
-        _poseAnalyzerInitialized = true;
-      });
-      
-      if (kIsWeb) {
-        _setupWebSimulation();
-      }
-    } catch (e) {
-      debugPrint('Error initializing pose analyzer: $e');
-    }
-  }
-
   Future<void> _initializeCamera() async {
     try {
-      if (kIsWeb) {
-        setState(() {
-          _isCameraInitialized = true;
-        });
+      debugPrint('📸 Initializing camera...');
+      
+      // Get available cameras
+      _cameras = await availableCameras();
+      
+      if (_cameras.isEmpty) {
+        debugPrint('❌ No cameras available');
+        _handleCameraError('No cameras found on device');
         return;
       }
+
+      await _selectCamera();
       
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        debugPrint('No cameras available');
-        setState(() {
-          _isCameraInitialized = true;
-        });
-        return;
-      }
-      
-      final frontCamera = cameras.firstWhere(
-        (camera) => camera.lensDirection == CameraLensDirection.front,
-        orElse: () => cameras.first,
-      );
-      
-      _cameraController = CameraController(
-        frontCamera,
-        ResolutionPreset.medium,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.jpeg,
-      );
-      
-      await _cameraController!.initialize();
-      
-      if (!mounted) return;
-      
+      debugPrint('✅ Camera initialized successfully');
+
       // Start image stream for pose detection
-      await _cameraController!.startImageStream(_processImage);
-      
-      setState(() {
-        _isCameraInitialized = true;
-      });
+      await _startImageStream();
+
     } catch (e) {
-      debugPrint('Error initializing camera: $e');
-      if (mounted) {
-        setState(() {
-          _isCameraInitialized = true; // Show fallback UI
-        });
-      }
+      debugPrint('❌ Error initializing camera: $e');
+      _handleCameraError('Camera initialization failed: ${e.toString()}');
     }
   }
 
-  void _processWebCameraImage(CameraImage image) {
-    if (!_isWorkoutActive || !_poseAnalyzerInitialized) return;
-    
+  Future<void> _selectCamera() async {
+    // Select front or back camera
+    CameraDescription selectedCamera;
     try {
-      // For web, we'll need special handling
-      // This is a simplified version for demonstration
+      selectedCamera = _cameras.firstWhere(
+        (camera) => camera.lensDirection == (_isUsingFrontCamera 
+            ? CameraLensDirection.front 
+            : CameraLensDirection.back),
+        orElse: () => _cameras.first,
+      );
+      debugPrint('📱 Using ${_isUsingFrontCamera ? 'front' : 'back'} camera: ${selectedCamera.name}');
+    } catch (e) {
+      selectedCamera = _cameras.first;
+      debugPrint('📱 Using first available camera: ${selectedCamera.name}');
+    }
+
+    // Dispose existing controller if it exists
+    if (_cameraController != null) {
+      await _cameraController!.dispose();
+    }
+
+    // Initialize camera controller
+    _cameraController = CameraController(
+      selectedCamera,
+      ResolutionPreset.high, // Higher resolution for better detection
+      enableAudio: false,
+      imageFormatGroup: ImageFormatGroup.nv21,
+    );
+
+    await _cameraController!.initialize();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isCameraInitialized = true;
+    });
+  }
+
+  Future<void> _toggleCamera() async {
+    if (_cameras.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Only one camera available'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUsingFrontCamera = !_isUsingFrontCamera;
+    });
+
+    // Voice announcement
+    if (_voiceCoachEnabled && _voiceCoach != null) {
+      _voiceCoach!.announceCameraSwitch(_isUsingFrontCamera);
+    }
+
+    // Stop current detection
+    if (_isDetecting) {
+      await _stopImageStream();
+    }
+
+    // Switch camera
+    await _selectCamera();
+    
+    // Restart detection if it was running
+    if (_isDetecting) {
+      await _startImageStream();
+    }
+  }
+
+  void _handleCameraError(String error) {
+    setState(() {
+      _isCameraInitialized = true; // Show fallback UI
+      _formIssues = [error];
+    });
+  }
+
+  Future<void> _startImageStream() async {
+    if (_cameraController == null || 
+        !_cameraController!.value.isInitialized ||
+        !_poseDetectorInitialized ||
+        _poseDetector == null) {
+      debugPrint('⚠️ Cannot start image stream - camera or pose detector not ready');
+      return;
+    }
+
+    try {
+      debugPrint('🎬 Starting image stream...');
+      _isDetecting = true;
+      await _cameraController!.startImageStream(_processImage);
+      debugPrint('✅ Image stream started successfully');
+      
       setState(() {
-        // Update visualization based on timer instead of actual pose detection
-        if (_durationSeconds % 3 == 0) {
-          _repCount++;
-          _formQuality = 0.7 + (0.2 * math.Random().nextDouble());
-          
-          // Cycle through form issues for demo
-          if (_repCount % 4 == 0) {
-            _formIssues = ['Keep your back straight for proper form'];
-          } else if (_repCount % 3 == 0) {
-            _formIssues = ['Lower your body more for full range of motion'];
-          } else {
-            _formIssues = ['Good form! Keep it up.'];
-          }
-        }
+        _formIssues = ['Camera active! Stand back and show your full body.'];
       });
     } catch (e) {
-      debugPrint('Error processing web camera image: $e');
+      debugPrint('❌ Error starting image stream: $e');
+      setState(() {
+        _formIssues = ['Error starting camera: $e'];
+      });
+    }
+  }
+
+  Future<void> _stopImageStream() async {
+    if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+      try {
+        _isDetecting = false;
+        await _cameraController!.stopImageStream();
+        debugPrint('🛑 Image stream stopped');
+      } catch (e) {
+        debugPrint('❌ Error stopping image stream: $e');
+      }
     }
   }
 
   void _processImage(CameraImage image) async {
-    if (!_isWorkoutActive || !_poseAnalyzerInitialized) return;
-    
+    if (!_isWorkoutActive || 
+        !_poseDetectorInitialized || 
+        _isProcessingFrame ||
+        _poseDetector == null ||
+        _exerciseDetector == null) {
+      return;
+    }
+
+    _isProcessingFrame = true;
+
     try {
-      final result = await _poseAnalyzer.processFrame(
-        image, 
-        _cameraController!.description
-      );
+      // Convert to InputImage
+      final inputImage = _inputImageFromCameraImage(image);
+      if (inputImage == null) {
+        debugPrint('❌ Failed to convert camera image');
+        _isProcessingFrame = false;
+        return;
+      }
+
+      // Detect poses
+      final List<Pose> poses = await _poseDetector!.processImage(inputImage);
       
-      if (result != null && mounted) {
+      if (!mounted) {
+        _isProcessingFrame = false;
+        return;
+      }
+
+      if (poses.isEmpty) {
         setState(() {
-          _repCount = result.repCount;
-          _formQuality = result.formQuality;
-          _formIssues = result.formIssues;
-          _landmarks = result.landmarks;
+          _poses = [];
+          _exerciseMetrics = null;
+          _formIssues = ['No pose detected. Move back and show your full body.'];
+        });
+      } else {
+        final pose = poses.first;
+        
+        // Analyze exercise
+        final metrics = _exerciseDetector!.detectExercise(pose);
+        debugPrint('🎯 Exercise detection result: ${metrics?.repCount} reps, ${metrics?.feedback}');
+        
+        // Voice coaching
+        if (_voiceCoachEnabled && _voiceCoach != null && metrics != null) {
+          await _voiceCoach!.analyzeExercise(metrics);
+        }
+        
+        setState(() {
+          _poses = poses;
+          _exerciseMetrics = metrics;
+          if (metrics != null) {
+            _repCount = metrics.repCount;
+            _formQuality = metrics.formScore / 100;
+            _formIssues = [metrics.feedback];
+          } else {
+            _formIssues = ['Detecting exercise form...'];
+          }
         });
       }
+
     } catch (e) {
-      debugPrint('Error processing image: $e');
+      debugPrint('💥 Error processing image: $e');
+      setState(() {
+        _formIssues = ['Processing error: ${e.toString().substring(0, 50)}'];
+      });
+    } finally {
+      _isProcessingFrame = false;
     }
   }
-  
-  void _setupWebSimulation() {
-    // For web demo, create simulated data
-    _simulationTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      if (!_isWorkoutActive || !mounted) return;
-      
-      // Create simulated movements based on exercise type
-      final isSquat = widget.exerciseName.toLowerCase() == 'squat';
-      
-      // Cycle through different exercise positions
-      final cyclePosition = (_durationSeconds % 4) / 4; // 0 to 1 over 4 seconds
-      
-      // Simulate realistic movement pattern (down then up)
-      final position = cyclePosition < 0.5 
-          ? cyclePosition * 2 // 0 to 1 (going down)
-          : (1 - (cyclePosition - 0.5) * 2); // 1 to 0 (going up)
-      
-      // Add a repetition at the top of the movement
-      if (cyclePosition > 0.9 && cyclePosition < 0.95) {
-        setState(() {
-          _repCount = (_durationSeconds / 4).floor();
-        });
+
+  InputImage? _inputImageFromCameraImage(CameraImage image) {
+    final camera = _cameraController!.description;
+    final sensorOrientation = camera.sensorOrientation;
+    
+    InputImageRotation? rotation;
+    if (Platform.isIOS) {
+      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+    } else {
+      var rotationCompensation = sensorOrientation;
+      if (camera.lensDirection == CameraLensDirection.front) {
+        rotationCompensation = (sensorOrientation + 180) % 360;
       }
-      
-      // Adjust form quality every few seconds
-      if (_durationSeconds % 10 == 0) {
-        setState(() {
-          _formQuality = 0.7 + (math.Random().nextDouble() * 0.3);
-        });
-      }
-      
-      // Add occasional form issues
-      if (_durationSeconds % 15 == 0) {
-        setState(() {
-          if (isSquat) {
-            _formIssues = ['Keep your knees aligned with your toes'];
-          } else {
-            _formIssues = ['Keep your core engaged throughout the movement'];
-          }
-        });
-      } else if (_durationSeconds % 12 == 0) {
-        setState(() {
-          if (isSquat) {
-            _formIssues = ['Lower your hips more for full depth'];
-          } else {
-            _formIssues = ['Lower your chest closer to the ground'];
-          }
-        });
-      } else if (_durationSeconds % 7 == 0) {
-        setState(() {
-          _formIssues = ['Good form! Keep it up.'];
-        });
-      }
-    });
+      rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
+    }
+    
+    if (rotation == null) return null;
+
+    final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? 
+                   InputImageFormat.nv21;
+                   
+    _absoluteImageSize = Size(image.width.toDouble(), image.height.toDouble());
+
+    // Get bytes from all planes
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    // Create simplified metadata
+    final metadata = InputImageMetadata(
+      size: Size(image.width.toDouble(), image.height.toDouble()),
+      rotation: rotation,
+      format: format,
+      bytesPerRow: image.planes.first.bytesPerRow,
+    );
+
+    return InputImage.fromBytes(
+      bytes: bytes,
+      metadata: metadata,
+    );
   }
 
   Future<void> _endWorkout() async {
@@ -271,18 +473,16 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
       _isWorkoutActive = false;
     });
     
-    if (_cameraController != null && _cameraController!.value.isStreamingImages) {
-      await _cameraController!.stopImageStream();
-    }
-    
-    // Dispose timers
+    // Clean up resources
     _durationTimer?.cancel();
-    _simulationTimer?.cancel();
+    _controlsTimer?.cancel();
+    
+    await _stopImageStream();
 
     try {
       final firebaseService = Provider.of<FirebaseService>(
         context, 
-        listen: false
+        listen: false,
       );
 
       // Create workout session
@@ -300,286 +500,196 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
           ),
         ],
         caloriesBurned: _calculateCaloriesBurned(),
-        averageHeartRate: 125, // Placeholder - would come from wearable
+        averageHeartRate: 125,
         averageFormScore: _formQuality * 100,
       );
 
       // Save to Firebase
       await firebaseService.saveWorkoutSession(session);
 
+      // Voice coach completion
+      if (_voiceCoachEnabled && _voiceCoach != null) {
+        await _voiceCoach!.announceWorkoutComplete(_repCount, _formQuality * 100);
+      }
+
       if (!mounted) return;
+
+      // Restore system UI before leaving
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+      );
 
       // Navigate back with completion data
       Navigator.pop(context, {
         'completed': true, 
         'repCount': _repCount, 
         'duration': _durationSeconds,
-        'formScore': _formQuality * 100
+        'formScore': _formQuality * 100,
       });
     } catch (e) {
-      debugPrint('Error saving workout: $e');
+      debugPrint('❌ Error saving workout: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving workout: ${e.toString().substring(0, math.min(e.toString().length, 100))}')
-          )
+            content: Text('Workout completed! Reps: $_repCount'),
+            backgroundColor: Colors.green,
+          ),
         );
-        Navigator.pop(context, {'completed': false});
+        Navigator.pop(context, {'completed': true, 'repCount': _repCount});
       }
     }
   }
 
   int _calculateCaloriesBurned() {
-    // Simple estimation based on exercise type and duration
     double mets = widget.workoutType.toLowerCase() == 'cardio' ? 6.0 : 4.5;
-    int weightKg = 70; // Default weight - would come from user profile
+    int weightKg = 70;
     double durationHours = _durationSeconds / 3600;
-
     return (mets * weightKg * durationHours * 3.5).round();
   }
-  
-  void _disposeCamera() {
-    _cameraController?.dispose();
-    _cameraController = null;
+
+  void _resetExercise() {
+    _exerciseDetector?.reset();
+    if (_voiceCoachEnabled && _voiceCoach != null) {
+      _voiceCoach!.announceReset();
+    }
+    setState(() {
+      _exerciseMetrics = null;
+      _repCount = 0;
+      _formQuality = 0.75;
+      _formIssues = ['Exercise reset. Ready to start!'];
+    });
+  }
+
+  void _toggleVoiceCoach() {
+    setState(() {
+      _voiceCoachEnabled = !_voiceCoachEnabled;
+    });
+    
+    if (_voiceCoach != null) {
+      _voiceCoach!.setEnabled(_voiceCoachEnabled);
+      
+      if (_voiceCoachEnabled) {
+        _voiceCoach!.testVoice();
+      }
+    }
+  }
+
+  void _onScreenTap() {
+    if (_isFullScreen) {
+      _resetControlsTimer();
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _durationTimer?.cancel();
-    _simulationTimer?.cancel();
-    _disposeCamera();
-    _poseAnalyzer.dispose();
+    _controlsTimer?.cancel();
+    
+    _isDetecting = false;
+    _stopImageStream();
+    
+    if (_cameraController != null) {
+      _cameraController!.dispose();
+    }
+    
+    _poseDetector?.close();
+    _voiceCoach?.dispose();
+    
+    // Restore system UI
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+    );
+    
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.exerciseName),
-        backgroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: _isCameraInitialized
-          ? _buildWorkoutBody()
-          : const Center(child: CircularProgressIndicator()),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _endWorkout,
-        icon: const Icon(Icons.stop),
-        label: const Text('End Workout'),
-        backgroundColor: Colors.red,
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTap: _onScreenTap,
+        child: Stack(
+          children: [
+            // Full screen camera view
+            Positioned.fill(
+              child: _isCameraInitialized
+                  ? _buildCameraView()
+                  : _buildLoadingScreen(),
+            ),
+            
+            // Overlay controls (show/hide based on _showControls)
+            if (_showControls) ...[
+              // Top controls
+              Positioned(
+                top: MediaQuery.of(context).padding.top,
+                left: 0,
+                right: 0,
+                child: _buildTopControls(),
+              ),
+              
+              // Bottom controls
+              Positioned(
+                bottom: MediaQuery.of(context).padding.bottom,
+                left: 0,
+                right: 0,
+                child: _buildBottomControls(),
+              ),
+              
+              // Side controls
+              Positioned(
+                right: 16,
+                top: MediaQuery.of(context).size.height * 0.3,
+                child: _buildSideControls(),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildWorkoutBody() {
+  Widget _buildCameraView() {
     return Container(
-      color: Colors.black,
-      child: Column(
+      width: double.infinity,
+      height: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          // Camera preview with pose overlay
-          Expanded(
-            flex: 3,
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[800]!, width: 2),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Camera preview
-                    AspectRatio(
-                      aspectRatio: _cameraController?.value.aspectRatio ?? 3/4,
-                      child: _isCameraInitialized && _cameraController != null
-                        ? CameraPreview(_cameraController!)
-                        : _buildPlaceholderPreview(),
-                    ),
-                    
-                    // Pose visualization overlay
-                    if (_landmarks != null && _landmarks!.isNotEmpty)
-                      PoseVisualization(
-                        landmarks: _landmarks,
-                        screenSize: MediaQuery.of(context).size,
-                        cameraSize: _cameraController?.value.previewSize != null
-                          ? Size(
-                            _cameraController!.value.previewSize!.height,
-                            _cameraController!.value.previewSize!.width,
-                          )
-                          : const Size(640, 480),
-                        isFrontFacing: _isFrontFacing,
-                      ),
-                          
-                    // Rep counter overlay
-                    Positioned(
-                      top: 20,
-                      right: 20,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(179), // 70% opacity
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Reps: $_repCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    // Duration timer overlay
-                    Positioned(
-                      top: 20,
-                      left: 20,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(179), // 70% opacity
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _formatDuration(_durationSeconds),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+          // Camera preview
+          if (_cameraController != null && _cameraController!.value.isInitialized)
+            AspectRatio(
+              aspectRatio: _cameraController!.value.aspectRatio,
+              child: CameraPreview(_cameraController!),
+            )
+          else
+            _buildCameraPlaceholder(),
+          
+          // Form feedback overlay with all 33 keypoints
+          if (_poses.isNotEmpty && _absoluteImageSize != null && _showFormFeedback)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: FormFeedbackPainter(
+                  poses: _poses,
+                  imageSize: _absoluteImageSize!,
+                  rotation: _cameraController!.description.sensorOrientation,
+                  lensDirection: _cameraController!.description.lensDirection,
+                  exerciseMetrics: _exerciseMetrics,
+                  showAngleIndicator: true,
+                  showFormHighlight: true,
+                  showAllKeypoints: _showAllKeypoints,
                 ),
               ),
             ),
-          ),
-
-          // Stats and feedback panel
-          Expanded(
-            flex: 2,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Exercise name and type
-                  Text(
-                    '${widget.exerciseName} (${widget.workoutType})',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Stats summary
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatBox(
-                        icon: Icons.fitness_center,
-                        value: '$_repCount',
-                        label: 'Repetitions',
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      _buildStatBox(
-                        icon: Icons.timer,
-                        value: _formatDuration(_durationSeconds),
-                        label: 'Duration',
-                      ),
-                      _buildStatBox(
-                        icon: Icons.local_fire_department,
-                        value: '${_calculateCaloriesBurned()}',
-                        label: 'Calories',
-                        color: Colors.orange,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Form quality indicator
-                  Row(
-                    children: [
-                      const Text(
-                        'Form Quality:',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildFormQualityIndicator(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Form feedback
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
-                            ? Colors.amber.shade50
-                            : Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
-                              ? Colors.amber
-                              : Colors.green,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
-                                ? 'Form Feedback:'
-                                : 'Great Job!',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
-                                  ? Colors.amber.shade800
-                                  : Colors.green.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formIssues.isNotEmpty
-                                ? _formIssues.first
-                                : 'Excellent form! Keep up the great work!',
-                            style: TextStyle(
-                              color: _formIssues.isNotEmpty && _formIssues.first != 'Good form! Keep it up.'
-                                  ? Colors.amber.shade800
-                                  : Colors.green.shade800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildPlaceholderPreview() {
+  Widget _buildCameraPlaceholder() {
     return Container(
       color: Colors.grey[900],
       child: Center(
@@ -587,23 +697,21 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              widget.exerciseName.toLowerCase() == 'squat'
-                  ? Icons.accessibility_new // Use this for squat exercise
-                  : Icons.fitness_center,    // Use this for other exercises
+              Icons.fitness_center,
               size: 64,
               color: Colors.white70,
             ),
             const SizedBox(height: 16),
             const Text(
-              'Pose analysis active',
+              'Camera Preview',
               style: TextStyle(color: Colors.white, fontSize: 18),
             ),
             const SizedBox(height: 8),
-            const Text(
-              kIsWeb
-                  ? 'Web demo mode (camera not available)'
-                  : 'Camera initializing...',
-              style: TextStyle(color: Colors.white70),
+            Text(
+              _poseDetectorInitialized ? 'Pose detection ready' : 'Demo mode',
+              style: TextStyle(
+                color: _poseDetectorInitialized ? Colors.green : Colors.orange,
+              ),
             ),
           ],
         ),
@@ -611,37 +719,118 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
     );
   }
 
-  Widget _buildStatBox({
-    required IconData icon,
-    required String value,
-    required String label,
-    Color color = Colors.blue,
-  }) {
+  Widget _buildLoadingScreen() {
     return Container(
-      width: 110,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      decoration: BoxDecoration(
-        color: color.withAlpha(25), // 10% opacity
-        borderRadius: BorderRadius.circular(12),
+      color: Colors.black,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.white),
+            SizedBox(height: 16),
+            Text(
+              'Initializing camera and pose detection...',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  Widget _buildTopControls() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.black.withOpacity(0.7),
+            Colors.transparent,
+          ],
+        ),
+      ),
+      child: Row(
         children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
+          // Back button
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => _showExitDialog(),
+          ),
+          
+          // Title
+          Expanded(
+            child: Text(
+              '${widget.exerciseName} Workout',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+          
+          // Full screen toggle
+          IconButton(
+            icon: Icon(
+              _isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+              color: Colors.white,
+            ),
+            onPressed: _toggleFullScreen,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomControls() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            Colors.black.withOpacity(0.7),
+            Colors.transparent,
+          ],
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Stats display
+          _buildStatChip(
+            icon: Icons.fitness_center,
+            value: '$_repCount',
+            label: 'Reps',
+            color: Colors.blue,
+          ),
+          
+          _buildStatChip(
+            icon: Icons.timer,
+            value: _formatDuration(_durationSeconds),
+            label: 'Time',
+            color: Colors.green,
+          ),
+          
+          _buildStatChip(
+            icon: Icons.local_fire_department,
+            value: '${_calculateCaloriesBurned()}',
+            label: 'Cal',
+            color: Colors.orange,
+          ),
+          
+          // End workout button
+          ElevatedButton.icon(
+            onPressed: _endWorkout,
+            icon: const Icon(Icons.stop),
+            label: const Text('End'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
           ),
         ],
@@ -649,45 +838,133 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
     );
   }
 
-  Widget _buildFormQualityIndicator() {
-    Color color;
-    if (_formQuality >= 0.8) {
-      color = Colors.green;
-    } else if (_formQuality >= 0.6) {
-      color = Colors.amber;
-    } else {
-      color = Colors.red;
-    }
-
-    return Container(
-      height: 20,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Stack(
-        children: [
-          FractionallySizedBox(
-            widthFactor: _formQuality,
-            child: Container(
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+  Widget _buildSideControls() {
+    return Column(
+      children: [
+        // Camera toggle
+        FloatingActionButton(
+          mini: true,
+          heroTag: "camera_toggle",
+          onPressed: _toggleCamera,
+          backgroundColor: Colors.black.withOpacity(0.7),
+          child: const Icon(Icons.flip_camera_ios, color: Colors.white),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Voice coach toggle
+        FloatingActionButton(
+          mini: true,
+          heroTag: "voice_toggle",
+          onPressed: _toggleVoiceCoach,
+          backgroundColor: _voiceCoachEnabled 
+              ? Colors.blue.withOpacity(0.7)
+              : Colors.black.withOpacity(0.7),
+          child: Icon(
+            _voiceCoachEnabled ? Icons.volume_up : Icons.volume_off,
+            color: Colors.white,
           ),
-          Center(
-            child: Text(
-              '${(_formQuality * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: _formQuality > 0.5 ? Colors.white : Colors.black,
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Keypoints toggle
+        FloatingActionButton(
+          mini: true,
+          heroTag: "keypoints_toggle",
+          onPressed: () {
+            setState(() {
+              _showAllKeypoints = !_showAllKeypoints;
+            });
+          },
+          backgroundColor: _showAllKeypoints 
+              ? Colors.purple.withOpacity(0.7)
+              : Colors.black.withOpacity(0.7),
+          child: Icon(
+            _showAllKeypoints ? Icons.visibility : Icons.visibility_off,
+            color: Colors.white,
+          ),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Reset button
+        FloatingActionButton(
+          mini: true,
+          heroTag: "reset",
+          onPressed: _resetExercise,
+          backgroundColor: Colors.orange.withOpacity(0.7),
+          child: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatChip({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 4),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 10,
+                ),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  void _showExitDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('End Workout?'),
+          content: const Text('Are you sure you want to end this workout session?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Continue'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _endWorkout();
+              },
+              child: const Text('End Workout'),
+            ),
+          ],
+        );
+      }, 
     );
   }
   
@@ -695,5 +972,31 @@ class WorkoutScreenState extends State<WorkoutScreen> with WidgetsBindingObserve
     final minutes = (seconds / 60).floor();
     final remainingSeconds = seconds % 60;
     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  ExerciseType _getExerciseTypeFromName(String exerciseName) {
+    final name = exerciseName.toLowerCase().trim();
+    debugPrint('🏷️ Mapping exercise name "$exerciseName" -> "$name"');
+    
+    if (name.contains('bicep') || name.contains('curl')) {
+      debugPrint('✅ Mapped to ExerciseType.bicepCurl');
+      return ExerciseType.bicepCurl;
+    } else if (name.contains('pushup') || name.contains('push-up') || name.contains('push up')) {
+      debugPrint('✅ Mapped to ExerciseType.pushup');
+      return ExerciseType.pushup;
+    } else if (name.contains('squat')) {
+      debugPrint('✅ Mapped to ExerciseType.squat');
+      return ExerciseType.squat;
+    } else if (name.contains('arm circling') || name.contains('arm circle')) {
+      debugPrint('✅ Mapped to ExerciseType.armCircling');
+      return ExerciseType.armCircling;
+    } else if (name.contains('shoulder press') || name.contains('press')) {
+      debugPrint('✅ Mapped to ExerciseType.shoulderPress');
+      return ExerciseType.shoulderPress;
+    } else {
+      // Default to bicep curl if not recognized
+      debugPrint('⚠️ No match found, defaulting to ExerciseType.bicepCurl');
+      return ExerciseType.bicepCurl;
+    }
   }
 }
