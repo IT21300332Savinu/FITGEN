@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:go_router/go_router.dart';                 // <— for context.pushNamed
 import '../screens/meal_detail_screen.dart';
 import '../services/meal_suggestions_service.dart';
 
 class MealSuggestionScreen extends StatefulWidget {
+  const MealSuggestionScreen({
+    super.key,
+    required this.predictedCalories,
+    required this.suggestedMeals,
+    required this.conditions,
+    required this.profile,
+  });
+
+  final double predictedCalories;
+  final Map<String, dynamic> suggestedMeals; // incoming from router.extra
+  final List<String> conditions;
+  final Map<String, dynamic> profile;
+
   @override
   State<MealSuggestionScreen> createState() => _MealSuggestionScreenState();
 }
@@ -22,7 +36,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
       "description": "Rich in protein and antioxidants",
       "calories": 320,
       "icon": Icons.free_breakfast,
-      "color": const Color(0xFFF8BBD0),
+      "color": Color(0xFFF8BBD0),
       "ingredients": ["Low-fat yogurt", "Blueberries", "Strawberries", "Honey"],
       "alternatives": {
         "Low-fat yogurt": ["Greek yogurt", "Plant-based yogurt (almond, soy)"],
@@ -36,7 +50,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
       "description": "High fiber and plant protein",
       "calories": 580,
       "icon": Icons.rice_bowl,
-      "color": const Color(0xFFC8E6C9),
+      "color": Color(0xFFC8E6C9),
       "ingredients": [
         "Brown rice",
         "Spinach",
@@ -62,7 +76,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
       "description": "Light and nutritious evening meal",
       "calories": 420,
       "icon": Icons.restaurant,
-      "color": const Color(0xFFBBDEFB),
+      "color": Color(0xFFBBDEFB),
       "ingredients": [
         "Vegetable broth",
         "Carrots",
@@ -83,7 +97,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
       "description": "Perfect balance of fiber and protein",
       "calories": 220,
       "icon": Icons.local_cafe,
-      "color": const Color(0xFFFFE0B2),
+      "color": Color(0xFFFFE0B2),
       "ingredients": ["Apple", "Peanut butter"],
       "alternatives": {
         "Apple": ["Pear", "Banana"],
@@ -95,16 +109,15 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
   Map<String, double> mealRatings = {};
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map?;
-    if (args == null) return;
+  void initState() {
+    super.initState();
 
-    _conditionsArg = (args["conditions"] as List?)?.cast<String>();
-    _profileArg = args["profile"] as Map<String, dynamic>?;
+    // ✅ Initialize from constructor (not ModalRoute)
+    predictedCalories = widget.predictedCalories;
+    _conditionsArg = widget.conditions;
+    _profileArg = widget.profile;
 
-    predictedCalories = (args["calories"] as num).toDouble();
-    final Map<String, dynamic> mealMap = Map<String, dynamic>.from(args["meals"]);
+    final Map<String, dynamic> mealMap = widget.suggestedMeals;
 
     String _titleFor(String prettyKey) {
       final k1 = "$prettyKey Suggestion";
@@ -148,7 +161,6 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        // Use global AppBarTheme (orange bg, white fg, centered)
         title: Text(
           "Your Meal Suggestions",
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
@@ -166,7 +178,8 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
               Align(
                 alignment: Alignment.center,
                 child: ElevatedButton.icon(
-                  onPressed: () => Navigator.pushNamed(context, '/custom-meal-plan-list'),
+                  // 🔁 Use GoRouter instead of Navigator.pushNamed if you're on MaterialApp.router
+                  onPressed: () => context.pushNamed('customMealPlanList'),
                   icon: const Icon(Icons.library_books),
                   label: const Text("My Custom Plans"),
                 ),
@@ -177,7 +190,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: cs.onSurface, // THEME
+                  color: cs.onSurface,
                 ),
               ),
               const SizedBox(height: 16),
@@ -196,7 +209,6 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        // THEME: use primary → secondary gradient from theme
         gradient: LinearGradient(
           colors: [cs.primary, cs.secondary],
           begin: Alignment.topLeft,
@@ -219,7 +231,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
             child: Icon(
               Icons.bubble_chart,
               size: 100,
-              color: cs.onPrimary.withOpacity(0.08), // THEME
+              color: cs.onPrimary.withOpacity(0.08),
             ),
           ),
           Padding(
@@ -232,7 +244,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: cs.onPrimary.withOpacity(0.95), // THEME
+                    color: cs.onPrimary.withOpacity(0.95),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -244,7 +256,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
-                        color: cs.onPrimary, // THEME
+                        color: cs.onPrimary,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -255,7 +267,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: cs.onPrimary.withOpacity(0.95), // THEME
+                          color: cs.onPrimary.withOpacity(0.95),
                         ),
                       ),
                     ),
@@ -272,7 +284,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
   Widget _buildMealsList() {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final outline = theme.colorScheme.outlineVariant.withOpacity(0.25);
+    final outline = cs.outlineVariant.withOpacity(0.25);
 
     double _ratingFor(String key) => mealRatings[key] ?? 3.0;
 
@@ -286,6 +298,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
 
         return GestureDetector(
           onTap: () {
+            // This local push is fine; you can also convert MealDetail to a GoRoute later
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -301,7 +314,6 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
           },
           child: Card(
             margin: const EdgeInsets.only(bottom: 16),
-            // Uses global CardTheme (white bg, rounded, elevation)
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -310,18 +322,17 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: accent.withOpacity(0.25), // soft tint
+                      color: accent.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: accent.withOpacity(0.45)),
                     ),
-                    child: Icon(meal["icon"], color: cs.primary, size: 26), // THEME accent icon
+                    child: Icon(meal["icon"], color: cs.primary, size: 26),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // small label row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -330,7 +341,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: cs.primary, // THEME
+                                color: cs.primary,
                               ),
                             ),
                           ],
@@ -341,11 +352,10 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: cs.onSurface, // THEME
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        // ⭐ Ratings
                         Row(
                           children: [
                             RatingBar.builder(
@@ -354,7 +364,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                               allowHalfRating: true,
                               itemCount: 5,
                               itemSize: 22,
-                              unratedColor: outline, // THEME
+                              unratedColor: outline,
                               itemPadding: const EdgeInsets.symmetric(horizontal: 2),
                               itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
                               onRatingUpdate: (value) async {
@@ -370,7 +380,6 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                                     planKind: "ai",
                                   );
                                 } catch (_) {
-                                  // revert on failure if you want
                                   setState(() => mealRatings[mealKey] = old);
                                 }
                               },
@@ -380,7 +389,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                               _ratingFor(mealKey).toStringAsFixed(1),
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
-                                color: cs.onSurface.withOpacity(0.8), // THEME
+                                color: cs.onSurface.withOpacity(0.8),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

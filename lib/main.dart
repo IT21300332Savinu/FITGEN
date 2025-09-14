@@ -1,3 +1,4 @@
+import 'package:fitgen_socialbridge/screens/profile_screen_meal.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -91,8 +92,60 @@ class _MyAppState extends State<MyApp> {
       ],
       supportedLocales: const [Locale('en', '')],
       theme: ThemeData(
-        brightness: Brightness.light,
-        useMaterial3: false,
+        primarySwatch: Colors.orange,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.orange,
+          brightness: Brightness.light,
+          primary: Colors.orange,
+          secondary: Colors.deepOrange,
+          surface: Colors.white,
+        ),
+        scaffoldBackgroundColor: Colors.grey[50],
+        appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            elevation: 2,
+            centerTitle: true
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 4,
+          shadowColor: Colors.grey.withOpacity(0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.orange, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        checkboxTheme: CheckboxThemeData(
+          fillColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return Colors.orange;
+            }
+            return Colors.white;
+          }),
+        ),
+        useMaterial3: true,
       ),
       themeMode: _themeMode,
       routerConfig: _router,
@@ -134,7 +187,7 @@ class _NavBarPageState extends State<NavBarPage> {
       'SPUHomePage': SPUHomePageWidget(),
       'SPUUserSportsPage': SPUUserSportsPageWidget(),
       'SPUAllMeetupPage': SPUAllMeetupPageWidget(),
-      'SPUNutritionistPage': SPUNutritionistPageWidget(),
+      'SPUNutritionistPage': ProfileScreen(),
       'SPUProgressPage': SPUProgressPageWidget(),
     };
     final currentIndex = tabs.keys.toList().indexOf(_currentPageName);

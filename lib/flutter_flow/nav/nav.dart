@@ -15,6 +15,14 @@ import '/index.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
+import 'package:fitgen_socialbridge/screens/profile_screen_meal.dart';
+import 'package:fitgen_socialbridge/screens/meal_suggestion_screen.dart';
+import 'package:fitgen_socialbridge/screens/custom_meal_plan_screen.dart';
+import 'package:fitgen_socialbridge/screens/custom_meal_plan_list_screen.dart';
+import 'package:fitgen_socialbridge/screens/custom_meal_plan_view_screen.dart';
+import 'package:fitgen_socialbridge/screens/custom_plan_suggestion_screen.dart';
+import 'package:fitgen_socialbridge/screens/custom_plan_detail_screen.dart';
+
 
 const kTransitionInfoKey = '__transition_info__';
 
@@ -172,7 +180,49 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           name: SPUFootballPageWidget.routeName,
           path: SPUFootballPageWidget.routePath,
           builder: (context, params) => SPUFootballPageWidget(),
-        )
+        ),
+        FFRoute(
+          name: 'profile',
+          path: '/profile',
+          builder: (context, params) => ProfileScreen(),
+          // requireAuth: true, // <- enable if these should require login
+        ),
+        FFRoute(
+          name: 'mealSuggestion',
+          path: '/meal-suggestion',
+          builder: (context, params) => MealSuggestionScreen(
+            predictedCalories: (params.getParam('calories', ParamType.double) as num).toDouble(),
+            suggestedMeals: (params.getParam('meals', ParamType.JSON) as Map).cast<String, dynamic>(),
+            conditions: (params.getParam('conditions', ParamType.JSON) as List).cast<String>(),
+            profile: (params.getParam('profile', ParamType.JSON) as Map).cast<String, dynamic>(),
+          ),
+        ),
+        FFRoute(
+          name: 'customMealPlan',
+          path: '/custom-meal-plan',
+          builder: (context, params) => const CustomMealPlanScreen(),
+        ),
+        FFRoute(
+          name: 'customMealPlanList',
+          path: '/custom-meal-plan-list',
+          builder: (context, params) => const CustomMealPlanListScreen(),
+        ),
+        FFRoute(
+          name: 'customMealPlanView',
+          path: '/custom-meal-plan-view',
+          builder: (context, params) => const CustomMealPlanViewScreen(),
+        ),
+        FFRoute(
+          name: 'customPlanSuggestion',
+          path: '/custom-plan-suggestion',
+          builder: (context, params) => const CustomPlanSuggestionScreen(),
+        ),
+        FFRoute(
+          name: 'customPlanDetail',
+          path: '/custom-plan-detail',
+          builder: (context, params) => const CustomPlanDetailScreen(),
+        ),
+
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
       observers: [routeObserver],
     );

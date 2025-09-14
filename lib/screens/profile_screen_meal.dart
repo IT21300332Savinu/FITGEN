@@ -1,3 +1,4 @@
+import 'package:fitgen_socialbridge/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
@@ -577,10 +578,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         if (!mounted) return;
                         if (result != null) {
-                          Navigator.pushNamed(
-                            context,
-                            '/meal-suggestion',
-                            arguments: {
+                          context.pushNamedAuth(
+                            'mealSuggestion',
+                            mounted,
+                            extra: {
                               "calories": result["predicted_calories"],
                               "meals": Map<String, dynamic>.from(result["suggested_meals"]),
                               "conditions": _selectedConditions,
