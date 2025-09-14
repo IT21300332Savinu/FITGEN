@@ -44,25 +44,25 @@ class _BadmintonfeedbackcomponentWidgetState
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(24.0, 24.0, 24.0, 24.0),
+      padding: EdgeInsetsDirectional.fromSTEB(24, 24, 24, 24),
       child: Container(
         decoration: BoxDecoration(
           color: FlutterFlowTheme.of(context).secondaryBackground,
           boxShadow: [
             BoxShadow(
-              blurRadius: 8.0,
+              blurRadius: 8,
               color: Color(0x33000000),
               offset: Offset(
-                0.0,
-                4.0,
+                0,
+                4,
               ),
-              spreadRadius: 0.0,
+              spreadRadius: 0,
             )
           ],
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -118,7 +118,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -138,7 +138,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -158,7 +158,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -178,7 +178,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -198,7 +198,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -206,14 +206,14 @@ class _BadmintonfeedbackcomponentWidgetState
                               FlutterFlowTheme.of(context).bodySmall.fontStyle,
                         ),
                   ),
-                ].divide(SizedBox(width: 8.0)),
+                ].divide(SizedBox(width: 8)),
               ),
               Slider(
                 activeColor: FlutterFlowTheme.of(context).primary,
                 inactiveColor: FlutterFlowTheme.of(context).alternate,
-                min: 1.0,
-                max: 5.0,
-                value: _model.rateworkoutValue ??= 1.0,
+                min: 1,
+                max: 5,
+                value: _model.rateworkoutValue ??= 1,
                 label: _model.rateworkoutValue?.toStringAsFixed(0),
                 divisions: 4,
                 onChanged: (newValue) {
@@ -254,7 +254,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -274,7 +274,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -294,7 +294,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -314,7 +314,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -334,7 +334,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -342,14 +342,14 @@ class _BadmintonfeedbackcomponentWidgetState
                               FlutterFlowTheme.of(context).bodySmall.fontStyle,
                         ),
                   ),
-                ].divide(SizedBox(width: 8.0)),
+                ].divide(SizedBox(width: 8)),
               ),
               Slider(
                 activeColor: FlutterFlowTheme.of(context).primary,
                 inactiveColor: FlutterFlowTheme.of(context).alternate,
-                min: 1.0,
-                max: 5.0,
-                value: _model.rateexerciseValue ??= 1.0,
+                min: 1,
+                max: 5,
+                value: _model.rateexerciseValue ??= 1,
                 label: _model.rateexerciseValue?.toStringAsFixed(0),
                 divisions: 4,
                 onChanged: (newValue) {
@@ -390,7 +390,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -410,7 +410,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -430,7 +430,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -450,7 +450,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -470,7 +470,7 @@ class _BadmintonfeedbackcomponentWidgetState
                                 .bodySmall
                                 .fontStyle,
                           ),
-                          fontSize: 12.0,
+                          fontSize: 12,
                           letterSpacing: 0.0,
                           fontWeight:
                               FlutterFlowTheme.of(context).bodySmall.fontWeight,
@@ -478,14 +478,14 @@ class _BadmintonfeedbackcomponentWidgetState
                               FlutterFlowTheme.of(context).bodySmall.fontStyle,
                         ),
                   ),
-                ].divide(SizedBox(width: 8.0)),
+                ].divide(SizedBox(width: 8)),
               ),
               Slider(
                 activeColor: FlutterFlowTheme.of(context).primary,
                 inactiveColor: FlutterFlowTheme.of(context).alternate,
-                min: 1.0,
-                max: 5.0,
-                value: _model.ratemoodValue ??= 1.0,
+                min: 1,
+                max: 5,
+                value: _model.ratemoodValue ??= 1,
                 label: _model.ratemoodValue?.toStringAsFixed(0),
                 divisions: 4,
                 onChanged: (newValue) {
@@ -505,6 +505,7 @@ class _BadmintonfeedbackcomponentWidgetState
                     fbExercises: _model.rateexerciseValue,
                     fbMood: _model.ratemoodValue,
                     sport: 'badminton',
+                    lvl: 1,
                   ));
                   _model.feedbackdoc = SportFeedbackRecord.getDocumentFromData(
                       createSportFeedbackRecordData(
@@ -514,6 +515,7 @@ class _BadmintonfeedbackcomponentWidgetState
                         fbExercises: _model.rateexerciseValue,
                         fbMood: _model.ratemoodValue,
                         sport: 'badminton',
+                        lvl: 1,
                       ),
                       sportFeedbackRecordReference);
 
@@ -530,11 +532,10 @@ class _BadmintonfeedbackcomponentWidgetState
                 },
                 text: 'Submit',
                 options: FFButtonOptions(
-                  width: 200.0,
-                  height: 48.0,
-                  padding: EdgeInsets.all(8.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  width: 200,
+                  height: 48,
+                  padding: EdgeInsets.all(8),
+                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
                   color: FlutterFlowTheme.of(context).primary,
                   textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                         font: GoogleFonts.interTight(
@@ -551,15 +552,15 @@ class _BadmintonfeedbackcomponentWidgetState
                         fontStyle:
                             FlutterFlowTheme.of(context).titleSmall.fontStyle,
                       ),
-                  elevation: 0.0,
+                  elevation: 0,
                   borderSide: BorderSide(
                     color: Colors.transparent,
-                    width: 1.0,
+                    width: 1,
                   ),
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ].divide(SizedBox(height: 24.0)),
+            ].divide(SizedBox(height: 24)),
           ),
         ),
       ),

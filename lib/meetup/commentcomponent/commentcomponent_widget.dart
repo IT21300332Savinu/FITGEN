@@ -50,20 +50,20 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 400.0,
+      width: 400,
       decoration: BoxDecoration(
         color: FlutterFlowTheme.of(context).secondaryBackground,
         boxShadow: [
           BoxShadow(
-            blurRadius: 4.0,
+            blurRadius: 4,
             color: Color(0x33000000),
             offset: Offset(
-              0.0,
-              2.0,
+              0,
+              2,
             ),
           )
         ],
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: FlutterFlowTheme.of(context).alternate,
         ),
@@ -74,7 +74,7 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(12.0, 8.0, 12.0, 0.0),
+            padding: EdgeInsetsDirectional.fromSTEB(12, 8, 12, 0),
             child: Row(
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -100,25 +100,25 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                 ),
                 FlutterFlowIconButton(
                   borderColor: Colors.transparent,
-                  borderRadius: 20.0,
-                  borderWidth: 1.0,
-                  buttonSize: 40.0,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  buttonSize: 40,
                   hoverColor: FlutterFlowTheme.of(context).primaryBackground,
                   icon: Icon(
                     Icons.close_rounded,
                     color: FlutterFlowTheme.of(context).secondaryText,
-                    size: 24.0,
+                    size: 24,
                   ),
                   onPressed: () async {
                     Navigator.pop(context);
                   },
                 ),
-              ].divide(SizedBox(width: 8.0)),
+              ].divide(SizedBox(width: 8)),
             ),
           ),
           Divider(
-            height: 1.0,
-            thickness: 1.0,
+            height: 1,
+            thickness: 1,
             color: FlutterFlowTheme.of(context).alternate,
           ),
           Expanded(
@@ -131,8 +131,8 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                 if (!snapshot.hasData) {
                   return Center(
                     child: SizedBox(
-                      width: 50.0,
-                      height: 50.0,
+                      width: 50,
+                      height: 50,
                       child: CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
                           FlutterFlowTheme.of(context).primary,
@@ -147,21 +147,20 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                 return ListView.separated(
                   padding: EdgeInsets.fromLTRB(
                     0,
-                    12.0,
+                    12,
                     0,
-                    12.0,
+                    12,
                   ),
                   primary: false,
                   shrinkWrap: true,
                   scrollDirection: Axis.vertical,
                   itemCount: listViewCommentsRecordList.length,
-                  separatorBuilder: (_, __) => SizedBox(height: 12.0),
+                  separatorBuilder: (_, __) => SizedBox(height: 12),
                   itemBuilder: (context, listViewIndex) {
                     final listViewCommentsRecord =
                         listViewCommentsRecordList[listViewIndex];
                     return Padding(
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
+                      padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
                       child: Column(
                         mainAxisSize: MainAxisSize.max,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,7 +174,7 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Brock Adams',
+                                      listViewCommentsRecord.commentor,
                                       style: FlutterFlowTheme.of(context)
                                           .bodyMedium
                                           .override(
@@ -230,7 +229,7 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                                   ],
                                 ),
                               ),
-                            ].divide(SizedBox(width: 12.0)),
+                            ].divide(SizedBox(width: 12)),
                           ),
                           Text(
                             valueOrDefault<String>(
@@ -258,11 +257,11 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                                 ),
                           ),
                           Divider(
-                            height: 1.0,
-                            thickness: 1.0,
+                            height: 1,
+                            thickness: 1,
                             color: FlutterFlowTheme.of(context).alternate,
                           ),
-                        ].divide(SizedBox(height: 8.0)),
+                        ].divide(SizedBox(height: 8)),
                       ),
                     );
                   },
@@ -271,12 +270,12 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
             ),
           ),
           Divider(
-            height: 1.0,
-            thickness: 1.0,
+            height: 1,
+            thickness: 1,
             color: FlutterFlowTheme.of(context).alternate,
           ),
           Stack(
-            alignment: AlignmentDirectional(1.0, 1.0),
+            alignment: AlignmentDirectional(1, 1),
             children: [
               Container(
                 width: double.infinity,
@@ -329,7 +328,7 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
                     contentPadding:
-                        EdgeInsetsDirectional.fromSTEB(16.0, 8.0, 32.0, 16.0),
+                        EdgeInsetsDirectional.fromSTEB(16, 8, 32, 16),
                   ),
                   style: FlutterFlowTheme.of(context).bodyMedium.override(
                         font: GoogleFonts.inter(
@@ -358,9 +357,9 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
             ],
           ),
           Align(
-            alignment: AlignmentDirectional(0.0, 0.0),
+            alignment: AlignmentDirectional(0, 0),
             child: Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 20.0),
+              padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 20),
               child: FFButtonWidget(
                 onPressed: () async {
                   await CommentsRecord.collection
@@ -368,7 +367,7 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                       .set(createCommentsRecordData(
                         comment: _model.textController.text,
                         time: getCurrentTimestamp,
-                        meetupref: widget.commentrefmeetupparam,
+                        meetupref: widget!.commentrefmeetupparam,
                         spuserref: currentUserReference,
                         commentor: currentUserDisplayName,
                       ));
@@ -379,10 +378,9 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                 },
                 text: 'Post',
                 options: FFButtonOptions(
-                  height: 36.0,
-                  padding: EdgeInsetsDirectional.fromSTEB(12.0, 0.0, 12.0, 0.0),
-                  iconPadding:
-                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                  height: 36,
+                  padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+                  iconPadding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
                   color: FlutterFlowTheme.of(context).primary,
                   textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                         font: GoogleFonts.interTight(
@@ -399,17 +397,17 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                         fontStyle:
                             FlutterFlowTheme.of(context).titleSmall.fontStyle,
                       ),
-                  elevation: 0.0,
+                  elevation: 0,
                   borderSide: BorderSide(
                     color: Colors.transparent,
-                    width: 1.0,
+                    width: 1,
                   ),
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
           ),
-        ].divide(SizedBox(height: 4.0)),
+        ].divide(SizedBox(height: 4)),
       ),
     );
   }

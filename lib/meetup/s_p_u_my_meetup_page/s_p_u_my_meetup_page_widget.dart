@@ -61,7 +61,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                     elevation: 0,
                     insetPadding: EdgeInsets.zero,
                     backgroundColor: Colors.transparent,
-                    alignment: AlignmentDirectional(0.0, 0.0)
+                    alignment: AlignmentDirectional(0, 0)
                         .resolve(Directionality.of(context)),
                     child: GestureDetector(
                       onTap: () {
@@ -75,14 +75,14 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
               );
             },
             backgroundColor: FlutterFlowTheme.of(context).primary,
-            elevation: 8.0,
+            elevation: 8,
             label: Row(
               mainAxisSize: MainAxisSize.max,
               children: [
                 Icon(
                   Icons.add_rounded,
                   color: FlutterFlowTheme.of(context).info,
-                  size: 24.0,
+                  size: 24,
                 ),
                 Text(
                   'Create Meetup',
@@ -128,11 +128,11 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
             child: Icon(
               Icons.arrow_back,
               color: FlutterFlowTheme.of(context).primaryText,
-              size: 24.0,
+              size: 24,
             ),
           ),
           title: Align(
-            alignment: AlignmentDirectional(0.0, 0.0),
+            alignment: AlignmentDirectional(0, 0),
             child: Text(
               'My Meetups',
               style: FlutterFlowTheme.of(context).headlineMedium.override(
@@ -144,7 +144,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                           FlutterFlowTheme.of(context).headlineMedium.fontStyle,
                     ),
                     color: Colors.white,
-                    fontSize: 22.0,
+                    fontSize: 22,
                     letterSpacing: 0.0,
                     fontWeight:
                         FlutterFlowTheme.of(context).headlineMedium.fontWeight,
@@ -155,7 +155,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
           ),
           actions: [],
           centerTitle: false,
-          elevation: 2.0,
+          elevation: 2,
         ),
         body: SafeArea(
           top: true,
@@ -171,8 +171,8 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                   if (!snapshot.hasData) {
                     return Center(
                       child: SizedBox(
-                        width: 50.0,
-                        height: 50.0,
+                        width: 50,
+                        height: 50,
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
                             FlutterFlowTheme.of(context).primary,
@@ -206,7 +206,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                       markerColor: GoogleMarkerColor.blue,
                       mapType: MapType.normal,
                       style: GoogleMapStyle.standard,
-                      initialZoom: 14.0,
+                      initialZoom: 14,
                       allowInteraction: false,
                       allowZoom: false,
                       showZoomControls: true,
@@ -228,8 +228,8 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                     if (!snapshot.hasData) {
                       return Center(
                         child: SizedBox(
-                          width: 50.0,
-                          height: 50.0,
+                          width: 50,
+                          height: 50,
                           child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
                               FlutterFlowTheme.of(context).primary,
@@ -250,7 +250,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                         final listViewMeetupReserveRecord =
                             listViewMeetupReserveRecordList[listViewIndex];
                         return Padding(
-                          padding: EdgeInsets.all(5.0),
+                          padding: EdgeInsets.all(5),
                           child: StreamBuilder<List<MeetupRecord>>(
                             stream: queryMeetupRecord(
                               queryBuilder: (meetupRecord) =>
@@ -265,8 +265,8 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                               if (!snapshot.hasData) {
                                 return Center(
                                   child: SizedBox(
-                                    width: 50.0,
-                                    height: 50.0,
+                                    width: 50,
+                                    height: 50,
                                     child: CircularProgressIndicator(
                                       valueColor: AlwaysStoppedAnimation<Color>(
                                         FlutterFlowTheme.of(context).primary,
@@ -289,16 +289,16 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                               return Card(
                                 clipBehavior: Clip.antiAliasWithSaveLayer,
                                 color: Colors.white,
-                                elevation: 5.0,
+                                elevation: 5,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.max,
                                   children: [
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          5.0, 10.0, 5.0, 5.0),
+                                          5, 10, 5, 5),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment:
@@ -309,7 +309,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                           Padding(
                                             padding:
                                                 EdgeInsetsDirectional.fromSTEB(
-                                                    5.0, 5.0, 5.0, 5.0),
+                                                    5, 5, 5, 5),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.max,
                                               crossAxisAlignment:
@@ -317,8 +317,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                               children: [
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 5.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 5, 0, 0),
                                                   child: Text(
                                                     listViewMeetupReserveRecord
                                                         .mrSport,
@@ -346,8 +345,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                 ),
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 10, 0, 0),
                                                   child: Text(
                                                     dateTimeFormat(
                                                         "d/M/y",
@@ -388,8 +386,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                 ),
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 10, 0, 0),
                                                   child: Text(
                                                     'Currently going :',
                                                     style: FlutterFlowTheme.of(
@@ -425,8 +422,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                 ),
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 10, 0, 0),
                                                   child: Text(
                                                     'Equipment :',
                                                     style: FlutterFlowTheme.of(
@@ -466,7 +462,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                           Padding(
                                             padding:
                                                 EdgeInsetsDirectional.fromSTEB(
-                                                    5.0, 5.0, 5.0, 5.0),
+                                                    5, 5, 5, 5),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.max,
                                               crossAxisAlignment:
@@ -474,8 +470,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                               children: [
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 5.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 5, 0, 0),
                                                   child: Text(
                                                     listViewMeetupReserveRecord
                                                         .mrHost,
@@ -509,8 +504,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                 ),
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 10, 0, 0),
                                                   child: Text(
                                                     dateTimeFormat(
                                                         "jm",
@@ -551,13 +545,12 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                 ),
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 10, 0, 0),
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       cardMeetupRecord
                                                           ?.meetupAttendance
-                                                          .toString(),
+                                                          ?.toString(),
                                                       '0',
                                                     ),
                                                     style: FlutterFlowTheme.of(
@@ -593,8 +586,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                 ),
                                                 Padding(
                                                   padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                      .fromSTEB(0, 10, 0, 0),
                                                   child: Text(
                                                     listViewMeetupReserveRecord
                                                         .mrEquipment,
@@ -649,8 +641,8 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                         if (!snapshot.hasData) {
                                           return Center(
                                             child: SizedBox(
-                                              width: 50.0,
-                                              height: 50.0,
+                                              width: 50,
+                                              height: 50,
                                               child: CircularProgressIndicator(
                                                 valueColor:
                                                     AlwaysStoppedAnimation<
@@ -667,62 +659,51 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                         return Row(
                                           mainAxisSize: MainAxisSize.max,
                                           children: [
-                                            Padding(
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      130.0, 10.0, 0.0, 10.0),
-                                              child: FFButtonWidget(
-                                                onPressed: () async {
-                                                  await listViewMeetupReserveRecord
-                                                      .reference
-                                                      .delete();
+                                            if (listViewMeetupReserveRecord
+                                                    .mrReservation ==
+                                                true)
+                                              Padding(
+                                                padding: EdgeInsetsDirectional
+                                                    .fromSTEB(130, 10, 0, 10),
+                                                child: FFButtonWidget(
+                                                  onPressed: () async {
+                                                    await listViewMeetupReserveRecord
+                                                        .reference
+                                                        .delete();
 
-                                                  await cardMeetupRecord!
-                                                      .reference
-                                                      .update({
-                                                    ...mapToFirestore(
-                                                      {
-                                                        'meetup_attendance':
-                                                            FieldValue
-                                                                .increment(
-                                                                    -(1)),
-                                                      },
-                                                    ),
-                                                  });
-                                                },
-                                                text: 'Remove',
-                                                options: FFButtonOptions(
-                                                  height: 40.0,
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          16.0, 0.0, 16.0, 0.0),
-                                                  iconPadding:
-                                                      EdgeInsetsDirectional
-                                                          .fromSTEB(0.0, 0.0,
-                                                              0.0, 0.0),
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .primary,
-                                                  textStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .titleSmall
-                                                          .override(
-                                                            font: GoogleFonts
-                                                                .interTight(
-                                                              fontWeight:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontWeight,
-                                                              fontStyle:
-                                                                  FlutterFlowTheme.of(
-                                                                          context)
-                                                                      .titleSmall
-                                                                      .fontStyle,
-                                                            ),
-                                                            color: Colors.white,
-                                                            letterSpacing: 0.0,
+                                                    await cardMeetupRecord!
+                                                        .reference
+                                                        .update({
+                                                      ...mapToFirestore(
+                                                        {
+                                                          'meetup_attendance':
+                                                              FieldValue
+                                                                  .increment(
+                                                                      -(1)),
+                                                        },
+                                                      ),
+                                                    });
+                                                  },
+                                                  text: 'Remove',
+                                                  options: FFButtonOptions(
+                                                    height: 40,
+                                                    padding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(
+                                                                16, 0, 16, 0),
+                                                    iconPadding:
+                                                        EdgeInsetsDirectional
+                                                            .fromSTEB(
+                                                                0, 0, 0, 0),
+                                                    color: FlutterFlowTheme.of(
+                                                            context)
+                                                        .primary,
+                                                    textStyle: FlutterFlowTheme
+                                                            .of(context)
+                                                        .titleSmall
+                                                        .override(
+                                                          font: GoogleFonts
+                                                              .interTight(
                                                             fontWeight:
                                                                 FlutterFlowTheme.of(
                                                                         context)
@@ -734,17 +715,29 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                                     .titleSmall
                                                                     .fontStyle,
                                                           ),
-                                                  elevation: 0.0,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
+                                                          color: Colors.white,
+                                                          letterSpacing: 0.0,
+                                                          fontWeight:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .titleSmall
+                                                                  .fontWeight,
+                                                          fontStyle:
+                                                              FlutterFlowTheme.of(
+                                                                      context)
+                                                                  .titleSmall
+                                                                  .fontStyle,
+                                                        ),
+                                                    elevation: 0,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
                                             Padding(
                                               padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      60.0, 0.0, 0.0, 0.0),
+                                                  .fromSTEB(60, 0, 0, 0),
                                               child: InkWell(
                                                 splashColor: Colors.transparent,
                                                 focusColor: Colors.transparent,
@@ -788,14 +781,13 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                   color: FlutterFlowTheme.of(
                                                           context)
                                                       .primary,
-                                                  size: 24.0,
+                                                  size: 24,
                                                 ),
                                               ),
                                             ),
                                             Padding(
                                               padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      10.0, 0.0, 0.0, 0.0),
+                                                  .fromSTEB(10, 0, 0, 0),
                                               child: Text(
                                                 valueOrDefault<String>(
                                                   rowCount.toString(),
