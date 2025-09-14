@@ -1,3 +1,4 @@
+import 'package:fitgen_socialbridge/screens/meal_suggestion_gate.dart';
 import 'package:fitgen_socialbridge/screens/profile_screen_meal.dart';
 import 'package:flutter/material.dart';
 
@@ -187,7 +188,7 @@ class _NavBarPageState extends State<NavBarPage> {
       'SPUHomePage': SPUHomePageWidget(),
       'SPUUserSportsPage': SPUUserSportsPageWidget(),
       'SPUAllMeetupPage': SPUAllMeetupPageWidget(),
-      'SPUNutritionistPage': ProfileScreen(),
+      'SPUNutritionistPage': MealSuggestionGate(),
       'SPUProgressPage': SPUProgressPageWidget(),
     };
     final currentIndex = tabs.keys.toList().indexOf(_currentPageName);

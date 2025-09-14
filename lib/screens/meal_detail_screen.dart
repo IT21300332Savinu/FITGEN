@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/meal_suggestions_service.dart';
+import 'custom_meal_plan_screen.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final String mealType;
@@ -462,17 +463,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       alignment: Alignment.center,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/custom-meal-plan',
-                            arguments: {
-                              "predictedCalories": widget.predictedCalories,
-                              "conditions": widget.conditions ?? const <String>[],
-                              "profile": widget.profile ??
-                                  {
-                                    for (final c in (widget.conditions ?? const <String>[])) c: 1
-                                  },
-                            },
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CustomMealPlanScreen(
+                                predictedCalories: widget.predictedCalories!.toDouble(),
+                                conditions:  widget.conditions ?? const <String>[],
+                                profile: widget.profile ??
+                                    {
+                                      for (final c in (widget.conditions ?? const <String>[])) c: 1
+                                    },
+                              ),
+                            ),
                           );
                         },
                         icon: const Icon(Icons.tune),

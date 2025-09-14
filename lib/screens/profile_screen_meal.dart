@@ -574,7 +574,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         };
 
                         final api = ApiDio();
-                        final result = await api.suggestMeal(payload);
+                        final result = await api.suggestMeal("sKr1Ay7QOIcys7kzE0lJYkiNbyG3");
 
                         if (!mounted) return;
                         if (result != null) {

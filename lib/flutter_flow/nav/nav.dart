@@ -198,29 +198,9 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
           ),
         ),
         FFRoute(
-          name: 'customMealPlan',
-          path: '/custom-meal-plan',
-          builder: (context, params) => const CustomMealPlanScreen(),
-        ),
-        FFRoute(
           name: 'customMealPlanList',
           path: '/custom-meal-plan-list',
           builder: (context, params) => const CustomMealPlanListScreen(),
-        ),
-        FFRoute(
-          name: 'customMealPlanView',
-          path: '/custom-meal-plan-view',
-          builder: (context, params) => const CustomMealPlanViewScreen(),
-        ),
-        FFRoute(
-          name: 'customPlanSuggestion',
-          path: '/custom-plan-suggestion',
-          builder: (context, params) => const CustomPlanSuggestionScreen(),
-        ),
-        FFRoute(
-          name: 'customPlanDetail',
-          path: '/custom-plan-detail',
-          builder: (context, params) => const CustomPlanDetailScreen(),
         ),
 
       ].map((r) => r.toRoute(appStateNotifier)).toList(),
