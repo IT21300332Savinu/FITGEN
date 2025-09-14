@@ -31,6 +31,9 @@ class SPUSportSelectionPageWidget extends StatefulWidget {
 class _SPUSportSelectionPageWidgetState
     extends State<SPUSportSelectionPageWidget> {
   late SPUSportSelectionPageModel _model;
+  
+  // Local UI state: show inline age error
+  bool _invalidAge = false;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -365,6 +368,38 @@ class _SPUSportSelectionPageWidgetState
                               .selectSportUserNameInputTextControllerValidator
                               .asValidator(context),
                         ),
+                        // Inline error message for age range
+                        if (_invalidAge)
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                4.0, 4.0, 4.0, 8.0),
+                            child: Align(
+                              alignment: AlignmentDirectional(-1.0, 0.0),
+                              child: Text(
+                                'Invalid age',
+                                style: FlutterFlowTheme.of(context)
+                                    .labelSmall
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FlutterFlowTheme.of(context)
+                                            .labelSmall
+                                            .fontWeight,
+                                        fontStyle: FlutterFlowTheme.of(context)
+                                            .labelSmall
+                                            .fontStyle,
+                                      ),
+                                      color: FlutterFlowTheme.of(context).error,
+                                      letterSpacing: 0.0,
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .labelSmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .labelSmall
+                                          .fontStyle,
+                                    ),
+                              ),
+                            ),
+                          ),
                         Row(
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -375,28 +410,23 @@ class _SPUSportSelectionPageWidgetState
                                     _model.sPUSignUpAgeInputTextController,
                                 focusNode: _model.sPUSignUpAgeInputFocusNode,
                                 onFieldSubmitted: (_) async {
-                                  _model.checkage = int.tryParse(_model
-                                      .sPUSignUpAgeInputTextController.text);
-                                  safeSetState(() {});
-                                  if ((_model.checkage! < 13) &&
-                                      (_model.checkweight! > 25)) {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (alertDialogContext) {
-                                        return AlertDialog(
-                                          title: Text('Error!'),
-                                          content: Text('Age is out of range'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(
-                                                  alertDialogContext),
-                                              child: Text('Change the age'),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  }
+                                  _model.checkage = int.tryParse(
+                                      _model.sPUSignUpAgeInputTextController
+                                          .text);
+                                  final age = _model.checkage;
+                                  final isInvalid =
+                                      age != null && (age < 13 || age > 25);
+                                  safeSetState(() {
+                                    _invalidAge = isInvalid;
+                                  });
+                                },
+                                onChanged: (value) {
+                                  final age = int.tryParse(value);
+                                  final isInvalid =
+                                      age != null && (age < 13 || age > 25);
+                                  safeSetState(() {
+                                    _invalidAge = isInvalid;
+                                  });
                                 },
                                 autofocus: false,
                                 obscureText: false,
