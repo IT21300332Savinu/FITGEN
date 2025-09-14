@@ -12,7 +12,7 @@ class VoiceCoachService {
   bool _isEnabled = true;
   bool _isInitialized = false;
   ExerciseType _currentExercise = ExerciseType.bicepCurl;
-  
+
   // Voice coaching state
   ExerciseState? _lastState;
   int _lastRepCount = 0;
@@ -34,17 +34,17 @@ class VoiceCoachService {
     if (_isInitialized) return;
 
     _flutterTts = FlutterTts();
-    
+
     // Configure TTS settings
     await _flutterTts.setVolume(_volume);
     await _flutterTts.setSpeechRate(_rate);
     await _flutterTts.setPitch(_pitch);
-    
+
     // Set language (you can change this)
     await _flutterTts.setLanguage("en-US");
-    
+
     _isInitialized = true;
-    
+
     // Exercise-specific welcome message
     if (_isEnabled) {
       String welcomeMessage = _getWelcomeMessage();
@@ -69,7 +69,7 @@ class VoiceCoachService {
 
   Future<void> _speak(String text) async {
     if (!_isEnabled || !_isInitialized) return;
-    
+
     try {
       await _flutterTts.speak(text);
     } catch (e) {
@@ -99,7 +99,7 @@ class VoiceCoachService {
     }
 
     // Form quality coaching (less frequent)
-    if (metrics.formQuality != _lastFormQuality && 
+    if (metrics.formQuality != _lastFormQuality &&
         now.difference(_lastAnnouncementTime).inSeconds >= 5) {
       await _announceFormFeedback(metrics.formQuality, metrics.currentAngle);
       _lastFormQuality = metrics.formQuality;
@@ -109,13 +109,14 @@ class VoiceCoachService {
 
   Future<void> _announceRepCompleted(int repCount) async {
     String message;
-    
+
     if (repCount == 1) {
       message = "Great! First rep completed. Keep going!";
     } else if (repCount % 5 == 0) {
       message = "Excellent! $repCount reps done. You're doing great!";
     } else if (repCount % 10 == 0) {
-      message = "Amazing! $repCount reps completed. Keep up the excellent work!";
+      message =
+          "Amazing! $repCount reps completed. Keep up the excellent work!";
     } else {
       List<String> encouragements = [
         "Good rep! $repCount down.",
@@ -125,13 +126,16 @@ class VoiceCoachService {
       ];
       message = encouragements[repCount % encouragements.length];
     }
-    
+
     await _speak(message);
   }
 
-  Future<void> _announceStateChange(ExerciseState state, FormQuality formQuality) async {
+  Future<void> _announceStateChange(
+    ExerciseState state,
+    FormQuality formQuality,
+  ) async {
     String message;
-    
+
     switch (state) {
       case ExerciseState.ready:
         if (!_hasGivenReadyInstruction) {
@@ -159,7 +163,7 @@ class VoiceCoachService {
         }
         break;
     }
-    
+
     await _speak(message);
   }
 
@@ -223,9 +227,12 @@ class VoiceCoachService {
     }
   }
 
-  Future<void> _announceFormFeedback(FormQuality formQuality, double angle) async {
+  Future<void> _announceFormFeedback(
+    FormQuality formQuality,
+    double angle,
+  ) async {
     String message;
-    
+
     switch (formQuality) {
       case FormQuality.excellent:
         message = "Perfect form! Keep it up!";
@@ -252,7 +259,7 @@ class VoiceCoachService {
         }
         break;
     }
-    
+
     await _speak(message);
   }
 
@@ -321,19 +328,24 @@ class VoiceCoachService {
     }
   }
 
-  Future<void> announceWorkoutComplete(int totalReps, double averageForm) async {
-    String message = "Workout complete! You did $totalReps reps with ${averageForm.toInt()}% average form. ";
-    
+  Future<void> announceWorkoutComplete(
+    int totalReps,
+    double averageForm,
+  ) async {
+    String message =
+        "Workout complete! You did $totalReps reps with ${averageForm.toInt()}% average form. ";
+
     if (averageForm >= 90) {
       message += "Outstanding technique!";
     } else if (averageForm >= 75) {
       message += "Great job! Keep practicing for even better form.";
     } else if (averageForm >= 60) {
-      message += "Good effort! Focus on slower, more controlled movements next time.";
+      message +=
+          "Good effort! Focus on slower, more controlled movements next time.";
     } else {
       message += _getImprovementTips();
     }
-    
+
     await _speak(message);
   }
 
@@ -362,19 +374,21 @@ class VoiceCoachService {
 
   Future<void> announceCameraSwitch(bool isFrontCamera) async {
     String camera = isFrontCamera ? "front" : "back";
-    await _speak("Switched to $camera camera. Position yourself for the best view.");
+    await _speak(
+      "Switched to $camera camera. Position yourself for the best view.",
+    );
   }
 
   Future<void> announceGeneralInstruction() async {
     await _speak(
       "Remember: Keep your elbows at your sides, move slowly and controlled, "
-      "and focus on squeezing your biceps at the top of each rep."
+      "and focus on squeezing your biceps at the top of each rep.",
     );
   }
 
   // Settings
   bool get isEnabled => _isEnabled;
-  
+
   Future<void> setEnabled(bool enabled) async {
     _isEnabled = enabled;
     if (enabled && !_isInitialized) {
@@ -397,7 +411,9 @@ class VoiceCoachService {
   }
 
   Future<void> testVoice() async {
-    await _speak("Voice coaching is working perfectly. You're ready to start your workout!");
+    await _speak(
+      "Voice coaching is working perfectly. You're ready to start your workout!",
+    );
   }
 
   Future<void> dispose() async {

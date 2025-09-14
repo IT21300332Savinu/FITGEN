@@ -10,43 +10,43 @@ import 'pose_analyzer_service.dart';
 /// Mobile implementation of PlatformService
 class MobilePlatformService implements PlatformService {
   final String exerciseName;
-  
+
   CameraController? _cameraController;
   late PoseAnalyzerService _poseAnalyzer;
   bool _isInitialized = false;
-  
+
   // Analysis data
   int _repCount = 0;
   double _formQuality = 0.75;
   List<String> _formIssues = ['Getting ready...'];
   List<PoseLandmark>? _landmarks;
-  
+
   MobilePlatformService(this.exerciseName);
-  
+
   Future<void> initialize() async {
     try {
       // Initialize pose analyzer
       _poseAnalyzer = PoseAnalyzerService();
       await _poseAnalyzer.initialize(exerciseName);
-      
+
       // Initialize camera
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         throw Exception('No cameras available');
       }
-      
+
       final frontCamera = cameras.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
         orElse: () => cameras.first,
       );
-      
+
       _cameraController = CameraController(
         frontCamera,
         ResolutionPreset.medium,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.jpeg,
       );
-      
+
       await _cameraController!.initialize();
       _isInitialized = true;
     } catch (e) {
@@ -54,18 +54,20 @@ class MobilePlatformService implements PlatformService {
       rethrow;
     }
   }
-  
+
   Widget buildCameraPreview() {
-    if (!_isInitialized || _cameraController == null || !_cameraController!.value.isInitialized) {
+    if (!_isInitialized ||
+        _cameraController == null ||
+        !_cameraController!.value.isInitialized) {
       return _buildPlaceholderPreview();
     }
-    
+
     return AspectRatio(
       aspectRatio: _cameraController!.value.aspectRatio,
       child: CameraPreview(_cameraController!),
     );
   }
-  
+
   Widget _buildPlaceholderPreview() {
     return Container(
       color: Colors.grey[900],
@@ -90,26 +92,26 @@ class MobilePlatformService implements PlatformService {
       ),
     );
   }
-  
+
   Future<void> startProcessing() async {
     if (!_isInitialized || _cameraController == null) return;
-    
+
     await _cameraController!.startImageStream(_processImage);
   }
-  
+
   Future<void> stopProcessing() async {
     if (!_isInitialized || _cameraController == null) return;
-    
+
     await _cameraController!.stopImageStream();
   }
-  
+
   void _processImage(CameraImage image) async {
     try {
       final result = await _poseAnalyzer.processFrame(
-        image, 
-        _cameraController!.description
+        image,
+        _cameraController!.description,
       );
-      
+
       if (result != null) {
         _repCount = result.repCount;
         _formQuality = result.formQuality;
@@ -120,7 +122,7 @@ class MobilePlatformService implements PlatformService {
       debugPrint('Error processing image: $e');
     }
   }
-  
+
   Map<String, dynamic> getAnalysisData() {
     return {
       'repCount': _repCount,
@@ -129,7 +131,7 @@ class MobilePlatformService implements PlatformService {
       'landmarks': _landmarks,
     };
   }
-  
+
   void dispose() {
     _cameraController?.dispose();
     _poseAnalyzer.dispose();

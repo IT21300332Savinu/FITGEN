@@ -55,10 +55,12 @@ class MyApp extends StatelessWidget {
           primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
           visualDensity: VisualDensity.adaptivePlatformDensity,
           brightness: Brightness.light,
-          
+
           // Enhanced light theme
           colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
+            primarySwatch: createMaterialColor(
+              const Color(0xFFF97000),
+            ), // Orange
             brightness: Brightness.light,
             accentColor: const Color(0xFFF97000), // Orange accent
             backgroundColor: Colors.white,
@@ -68,7 +70,7 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFFF97000),
             onSecondary: Colors.white,
           ),
-          
+
           // App bar theme
           appBarTheme: const AppBarTheme(
             backgroundColor: Color(0xFFF97000),
@@ -81,10 +83,10 @@ class MyApp extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
+
           // Scaffold theme
           scaffoldBackgroundColor: Colors.white,
-          
+
           // Card theme
           cardTheme: const CardThemeData(
             color: Colors.white,
@@ -93,7 +95,7 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
-          
+
           // Button themes
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
@@ -106,12 +108,12 @@ class MyApp extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
-          
+
           floatingActionButtonTheme: const FloatingActionButtonThemeData(
             backgroundColor: Color(0xFFF97000),
             foregroundColor: Colors.white,
           ),
-          
+
           // Input decoration theme
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
@@ -129,7 +131,7 @@ class MyApp extends StatelessWidget {
             filled: true,
             fillColor: Colors.grey.shade50,
           ),
-          
+
           // Text themes
           textTheme: const TextTheme(
             displayLarge: TextStyle(color: Colors.black87),
@@ -148,7 +150,7 @@ class MyApp extends StatelessWidget {
             labelMedium: TextStyle(color: Colors.black87),
             labelSmall: TextStyle(color: Colors.black87),
           ),
-          
+
           // Bottom navigation theme
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             backgroundColor: Colors.white,
@@ -156,17 +158,17 @@ class MyApp extends StatelessWidget {
             unselectedItemColor: Colors.grey,
             elevation: 8,
           ),
-          
+
           // Divider theme
           dividerTheme: DividerThemeData(
             color: Colors.grey.shade300,
             thickness: 1,
           ),
         ),
-        
+
         // Remove dark theme completely
         themeMode: ThemeMode.light, // Force light theme only
-        
+
         home: const AuthenticationWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),

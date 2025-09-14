@@ -22,64 +22,70 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startExercise(String exerciseName, String workoutType) {
-    debugPrint('🏠 Home Screen: Starting exercise: $exerciseName, type: $workoutType');
+    debugPrint(
+      '🏠 Home Screen: Starting exercise: $exerciseName, type: $workoutType',
+    );
     try {
       // Check if it's any AI exercise
       if (exerciseName.contains('(AI)')) {
-        debugPrint('🏠 Home Screen: This is an AI exercise, proceeding to instruction screen');
+        debugPrint(
+          '🏠 Home Screen: This is an AI exercise, proceeding to instruction screen',
+        );
         // Extract the exercise name without "(AI)" suffix
         String cleanExerciseName = exerciseName.replaceAll(' (AI)', '');
         debugPrint('🏠 Home Screen: Clean exercise name: $cleanExerciseName');
-        
+
         // Navigate to instruction screen first
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ExerciseInstructionScreen(
-              exerciseType: cleanExerciseName,
-              onStartWorkout: () {
-                // Close instruction screen and go to workout
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WorkoutScreen(
-                      exerciseName: cleanExerciseName,
-                      workoutType: 'strength',
-                    ),
-                  ),
-                ).then((result) {
-                  // Handle result when returning from workout screen
-                  if (result != null && result is Map<String, dynamic>) {
-                    if (result['completed'] == true) {
-                      final repCount = result['repCount'] ?? 0;
-                      final duration = result['duration'] ?? 0;
-                      final formScore = result['formScore']?.toInt() ?? 0;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '$cleanExerciseName Complete! $repCount reps in ${_formatDuration(duration)} with $formScore% form',
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 4),
-                        ),
-                      );
-                      
-                      // Refresh data after workout
-                      if (mounted) {
-                        _loadUserData();
+            builder:
+                (context) => ExerciseInstructionScreen(
+                  exerciseType: cleanExerciseName,
+                  onStartWorkout: () {
+                    // Close instruction screen and go to workout
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => WorkoutScreen(
+                              exerciseName: cleanExerciseName,
+                              workoutType: 'strength',
+                            ),
+                      ),
+                    ).then((result) {
+                      // Handle result when returning from workout screen
+                      if (result != null && result is Map<String, dynamic>) {
+                        if (result['completed'] == true) {
+                          final repCount = result['repCount'] ?? 0;
+                          final duration = result['duration'] ?? 0;
+                          final formScore = result['formScore']?.toInt() ?? 0;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '$cleanExerciseName Complete! $repCount reps in ${_formatDuration(duration)} with $formScore% form',
+                              ),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 4),
+                            ),
+                          );
+
+                          // Refresh data after workout
+                          if (mounted) {
+                            _loadUserData();
+                          }
+                        }
                       }
-                    }
-                  }
-                });
-              },
-            ),
+                    });
+                  },
+                ),
           ),
         );
         return;
       }
-      
+
       // Handle other exercises
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -87,7 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
           duration: const Duration(seconds: 2),
         ),
       );
-      
     } catch (e) {
       debugPrint('Error starting exercise: $e');
       if (mounted) {
@@ -189,19 +194,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showExerciseSelection(String workoutType) {
     List<Map<String, String>> exercises = [];
-    
-    debugPrint('🏠 Home Screen: Showing exercise selection for workout type: $workoutType');
-    
+
+    debugPrint(
+      '🏠 Home Screen: Showing exercise selection for workout type: $workoutType',
+    );
+
     if (workoutType == 'strength') {
       exercises = [
-        {'name': 'Bicep Curl (AI)', 'description': 'AI-powered bicep curl analysis'},
-        {'name': 'Pushup (AI)', 'description': 'AI-powered pushup form analysis'},
+        {
+          'name': 'Bicep Curl (AI)',
+          'description': 'AI-powered bicep curl analysis',
+        },
+        {
+          'name': 'Pushup (AI)',
+          'description': 'AI-powered pushup form analysis',
+        },
         {'name': 'Squat (AI)', 'description': 'AI-powered squat form analysis'},
-        {'name': 'Shoulder Press (AI)', 'description': 'AI-powered shoulder press analysis'},
-        {'name': 'Arm Circling (AI)', 'description': 'AI-powered arm circling analysis'},
+        {
+          'name': 'Shoulder Press (AI)',
+          'description': 'AI-powered shoulder press analysis',
+        },
+        {
+          'name': 'Arm Circling (AI)',
+          'description': 'AI-powered arm circling analysis',
+        },
         {'name': 'Planks', 'description': 'Core stability'},
       ];
-      debugPrint('🏠 Home Screen: Added ${exercises.length} strength exercises');
+      debugPrint(
+        '🏠 Home Screen: Added ${exercises.length} strength exercises',
+      );
     } else if (workoutType == 'cardio') {
       exercises = [
         {'name': 'Jumping Jacks', 'description': 'Full body cardio'},
@@ -218,39 +239,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
     debugPrint('🏠 Home Screen: Total exercises to show: ${exercises.length}');
     for (var exercise in exercises) {
-      debugPrint('🏠 Home Screen: - ${exercise['name']}: ${exercise['description']}');
+      debugPrint(
+        '🏠 Home Screen: - ${exercise['name']}: ${exercise['description']}',
+      );
     }
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${_capitalizeFirst(workoutType)} Exercises (${exercises.length} total)'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: exercises.map((exercise) =>
-              ListTile(
-                title: Text(exercise['name']!),
-                subtitle: Text(exercise['description']!),
-                leading: exercise['name']!.contains('(AI)') 
-                  ? Icon(Icons.smart_toy, color: Colors.blue)
-                  : Icon(Icons.fitness_center),
-                onTap: () {
-                  debugPrint('🏠 Home Screen: User selected exercise: ${exercise['name']}');
-                  Navigator.pop(context);
-                  _startExercise(exercise['name']!, workoutType);
-                },
-              )
-            ).toList(),
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              '${_capitalizeFirst(workoutType)} Exercises (${exercises.length} total)',
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children:
+                    exercises
+                        .map(
+                          (exercise) => ListTile(
+                            title: Text(exercise['name']!),
+                            subtitle: Text(exercise['description']!),
+                            leading:
+                                exercise['name']!.contains('(AI)')
+                                    ? Icon(Icons.smart_toy, color: Colors.blue)
+                                    : Icon(Icons.fitness_center),
+                            onTap: () {
+                              debugPrint(
+                                '🏠 Home Screen: User selected exercise: ${exercise['name']}',
+                              );
+                              Navigator.pop(context);
+                              _startExercise(exercise['name']!, workoutType);
+                            },
+                          ),
+                        )
+                        .toList(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Back'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Back'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -265,11 +297,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        gradient: featured ? LinearGradient(
-          colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ) : null,
+        gradient:
+            featured
+                ? LinearGradient(
+                  colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                )
+                : null,
         border: Border.all(
           color: featured ? color : Colors.grey[300]!,
           width: featured ? 2 : 1,
@@ -294,10 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
@@ -318,7 +350,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FITGEN', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'FITGEN',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -348,7 +383,10 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.8)],
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withOpacity(0.8),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -375,10 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   const Text(
                     'Ready to crush your fitness goals?',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
@@ -386,7 +421,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -405,10 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Stats Summary
             const Text(
               'Your Progress',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -473,14 +508,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Try our AI-powered bicep curl trainer with real-time form analysis and rep counting!',
-                    style: TextStyle(
-                      color: Colors.blue[700],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.blue[700], fontSize: 14),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
-                    onPressed: () => _startExercise('Bicep Curl (AI)', 'strength'),
+                    onPressed:
+                        () => _startExercise('Bicep Curl (AI)', 'strength'),
                     icon: const Icon(Icons.play_arrow),
                     label: const Text('Try AI Trainer'),
                     style: ElevatedButton.styleFrom(
@@ -497,10 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Quick Actions
             const Text(
               'Quick Start',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -539,10 +569,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Health & Nutrition Section
             const Text(
               'Health & Nutrition',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -598,13 +625,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: color,
             ),
           ),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(title, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         ],
       ),
     );
@@ -645,10 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ],
         ),
@@ -666,8 +684,10 @@ class _HomeScreenState extends State<HomeScreen> {
     //     builder: (context) => YourTeammateHealthProfileScreen(),
     //   ),
     // );
-    
-    debugPrint('🏥 Health Profile button tapped - ready for teammate integration');
+
+    debugPrint(
+      '🏥 Health Profile button tapped - ready for teammate integration',
+    );
   }
 
   void _createDietPlan() {
@@ -680,7 +700,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //     builder: (context) => YourTeammateDietPlanScreen(),
     //   ),
     // );
-    
+
     debugPrint('🍽️ Diet Plan button tapped - ready for teammate integration');
   }
 }

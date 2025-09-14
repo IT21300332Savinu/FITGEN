@@ -30,9 +30,8 @@ class WorkoutScreen extends StatefulWidget {
   State<WorkoutScreen> createState() => WorkoutScreenState();
 }
 
-class WorkoutScreenState extends State<WorkoutScreen> 
+class WorkoutScreenState extends State<WorkoutScreen>
     with WidgetsBindingObserver {
-  
   // Camera controller
   CameraController? _cameraController;
   bool _isCameraInitialized = false;
@@ -44,32 +43,32 @@ class WorkoutScreenState extends State<WorkoutScreen>
   UnifiedExerciseDetector? _exerciseDetector;
   VoiceCoachService? _voiceCoach;
   bool _poseDetectorInitialized = false;
-  
+
   // Workout state
   int _repCount = 0;
   double _formQuality = 0.75;
   List<String> _formIssues = ['Getting ready to detect your pose...'];
   final DateTime _startTime = DateTime.now();
   bool _isWorkoutActive = true;
-  
+
   // Exercise analysis
   List<Pose> _poses = [];
   ExerciseMetrics? _exerciseMetrics;
   Size? _absoluteImageSize;
-  
+
   // Timer for workout duration
   int _durationSeconds = 0;
   Timer? _durationTimer;
-  
+
   // Processing control
   bool _isProcessingFrame = false;
   bool _isDetecting = false;
-  
+
   // Display settings
   bool _showFormFeedback = true;
   bool _showAllKeypoints = true;
   bool _voiceCoachEnabled = true;
-  
+
   // Full screen mode
   bool _isFullScreen = true;
   bool _showControls = true;
@@ -79,10 +78,10 @@ class WorkoutScreenState extends State<WorkoutScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Set full screen and hide system UI
     _setFullScreenMode();
-    
+
     _initializeServices();
   }
 
@@ -91,7 +90,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
       SystemUiMode.immersiveSticky,
       overlays: [],
     );
-    
+
     // Hide controls after 3 seconds
     _resetControlsTimer();
   }
@@ -101,7 +100,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
     setState(() {
       _showControls = true;
     });
-    
+
     _controlsTimer = Timer(const Duration(seconds: 3), () {
       if (mounted && _isFullScreen) {
         setState(() {
@@ -115,7 +114,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
     setState(() {
       _isFullScreen = !_isFullScreen;
     });
-    
+
     if (_isFullScreen) {
       SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.immersiveSticky,
@@ -137,25 +136,27 @@ class WorkoutScreenState extends State<WorkoutScreen>
   Future<void> _initializeServices() async {
     // Start workout duration timer
     _startDurationTimer();
-    
+
     // Initialize exercise detector
     _exerciseDetector = UnifiedExerciseDetector();
-    
+
     // Map exercise name to exercise type
     ExerciseType exerciseType = _getExerciseTypeFromName(widget.exerciseName);
-    debugPrint('🏋️‍♂️ Setting exercise type: $exerciseType for exercise: ${widget.exerciseName}');
+    debugPrint(
+      '🏋️‍♂️ Setting exercise type: $exerciseType for exercise: ${widget.exerciseName}',
+    );
     _exerciseDetector!.setExerciseType(exerciseType);
-    
+
     // Initialize voice coach
     _voiceCoach = VoiceCoachService();
     _voiceCoach!.setExerciseType(exerciseType);
     if (_voiceCoachEnabled) {
       await _voiceCoach!.initialize();
     }
-    
+
     // Initialize pose detector
     await _initializePoseDetector();
-    
+
     // Then initialize camera
     await _initializeCamera();
   }
@@ -163,9 +164,9 @@ class WorkoutScreenState extends State<WorkoutScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (!_isCameraInitialized || _cameraController == null) return;
-    
+
     if (state == AppLifecycleState.inactive) {
       _stopImageStream();
     } else if (state == AppLifecycleState.resumed) {
@@ -178,19 +179,19 @@ class WorkoutScreenState extends State<WorkoutScreen>
   Future<void> _initializePoseDetector() async {
     try {
       debugPrint('🤖 Initializing pose detector...');
-      
+
       _poseDetector = PoseDetector(
         options: PoseDetectorOptions(
           model: PoseDetectionModel.base,
           mode: PoseDetectionMode.stream,
         ),
       );
-      
+
       setState(() {
         _poseDetectorInitialized = true;
         _formIssues = ['Pose detector ready! Position yourself in the camera.'];
       });
-      
+
       debugPrint('✅ Pose detector initialized successfully');
     } catch (e) {
       debugPrint('❌ Error initializing pose detector: $e');
@@ -214,10 +215,10 @@ class WorkoutScreenState extends State<WorkoutScreen>
   Future<void> _initializeCamera() async {
     try {
       debugPrint('📸 Initializing camera...');
-      
+
       // Get available cameras
       _cameras = await availableCameras();
-      
+
       if (_cameras.isEmpty) {
         debugPrint('❌ No cameras available');
         _handleCameraError('No cameras found on device');
@@ -225,12 +226,11 @@ class WorkoutScreenState extends State<WorkoutScreen>
       }
 
       await _selectCamera();
-      
+
       debugPrint('✅ Camera initialized successfully');
 
       // Start image stream for pose detection
       await _startImageStream();
-
     } catch (e) {
       debugPrint('❌ Error initializing camera: $e');
       _handleCameraError('Camera initialization failed: ${e.toString()}');
@@ -242,12 +242,16 @@ class WorkoutScreenState extends State<WorkoutScreen>
     CameraDescription selectedCamera;
     try {
       selectedCamera = _cameras.firstWhere(
-        (camera) => camera.lensDirection == (_isUsingFrontCamera 
-            ? CameraLensDirection.front 
-            : CameraLensDirection.back),
+        (camera) =>
+            camera.lensDirection ==
+            (_isUsingFrontCamera
+                ? CameraLensDirection.front
+                : CameraLensDirection.back),
         orElse: () => _cameras.first,
       );
-      debugPrint('📱 Using ${_isUsingFrontCamera ? 'front' : 'back'} camera: ${selectedCamera.name}');
+      debugPrint(
+        '📱 Using ${_isUsingFrontCamera ? 'front' : 'back'} camera: ${selectedCamera.name}',
+      );
     } catch (e) {
       selectedCamera = _cameras.first;
       debugPrint('📱 Using first available camera: ${selectedCamera.name}');
@@ -302,7 +306,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
 
     // Switch camera
     await _selectCamera();
-    
+
     // Restart detection if it was running
     if (_isDetecting) {
       await _startImageStream();
@@ -317,11 +321,13 @@ class WorkoutScreenState extends State<WorkoutScreen>
   }
 
   Future<void> _startImageStream() async {
-    if (_cameraController == null || 
+    if (_cameraController == null ||
         !_cameraController!.value.isInitialized ||
         !_poseDetectorInitialized ||
         _poseDetector == null) {
-      debugPrint('⚠️ Cannot start image stream - camera or pose detector not ready');
+      debugPrint(
+        '⚠️ Cannot start image stream - camera or pose detector not ready',
+      );
       return;
     }
 
@@ -330,7 +336,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
       _isDetecting = true;
       await _cameraController!.startImageStream(_processImage);
       debugPrint('✅ Image stream started successfully');
-      
+
       setState(() {
         _formIssues = ['Camera active! Stand back and show your full body.'];
       });
@@ -343,7 +349,8 @@ class WorkoutScreenState extends State<WorkoutScreen>
   }
 
   Future<void> _stopImageStream() async {
-    if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+    if (_cameraController != null &&
+        _cameraController!.value.isStreamingImages) {
       try {
         _isDetecting = false;
         await _cameraController!.stopImageStream();
@@ -355,8 +362,8 @@ class WorkoutScreenState extends State<WorkoutScreen>
   }
 
   void _processImage(CameraImage image) async {
-    if (!_isWorkoutActive || 
-        !_poseDetectorInitialized || 
+    if (!_isWorkoutActive ||
+        !_poseDetectorInitialized ||
         _isProcessingFrame ||
         _poseDetector == null ||
         _exerciseDetector == null) {
@@ -376,7 +383,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
 
       // Detect poses
       final List<Pose> poses = await _poseDetector!.processImage(inputImage);
-      
+
       if (!mounted) {
         _isProcessingFrame = false;
         return;
@@ -386,20 +393,24 @@ class WorkoutScreenState extends State<WorkoutScreen>
         setState(() {
           _poses = [];
           _exerciseMetrics = null;
-          _formIssues = ['No pose detected. Move back and show your full body.'];
+          _formIssues = [
+            'No pose detected. Move back and show your full body.',
+          ];
         });
       } else {
         final pose = poses.first;
-        
+
         // Analyze exercise
         final metrics = _exerciseDetector!.detectExercise(pose);
-        debugPrint('🎯 Exercise detection result: ${metrics?.repCount} reps, ${metrics?.feedback}');
-        
+        debugPrint(
+          '🎯 Exercise detection result: ${metrics?.repCount} reps, ${metrics?.feedback}',
+        );
+
         // Voice coaching
         if (_voiceCoachEnabled && _voiceCoach != null && metrics != null) {
           await _voiceCoach!.analyzeExercise(metrics);
         }
-        
+
         setState(() {
           _poses = poses;
           _exerciseMetrics = metrics;
@@ -412,7 +423,6 @@ class WorkoutScreenState extends State<WorkoutScreen>
           }
         });
       }
-
     } catch (e) {
       debugPrint('💥 Error processing image: $e');
       setState(() {
@@ -426,7 +436,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
   InputImage? _inputImageFromCameraImage(CameraImage image) {
     final camera = _cameraController!.description;
     final sensorOrientation = camera.sensorOrientation;
-    
+
     InputImageRotation? rotation;
     if (Platform.isIOS) {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
@@ -437,12 +447,13 @@ class WorkoutScreenState extends State<WorkoutScreen>
       }
       rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
     }
-    
+
     if (rotation == null) return null;
 
-    final format = InputImageFormatValue.fromRawValue(image.format.raw) ?? 
-                   InputImageFormat.nv21;
-                   
+    final format =
+        InputImageFormatValue.fromRawValue(image.format.raw) ??
+        InputImageFormat.nv21;
+
     _absoluteImageSize = Size(image.width.toDouble(), image.height.toDouble());
 
     // Get bytes from all planes
@@ -460,10 +471,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
       bytesPerRow: image.planes.first.bytesPerRow,
     );
 
-    return InputImage.fromBytes(
-      bytes: bytes,
-      metadata: metadata,
-    );
+    return InputImage.fromBytes(bytes: bytes, metadata: metadata);
   }
 
   Future<void> _endWorkout() async {
@@ -472,16 +480,16 @@ class WorkoutScreenState extends State<WorkoutScreen>
     setState(() {
       _isWorkoutActive = false;
     });
-    
+
     // Clean up resources
     _durationTimer?.cancel();
     _controlsTimer?.cancel();
-    
+
     await _stopImageStream();
 
     try {
       final firebaseService = Provider.of<FirebaseService>(
-        context, 
+        context,
         listen: false,
       );
 
@@ -509,7 +517,10 @@ class WorkoutScreenState extends State<WorkoutScreen>
 
       // Voice coach completion
       if (_voiceCoachEnabled && _voiceCoach != null) {
-        await _voiceCoach!.announceWorkoutComplete(_repCount, _formQuality * 100);
+        await _voiceCoach!.announceWorkoutComplete(
+          _repCount,
+          _formQuality * 100,
+        );
       }
 
       if (!mounted) return;
@@ -522,8 +533,8 @@ class WorkoutScreenState extends State<WorkoutScreen>
 
       // Navigate back with completion data
       Navigator.pop(context, {
-        'completed': true, 
-        'repCount': _repCount, 
+        'completed': true,
+        'repCount': _repCount,
         'duration': _durationSeconds,
         'formScore': _formQuality * 100,
       });
@@ -565,10 +576,10 @@ class WorkoutScreenState extends State<WorkoutScreen>
     setState(() {
       _voiceCoachEnabled = !_voiceCoachEnabled;
     });
-    
+
     if (_voiceCoach != null) {
       _voiceCoach!.setEnabled(_voiceCoachEnabled);
-      
+
       if (_voiceCoachEnabled) {
         _voiceCoach!.testVoice();
       }
@@ -586,23 +597,23 @@ class WorkoutScreenState extends State<WorkoutScreen>
     WidgetsBinding.instance.removeObserver(this);
     _durationTimer?.cancel();
     _controlsTimer?.cancel();
-    
+
     _isDetecting = false;
     _stopImageStream();
-    
+
     if (_cameraController != null) {
       _cameraController!.dispose();
     }
-    
+
     _poseDetector?.close();
     _voiceCoach?.dispose();
-    
+
     // Restore system UI
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
       overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
     );
-    
+
     super.dispose();
   }
 
@@ -616,11 +627,12 @@ class WorkoutScreenState extends State<WorkoutScreen>
           children: [
             // Full screen camera view
             Positioned.fill(
-              child: _isCameraInitialized
-                  ? _buildCameraView()
-                  : _buildLoadingScreen(),
+              child:
+                  _isCameraInitialized
+                      ? _buildCameraView()
+                      : _buildLoadingScreen(),
             ),
-            
+
             // Overlay controls (show/hide based on _showControls)
             if (_showControls) ...[
               // Top controls
@@ -630,7 +642,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
                 right: 0,
                 child: _buildTopControls(),
               ),
-              
+
               // Bottom controls
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom,
@@ -638,7 +650,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
                 right: 0,
                 child: _buildBottomControls(),
               ),
-              
+
               // Side controls
               Positioned(
                 right: 16,
@@ -660,16 +672,19 @@ class WorkoutScreenState extends State<WorkoutScreen>
         fit: StackFit.expand,
         children: [
           // Camera preview
-          if (_cameraController != null && _cameraController!.value.isInitialized)
+          if (_cameraController != null &&
+              _cameraController!.value.isInitialized)
             AspectRatio(
               aspectRatio: _cameraController!.value.aspectRatio,
               child: CameraPreview(_cameraController!),
             )
           else
             _buildCameraPlaceholder(),
-          
+
           // Form feedback overlay with all 33 keypoints
-          if (_poses.isNotEmpty && _absoluteImageSize != null && _showFormFeedback)
+          if (_poses.isNotEmpty &&
+              _absoluteImageSize != null &&
+              _showFormFeedback)
             Positioned.fill(
               child: CustomPaint(
                 painter: FormFeedbackPainter(
@@ -696,11 +711,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.fitness_center,
-              size: 64,
-              color: Colors.white70,
-            ),
+            Icon(Icons.fitness_center, size: 64, color: Colors.white70),
             const SizedBox(height: 16),
             const Text(
               'Camera Preview',
@@ -745,10 +756,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.black.withOpacity(0.7),
-            Colors.transparent,
-          ],
+          colors: [Colors.black.withOpacity(0.7), Colors.transparent],
         ),
       ),
       child: Row(
@@ -758,7 +766,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => _showExitDialog(),
           ),
-          
+
           // Title
           Expanded(
             child: Text(
@@ -771,7 +779,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
               textAlign: TextAlign.center,
             ),
           ),
-          
+
           // Full screen toggle
           IconButton(
             icon: Icon(
@@ -792,10 +800,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [
-            Colors.black.withOpacity(0.7),
-            Colors.transparent,
-          ],
+          colors: [Colors.black.withOpacity(0.7), Colors.transparent],
         ),
       ),
       child: Row(
@@ -808,21 +813,21 @@ class WorkoutScreenState extends State<WorkoutScreen>
             label: 'Reps',
             color: Colors.blue,
           ),
-          
+
           _buildStatChip(
             icon: Icons.timer,
             value: _formatDuration(_durationSeconds),
             label: 'Time',
             color: Colors.green,
           ),
-          
+
           _buildStatChip(
             icon: Icons.local_fire_department,
             value: '${_calculateCaloriesBurned()}',
             label: 'Cal',
             color: Colors.orange,
           ),
-          
+
           // End workout button
           ElevatedButton.icon(
             onPressed: _endWorkout,
@@ -849,25 +854,26 @@ class WorkoutScreenState extends State<WorkoutScreen>
           backgroundColor: Colors.black.withOpacity(0.7),
           child: const Icon(Icons.flip_camera_ios, color: Colors.white),
         ),
-        
+
         const SizedBox(height: 12),
-        
+
         // Voice coach toggle
         FloatingActionButton(
           mini: true,
           heroTag: "voice_toggle",
           onPressed: _toggleVoiceCoach,
-          backgroundColor: _voiceCoachEnabled 
-              ? Colors.blue.withOpacity(0.7)
-              : Colors.black.withOpacity(0.7),
+          backgroundColor:
+              _voiceCoachEnabled
+                  ? Colors.blue.withOpacity(0.7)
+                  : Colors.black.withOpacity(0.7),
           child: Icon(
             _voiceCoachEnabled ? Icons.volume_up : Icons.volume_off,
             color: Colors.white,
           ),
         ),
-        
+
         const SizedBox(height: 12),
-        
+
         // Keypoints toggle
         FloatingActionButton(
           mini: true,
@@ -877,17 +883,18 @@ class WorkoutScreenState extends State<WorkoutScreen>
               _showAllKeypoints = !_showAllKeypoints;
             });
           },
-          backgroundColor: _showAllKeypoints 
-              ? Colors.purple.withOpacity(0.7)
-              : Colors.black.withOpacity(0.7),
+          backgroundColor:
+              _showAllKeypoints
+                  ? Colors.purple.withOpacity(0.7)
+                  : Colors.black.withOpacity(0.7),
           child: Icon(
             _showAllKeypoints ? Icons.visibility : Icons.visibility_off,
             color: Colors.white,
           ),
         ),
-        
+
         const SizedBox(height: 12),
-        
+
         // Reset button
         FloatingActionButton(
           mini: true,
@@ -931,10 +938,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
               ),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 10,
-                ),
+                style: const TextStyle(color: Colors.white70, fontSize: 10),
               ),
             ],
           ),
@@ -949,7 +953,9 @@ class WorkoutScreenState extends State<WorkoutScreen>
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('End Workout?'),
-          content: const Text('Are you sure you want to end this workout session?'),
+          content: const Text(
+            'Are you sure you want to end this workout session?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -964,10 +970,10 @@ class WorkoutScreenState extends State<WorkoutScreen>
             ),
           ],
         );
-      }, 
+      },
     );
   }
-  
+
   String _formatDuration(int seconds) {
     final minutes = (seconds / 60).floor();
     final remainingSeconds = seconds % 60;
@@ -977,11 +983,13 @@ class WorkoutScreenState extends State<WorkoutScreen>
   ExerciseType _getExerciseTypeFromName(String exerciseName) {
     final name = exerciseName.toLowerCase().trim();
     debugPrint('🏷️ Mapping exercise name "$exerciseName" -> "$name"');
-    
+
     if (name.contains('bicep') || name.contains('curl')) {
       debugPrint('✅ Mapped to ExerciseType.bicepCurl');
       return ExerciseType.bicepCurl;
-    } else if (name.contains('pushup') || name.contains('push-up') || name.contains('push up')) {
+    } else if (name.contains('pushup') ||
+        name.contains('push-up') ||
+        name.contains('push up')) {
       debugPrint('✅ Mapped to ExerciseType.pushup');
       return ExerciseType.pushup;
     } else if (name.contains('squat')) {

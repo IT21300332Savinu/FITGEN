@@ -5,13 +5,13 @@ enum SquatPhase { standing, squatting, transition }
 
 class SquatDetector {
   // Angle thresholds for squat detection
-  static const double STANDING_KNEE_ANGLE = 160.0;  // Degrees when standing
-  static const double SQUATTING_KNEE_ANGLE = 90.0;  // Degrees at bottom of squat
-  static const double ANGLE_THRESHOLD = 15.0;       // Tolerance for angle detection
-  static const double MIN_HIP_ANGLE = 80.0;         // Minimum hip flexion for squat
-  static const double MAX_KNEE_FORWARD = 0.1;       // Max knee forward travel ratio
-  static const int HISTORY_SIZE = 5;                // Frames to track for stability
-  static const int MIN_REP_TIME = 30;               // Minimum frames between reps
+  static const double STANDING_KNEE_ANGLE = 160.0; // Degrees when standing
+  static const double SQUATTING_KNEE_ANGLE = 90.0; // Degrees at bottom of squat
+  static const double ANGLE_THRESHOLD = 15.0; // Tolerance for angle detection
+  static const double MIN_HIP_ANGLE = 80.0; // Minimum hip flexion for squat
+  static const double MAX_KNEE_FORWARD = 0.1; // Max knee forward travel ratio
+  static const int HISTORY_SIZE = 5; // Frames to track for stability
+  static const int MIN_REP_TIME = 30; // Minimum frames between reps
 
   // State tracking
   SquatPhase _currentPhase = SquatPhase.standing;
@@ -20,7 +20,7 @@ class SquatDetector {
   final List<double> _kneeAngleHistory = [];
   final List<double> _hipAngleHistory = [];
   final List<double> _ankleDepthHistory = [];
-  
+
   // Form quality tracking
   double _formQuality = 0.75;
   final List<String> _formIssues = [];
@@ -55,12 +55,19 @@ class SquatDetector {
     final leftAnkle = _getLandmark(landmarks, PoseLandmarkType.leftAnkle);
     final rightAnkle = _getLandmark(landmarks, PoseLandmarkType.rightAnkle);
     final leftShoulder = _getLandmark(landmarks, PoseLandmarkType.leftShoulder);
-    final rightShoulder = _getLandmark(landmarks, PoseLandmarkType.rightShoulder);
+    final rightShoulder = _getLandmark(
+      landmarks,
+      PoseLandmarkType.rightShoulder,
+    );
 
-    if (leftHip == null || rightHip == null || 
-        leftKnee == null || rightKnee == null ||
-        leftAnkle == null || rightAnkle == null ||
-        leftShoulder == null || rightShoulder == null) {
+    if (leftHip == null ||
+        rightHip == null ||
+        leftKnee == null ||
+        rightKnee == null ||
+        leftAnkle == null ||
+        rightAnkle == null ||
+        leftShoulder == null ||
+        rightShoulder == null) {
       _formIssues.add('Position yourself so your legs and torso are visible');
       return false;
     }
@@ -84,7 +91,7 @@ class SquatDetector {
     _kneeAngleHistory.add(avgKneeAngle);
     _hipAngleHistory.add(avgHipAngle);
     _ankleDepthHistory.add(depth);
-    
+
     if (_kneeAngleHistory.length > HISTORY_SIZE) {
       _kneeAngleHistory.removeAt(0);
       _hipAngleHistory.removeAt(0);
@@ -92,15 +99,26 @@ class SquatDetector {
     }
 
     // Analyze form quality
-    _analyzeForm(avgKneeAngle, avgHipAngle, depth, 
-                leftKnee, rightKnee, leftAnkle, rightAnkle,
-                leftHip, rightHip);
+    _analyzeForm(
+      avgKneeAngle,
+      avgHipAngle,
+      depth,
+      leftKnee,
+      rightKnee,
+      leftAnkle,
+      rightAnkle,
+      leftHip,
+      rightHip,
+    );
 
     // Detect squat phases
     return _detectPhaseTransition(avgKneeAngle, avgHipAngle);
   }
 
-  PoseLandmark? _getLandmark(List<PoseLandmark> landmarks, PoseLandmarkType type) {
+  PoseLandmark? _getLandmark(
+    List<PoseLandmark> landmarks,
+    PoseLandmarkType type,
+  ) {
     try {
       return landmarks.firstWhere((landmark) => landmark.type == type);
     } catch (e) {
@@ -108,7 +126,11 @@ class SquatDetector {
     }
   }
 
-  double _calculateAngle(PoseLandmark point1, PoseLandmark point2, PoseLandmark point3) {
+  double _calculateAngle(
+    PoseLandmark point1,
+    PoseLandmark point2,
+    PoseLandmark point3,
+  ) {
     // Calculate angle at point2 using vectors to point1 and point3
     double vector1X = point1.x - point2.x;
     double vector1Y = point1.y - point2.y;
@@ -123,14 +145,21 @@ class SquatDetector {
 
     double cosAngle = dotProduct / (magnitude1 * magnitude2);
     cosAngle = cosAngle.clamp(-1.0, 1.0);
-    
+
     return acos(cosAngle) * 180 / pi;
   }
 
-  void _analyzeForm(double kneeAngle, double hipAngle, double depth,
-                   PoseLandmark leftKnee, PoseLandmark rightKnee,
-                   PoseLandmark leftAnkle, PoseLandmark rightAnkle,
-                   PoseLandmark leftHip, PoseLandmark rightHip) {
+  void _analyzeForm(
+    double kneeAngle,
+    double hipAngle,
+    double depth,
+    PoseLandmark leftKnee,
+    PoseLandmark rightKnee,
+    PoseLandmark leftAnkle,
+    PoseLandmark rightAnkle,
+    PoseLandmark leftHip,
+    PoseLandmark rightHip,
+  ) {
     double quality = 1.0;
 
     // Check squat depth - hips should go below knees
@@ -143,9 +172,11 @@ class SquatDetector {
     double kneeWidth = (leftKnee.x - rightKnee.x).abs();
     double ankleWidth = (leftAnkle.x - rightAnkle.x).abs();
     double kneeTrackingRatio = kneeWidth / ankleWidth;
-    
+
     if (kneeTrackingRatio < 0.8) {
-      _formIssues.add('Keep knees tracking over toes - don\'t let them cave in');
+      _formIssues.add(
+        'Keep knees tracking over toes - don\'t let them cave in',
+      );
       quality -= 0.3;
     }
 
@@ -153,7 +184,7 @@ class SquatDetector {
     double avgKneeX = (leftKnee.x + rightKnee.x) / 2;
     double avgAnkleX = (leftAnkle.x + rightAnkle.x) / 2;
     double kneeForwardRatio = (avgKneeX - avgAnkleX).abs() / ankleWidth;
-    
+
     if (kneeForwardRatio > MAX_KNEE_FORWARD) {
       _formIssues.add('Don\'t let knees go too far forward - sit back more');
       quality -= 0.2;
@@ -175,11 +206,9 @@ class SquatDetector {
     }
 
     // Check symmetry between legs
-    double leftKneeAngle = _calculateAngle(
-      leftHip, leftKnee, leftAnkle);
-    double rightKneeAngle = _calculateAngle(
-      rightHip, rightKnee, rightAnkle);
-    
+    double leftKneeAngle = _calculateAngle(leftHip, leftKnee, leftAnkle);
+    double rightKneeAngle = _calculateAngle(rightHip, rightKnee, rightAnkle);
+
     if ((leftKneeAngle - rightKneeAngle).abs() > 15) {
       _formIssues.add('Keep both legs moving symmetrically');
       quality -= 0.1;
@@ -193,14 +222,14 @@ class SquatDetector {
 
   double _calculateVariation(List<double> values) {
     if (values.length < 2) return 0;
-    
+
     double sum = values.reduce((a, b) => a + b);
     double mean = sum / values.length;
-    
-    double variance = values
-        .map((value) => pow(value - mean, 2))
-        .reduce((a, b) => a + b) / values.length;
-    
+
+    double variance =
+        values.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) /
+        values.length;
+
     return sqrt(variance);
   }
 
@@ -210,7 +239,7 @@ class SquatDetector {
     switch (_currentPhase) {
       case SquatPhase.standing:
         // Look for transition to squatting phase
-        if (kneeAngle < STANDING_KNEE_ANGLE - ANGLE_THRESHOLD && 
+        if (kneeAngle < STANDING_KNEE_ANGLE - ANGLE_THRESHOLD &&
             hipAngle < 140) {
           _currentPhase = SquatPhase.squatting;
         }

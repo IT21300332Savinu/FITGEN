@@ -8,7 +8,7 @@ import 'shoulder_press_detector.dart' as shoulder;
 
 class UnifiedExerciseDetector {
   ExerciseType? _currentExerciseType;
-  
+
   // Detectors
   BicepCurlDetector? _bicepCurlDetector;
   pushup.PushupDetector? _pushupDetector;
@@ -23,15 +23,19 @@ class UnifiedExerciseDetector {
 
   void setExerciseType(ExerciseType exerciseType) {
     if (_currentExerciseType == exerciseType) return;
-    
-    print('🔄 UnifiedExerciseDetector: Switching to exercise type: $exerciseType');
+
+    print(
+      '🔄 UnifiedExerciseDetector: Switching to exercise type: $exerciseType',
+    );
     _resetAllDetectors();
     _currentExerciseType = exerciseType;
     _initializeDetector(exerciseType);
   }
 
   void _initializeDetector(ExerciseType exerciseType) {
-    print('🔧 UnifiedExerciseDetector: Initializing detector for $exerciseType');
+    print(
+      '🔧 UnifiedExerciseDetector: Initializing detector for $exerciseType',
+    );
     switch (exerciseType) {
       case ExerciseType.bicepCurl:
         _bicepCurlDetector = BicepCurlDetector();
@@ -80,27 +84,29 @@ class UnifiedExerciseDetector {
         _currentMetrics = _bicepCurlDetector?.analyzeFrame(pose);
         print('📊 Bicep curl metrics: ${_currentMetrics?.repCount} reps');
         return _currentMetrics;
-        
+
       case ExerciseType.pushup:
         _pushupDetector?.detectPushup(pose.landmarks.values.toList());
         _currentMetrics = _createMetricsFromPushupDetector();
         print('📊 Pushup metrics: ${_currentMetrics?.repCount} reps');
         return _currentMetrics;
-        
+
       case ExerciseType.squat:
         _squatDetector?.detectSquat(pose.landmarks.values.toList());
         _currentMetrics = _createMetricsFromSquatDetector();
         print('📊 Squat metrics: ${_currentMetrics?.repCount} reps');
         return _currentMetrics;
-        
+
       case ExerciseType.armCircling:
         _armCirclingDetector?.detectArmCircling(pose.landmarks.values.toList());
         _currentMetrics = _createMetricsFromArmCirclingDetector();
         print('📊 Arm circling metrics: ${_currentMetrics?.repCount} reps');
         return _currentMetrics;
-        
+
       case ExerciseType.shoulderPress:
-        _shoulderPressDetector?.detectShoulderPress(pose.landmarks.values.toList());
+        _shoulderPressDetector?.detectShoulderPress(
+          pose.landmarks.values.toList(),
+        );
         _currentMetrics = _createMetricsFromShoulderPressDetector();
         print('📊 Shoulder press metrics: ${_currentMetrics?.repCount} reps');
         return _currentMetrics;
@@ -110,7 +116,7 @@ class UnifiedExerciseDetector {
   // Helper methods to create ExerciseMetrics from individual detector states
   ExerciseMetrics? _createMetricsFromPushupDetector() {
     if (_pushupDetector == null) return null;
-    
+
     return ExerciseMetrics(
       repCount: _pushupDetector!.repCount,
       currentAngle: 0.0, // Pushup detector doesn't expose angle
@@ -123,7 +129,7 @@ class UnifiedExerciseDetector {
 
   ExerciseMetrics? _createMetricsFromSquatDetector() {
     if (_squatDetector == null) return null;
-    
+
     return ExerciseMetrics(
       repCount: _squatDetector!.repCount,
       currentAngle: 0.0, // Squat detector doesn't expose angle
@@ -136,26 +142,30 @@ class UnifiedExerciseDetector {
 
   ExerciseMetrics? _createMetricsFromArmCirclingDetector() {
     if (_armCirclingDetector == null) return null;
-    
+
     return ExerciseMetrics(
       repCount: _armCirclingDetector!.repCount,
       currentAngle: 0.0, // Arm circling detector doesn't expose angle
       formQuality: _convertToFormQuality(_armCirclingDetector!.formQuality),
       feedback: _armCirclingDetector!.formIssues.join(', '),
-      state: _convertPhaseToState(_armCirclingDetector!.currentPhase.toString()),
+      state: _convertPhaseToState(
+        _armCirclingDetector!.currentPhase.toString(),
+      ),
       formScore: _armCirclingDetector!.formQuality,
     );
   }
 
   ExerciseMetrics? _createMetricsFromShoulderPressDetector() {
     if (_shoulderPressDetector == null) return null;
-    
+
     return ExerciseMetrics(
       repCount: _shoulderPressDetector!.repCount,
       currentAngle: 0.0, // Shoulder press detector doesn't expose angle
       formQuality: _convertToFormQuality(_shoulderPressDetector!.formQuality),
       feedback: _shoulderPressDetector!.formIssues.join(', '),
-      state: _convertPhaseToState(_shoulderPressDetector!.currentPhase.toString()),
+      state: _convertPhaseToState(
+        _shoulderPressDetector!.currentPhase.toString(),
+      ),
       formScore: _shoulderPressDetector!.formQuality,
     );
   }
@@ -173,9 +183,15 @@ class UnifiedExerciseDetector {
     final phaseLower = phase.toLowerCase();
     if (phaseLower.contains('ready') || phaseLower.contains('start')) {
       return ExerciseState.ready;
-    } else if (phaseLower.contains('up') || phaseLower.contains('extend') || phaseLower.contains('press') || phaseLower.contains('ascending')) {
+    } else if (phaseLower.contains('up') ||
+        phaseLower.contains('extend') ||
+        phaseLower.contains('press') ||
+        phaseLower.contains('ascending')) {
       return ExerciseState.ascending;
-    } else if (phaseLower.contains('down') || phaseLower.contains('lower') || phaseLower.contains('curl') || phaseLower.contains('descending')) {
+    } else if (phaseLower.contains('down') ||
+        phaseLower.contains('lower') ||
+        phaseLower.contains('curl') ||
+        phaseLower.contains('descending')) {
       return ExerciseState.descending;
     } else if (phaseLower.contains('hold')) {
       return ExerciseState.hold;
@@ -185,9 +201,16 @@ class UnifiedExerciseDetector {
 
   // Convenience getters for backward compatibility
   int get repCount => _currentMetrics?.repCount ?? 0;
-  FormQuality get formQuality => _currentMetrics?.formQuality ?? FormQuality.poor;
-  List<String> get formIssues => _currentMetrics?.feedback.split(', ').where((s) => s.isNotEmpty).toList() ?? [];
-  String get currentPhase => _currentMetrics?.state.toString().split('.').last ?? 'unknown';
+  FormQuality get formQuality =>
+      _currentMetrics?.formQuality ?? FormQuality.poor;
+  List<String> get formIssues =>
+      _currentMetrics?.feedback
+          .split(', ')
+          .where((s) => s.isNotEmpty)
+          .toList() ??
+      [];
+  String get currentPhase =>
+      _currentMetrics?.state.toString().split('.').last ?? 'unknown';
 
   void reset() {
     _bicepCurlDetector?.reset();
@@ -201,8 +224,10 @@ class UnifiedExerciseDetector {
   // Get exercise-specific guidance
   List<String> getExerciseGuidance() {
     if (_currentExerciseType == null) return [];
-    
-    final exerciseDefinition = ExerciseDatabase.getExercise(_currentExerciseType!);
+
+    final exerciseDefinition = ExerciseDatabase.getExercise(
+      _currentExerciseType!,
+    );
     if (exerciseDefinition == null) return [];
 
     switch (_currentExerciseType!) {
@@ -210,31 +235,31 @@ class UnifiedExerciseDetector {
         return [
           'Keep your upper arms stationary',
           'Focus on squeezing your biceps',
-          'Control the weight on the way down'
+          'Control the weight on the way down',
         ];
       case ExerciseType.pushup:
         return [
           'Keep your body in a straight line',
           'Lower until chest nearly touches ground',
-          'Push through your palms'
+          'Push through your palms',
         ];
       case ExerciseType.squat:
         return [
           'Sit back into your hips',
           'Keep knees tracking over toes',
-          'Go as low as comfortable'
+          'Go as low as comfortable',
         ];
       case ExerciseType.armCircling:
         return [
           'Make large, controlled circles',
           'Keep arms extended',
-          'Maintain consistent speed'
+          'Maintain consistent speed',
         ];
       case ExerciseType.shoulderPress:
         return [
           'Press directly overhead',
           'Keep core tight',
-          'Don\'t arch your back excessively'
+          'Don\'t arch your back excessively',
         ];
     }
   }

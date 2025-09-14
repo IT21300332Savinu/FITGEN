@@ -5,12 +5,13 @@ enum PushupPhase { up, down, transition }
 
 class PushupDetector {
   // Angle thresholds for pushup detection
-  static const double EXTENDED_ELBOW_ANGLE = 150.0; // Degrees when arms are extended
-  static const double FLEXED_ELBOW_ANGLE = 90.0;    // Degrees when at bottom
-  static const double ANGLE_THRESHOLD = 20.0;       // Tolerance for angle detection
-  static const double MIN_BODY_ANGLE = 160.0;       // Minimum body plank angle
-  static const int HISTORY_SIZE = 5;                // Frames to track for stability
-  static const int MIN_REP_TIME = 30;               // Minimum frames between reps
+  static const double EXTENDED_ELBOW_ANGLE =
+      150.0; // Degrees when arms are extended
+  static const double FLEXED_ELBOW_ANGLE = 90.0; // Degrees when at bottom
+  static const double ANGLE_THRESHOLD = 20.0; // Tolerance for angle detection
+  static const double MIN_BODY_ANGLE = 160.0; // Minimum body plank angle
+  static const int HISTORY_SIZE = 5; // Frames to track for stability
+  static const int MIN_REP_TIME = 30; // Minimum frames between reps
 
   // State tracking
   PushupPhase _currentPhase = PushupPhase.up;
@@ -18,7 +19,7 @@ class PushupDetector {
   int _framesSinceLastRep = 0;
   final List<double> _elbowAngleHistory = [];
   final List<double> _bodyAngleHistory = [];
-  
+
   // Form quality tracking
   double _formQuality = 0.75;
   final List<String> _formIssues = [];
@@ -46,7 +47,10 @@ class PushupDetector {
 
     // Get required landmarks
     final leftShoulder = _getLandmark(landmarks, PoseLandmarkType.leftShoulder);
-    final rightShoulder = _getLandmark(landmarks, PoseLandmarkType.rightShoulder);
+    final rightShoulder = _getLandmark(
+      landmarks,
+      PoseLandmarkType.rightShoulder,
+    );
     final leftElbow = _getLandmark(landmarks, PoseLandmarkType.leftElbow);
     final rightElbow = _getLandmark(landmarks, PoseLandmarkType.rightElbow);
     final leftWrist = _getLandmark(landmarks, PoseLandmarkType.leftWrist);
@@ -56,23 +60,36 @@ class PushupDetector {
     final leftAnkle = _getLandmark(landmarks, PoseLandmarkType.leftAnkle);
     final rightAnkle = _getLandmark(landmarks, PoseLandmarkType.rightAnkle);
 
-    if (leftShoulder == null || rightShoulder == null || 
-        leftElbow == null || rightElbow == null ||
-        leftWrist == null || rightWrist == null ||
-        leftHip == null || rightHip == null ||
-        leftAnkle == null || rightAnkle == null) {
+    if (leftShoulder == null ||
+        rightShoulder == null ||
+        leftElbow == null ||
+        rightElbow == null ||
+        leftWrist == null ||
+        rightWrist == null ||
+        leftHip == null ||
+        rightHip == null ||
+        leftAnkle == null ||
+        rightAnkle == null) {
       _formIssues.add('Position yourself so your full body is visible');
       return false;
     }
 
     // Calculate angles
     double leftElbowAngle = _calculateAngle(leftShoulder, leftElbow, leftWrist);
-    double rightElbowAngle = _calculateAngle(rightShoulder, rightElbow, rightWrist);
+    double rightElbowAngle = _calculateAngle(
+      rightShoulder,
+      rightElbow,
+      rightWrist,
+    );
     double avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
 
     // Calculate body alignment (plank position)
     double leftBodyAngle = _calculateAngle(leftShoulder, leftHip, leftAnkle);
-    double rightBodyAngle = _calculateAngle(rightShoulder, rightHip, rightAnkle);
+    double rightBodyAngle = _calculateAngle(
+      rightShoulder,
+      rightHip,
+      rightAnkle,
+    );
     double avgBodyAngle = (leftBodyAngle + rightBodyAngle) / 2;
 
     // Update history
@@ -86,14 +103,23 @@ class PushupDetector {
     }
 
     // Analyze form quality
-    _analyzeForm(avgElbowAngle, avgBodyAngle, leftShoulder, rightShoulder, 
-                leftWrist, rightWrist);
+    _analyzeForm(
+      avgElbowAngle,
+      avgBodyAngle,
+      leftShoulder,
+      rightShoulder,
+      leftWrist,
+      rightWrist,
+    );
 
     // Detect pushup phases
     return _detectPhaseTransition(avgElbowAngle);
   }
 
-  PoseLandmark? _getLandmark(List<PoseLandmark> landmarks, PoseLandmarkType type) {
+  PoseLandmark? _getLandmark(
+    List<PoseLandmark> landmarks,
+    PoseLandmarkType type,
+  ) {
     try {
       return landmarks.firstWhere((landmark) => landmark.type == type);
     } catch (e) {
@@ -101,7 +127,11 @@ class PushupDetector {
     }
   }
 
-  double _calculateAngle(PoseLandmark point1, PoseLandmark point2, PoseLandmark point3) {
+  double _calculateAngle(
+    PoseLandmark point1,
+    PoseLandmark point2,
+    PoseLandmark point3,
+  ) {
     // Calculate angle at point2 using vectors to point1 and point3
     double vector1X = point1.x - point2.x;
     double vector1Y = point1.y - point2.y;
@@ -116,13 +146,18 @@ class PushupDetector {
 
     double cosAngle = dotProduct / (magnitude1 * magnitude2);
     cosAngle = cosAngle.clamp(-1.0, 1.0);
-    
+
     return acos(cosAngle) * 180 / pi;
   }
 
-  void _analyzeForm(double elbowAngle, double bodyAngle, 
-                   PoseLandmark leftShoulder, PoseLandmark rightShoulder,
-                   PoseLandmark leftWrist, PoseLandmark rightWrist) {
+  void _analyzeForm(
+    double elbowAngle,
+    double bodyAngle,
+    PoseLandmark leftShoulder,
+    PoseLandmark rightShoulder,
+    PoseLandmark leftWrist,
+    PoseLandmark rightWrist,
+  ) {
     double quality = 1.0;
 
     // Check body alignment (plank position)
@@ -132,14 +167,19 @@ class PushupDetector {
     }
 
     // Check hand position width
-    double handDistance = sqrt(pow(leftWrist.x - rightWrist.x, 2) + 
-                              pow(leftWrist.y - rightWrist.y, 2));
-    double shoulderDistance = sqrt(pow(leftShoulder.x - rightShoulder.x, 2) + 
-                                  pow(leftShoulder.y - rightShoulder.y, 2));
-    
+    double handDistance = sqrt(
+      pow(leftWrist.x - rightWrist.x, 2) + pow(leftWrist.y - rightWrist.y, 2),
+    );
+    double shoulderDistance = sqrt(
+      pow(leftShoulder.x - rightShoulder.x, 2) +
+          pow(leftShoulder.y - rightShoulder.y, 2),
+    );
+
     double handWidthRatio = handDistance / shoulderDistance;
     if (handWidthRatio < 1.2 || handWidthRatio > 2.0) {
-      _formIssues.add('Adjust hand width - should be slightly wider than shoulders');
+      _formIssues.add(
+        'Adjust hand width - should be slightly wider than shoulders',
+      );
       quality -= 0.2;
     }
 
@@ -160,14 +200,14 @@ class PushupDetector {
 
   double _calculateVariation(List<double> values) {
     if (values.length < 2) return 0;
-    
+
     double sum = values.reduce((a, b) => a + b);
     double mean = sum / values.length;
-    
-    double variance = values
-        .map((value) => pow(value - mean, 2))
-        .reduce((a, b) => a + b) / values.length;
-    
+
+    double variance =
+        values.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) /
+        values.length;
+
     return sqrt(variance);
   }
 

@@ -1,16 +1,6 @@
-enum ExerciseCategory {
-  weightLoss,
-  weightGain,
-  maintainHealth,
-}
+enum ExerciseCategory { weightLoss, weightGain, maintainHealth }
 
-enum ExerciseType {
-  bicepCurl,
-  pushup,
-  squat,
-  armCircling,
-  shoulderPress,
-}
+enum ExerciseType { bicepCurl, pushup, squat, armCircling, shoulderPress }
 
 class ExerciseDefinition {
   final ExerciseType type;
@@ -49,7 +39,7 @@ class ExerciseDatabase {
       estimatedDuration: Duration(minutes: 5),
       instructions: 'Keep your upper arms stationary and curl the weights up',
     ),
-    
+
     ExerciseType.pushup: ExerciseDefinition(
       type: ExerciseType.pushup,
       name: 'Push-up',
@@ -61,7 +51,7 @@ class ExerciseDatabase {
       estimatedDuration: Duration(minutes: 8),
       instructions: 'Lower your body until chest nearly touches the ground',
     ),
-    
+
     ExerciseType.squat: ExerciseDefinition(
       type: ExerciseType.squat,
       name: 'Squat',
@@ -73,7 +63,7 @@ class ExerciseDatabase {
       estimatedDuration: Duration(minutes: 6),
       instructions: 'Lower your hips as if sitting back into a chair',
     ),
-    
+
     ExerciseType.armCircling: ExerciseDefinition(
       type: ExerciseType.armCircling,
       name: 'Arm Circling',
@@ -85,7 +75,7 @@ class ExerciseDatabase {
       estimatedDuration: Duration(minutes: 3),
       instructions: 'Make large circles with your arms in a controlled motion',
     ),
-    
+
     ExerciseType.shoulderPress: ExerciseDefinition(
       type: ExerciseType.shoulderPress,
       name: 'Shoulder Press',
@@ -99,7 +89,9 @@ class ExerciseDatabase {
     ),
   };
 
-  static List<ExerciseDefinition> getExercisesByCategory(ExerciseCategory category) {
+  static List<ExerciseDefinition> getExercisesByCategory(
+    ExerciseCategory category,
+  ) {
     return exercises.values
         .where((exercise) => exercise.category == category)
         .toList();

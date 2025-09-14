@@ -69,32 +69,28 @@ class PoseAnalyzerService {
     switch (exerciseName.toLowerCase()) {
       case 'squat':
         _exerciseSettings = {
-          'repThresholds': {
-            'bottom': 0.65,
-            'top': 0.45,
-          },
+          'repThresholds': {'bottom': 0.65, 'top': 0.45},
           'formChecks': ['kneeAngle', 'hipAngle', 'backStraight'],
           'feedbackMessages': {
             'kneeAngle': 'Keep your knees aligned with your toes',
             'hipAngle': 'Lower your hips more for full range of motion',
             'backStraight': 'Keep your back straight throughout the movement',
-            'bodyNotFullyVisible': 'Make sure your full body is visible in the camera',
+            'bodyNotFullyVisible':
+                'Make sure your full body is visible in the camera',
           },
         };
         break;
 
       case 'pushup':
         _exerciseSettings = {
-          'repThresholds': {
-            'bottom': 0.6,
-            'top': 0.45,
-          },
+          'repThresholds': {'bottom': 0.6, 'top': 0.45},
           'formChecks': ['elbowAngle', 'bodyAlignment', 'headPosition'],
           'feedbackMessages': {
             'elbowAngle': 'Bend your elbows more for proper depth',
             'bodyAlignment': 'Maintain a straight line from head to heels',
             'headPosition': 'Keep your neck in a neutral position',
-            'bodyNotFullyVisible': 'Position yourself so your full body is visible',
+            'bodyNotFullyVisible':
+                'Position yourself so your full body is visible',
           },
         };
         break;
@@ -105,7 +101,8 @@ class PoseAnalyzerService {
           'formChecks': ['generalForm'],
           'feedbackMessages': {
             'generalForm': 'Maintain proper form throughout the exercise',
-            'bodyNotFullyVisible': 'Make sure you are fully visible in the camera',
+            'bodyNotFullyVisible':
+                'Make sure you are fully visible in the camera',
           },
         };
     }
@@ -119,7 +116,7 @@ class PoseAnalyzerService {
     if (!_isInitialized || _isProcessing) return null;
 
     _isProcessing = true;
-    
+
     try {
       // Convert CameraImage to InputImage using v0.6.0 API
       final inputImage = _convertCameraImageToInputImage(image, camera);
@@ -136,7 +133,9 @@ class PoseAnalyzerService {
         return PoseAnalysisResult(
           repCount: _repCount,
           formQuality: 0.0,
-          formIssues: ['No pose detected. Make sure your full body is visible.'],
+          formIssues: [
+            'No pose detected. Make sure your full body is visible.',
+          ],
         );
       }
 
@@ -167,12 +166,12 @@ class PoseAnalyzerService {
       return PoseAnalysisResult(
         repCount: _repCount,
         formQuality: currentFormQuality,
-        formIssues: _currentFormIssues.isEmpty 
-            ? ['Good form! Keep it up.'] 
-            : _currentFormIssues,
+        formIssues:
+            _currentFormIssues.isEmpty
+                ? ['Good form! Keep it up.']
+                : _currentFormIssues,
         landmarks: landmarks,
       );
-
     } catch (e) {
       _isProcessing = false;
       debugPrint('Error analyzing pose: $e');
@@ -246,11 +245,7 @@ class PoseAnalyzerService {
       case 'pushup':
         return _analyzePushup(landmarks);
       default:
-        return {
-          'position': 0.5,
-          'formQuality': 0.8,
-          'formIssues': <String>[],
-        };
+        return {'position': 0.5, 'formQuality': 0.8, 'formIssues': <String>[]};
     }
   }
 
@@ -263,8 +258,14 @@ class PoseAnalyzerService {
       'rightKnee': _findLandmarkByType(landmarks, PoseLandmarkType.rightKnee),
       'leftAnkle': _findLandmarkByType(landmarks, PoseLandmarkType.leftAnkle),
       'rightAnkle': _findLandmarkByType(landmarks, PoseLandmarkType.rightAnkle),
-      'leftShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.leftShoulder),
-      'rightShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.rightShoulder),
+      'leftShoulder': _findLandmarkByType(
+        landmarks,
+        PoseLandmarkType.leftShoulder,
+      ),
+      'rightShoulder': _findLandmarkByType(
+        landmarks,
+        PoseLandmarkType.rightShoulder,
+      ),
     };
 
     // Check if all required landmarks are detected
@@ -311,8 +312,9 @@ class PoseAnalyzerService {
     }
 
     // Check back alignment
-    final shoulderHipXDiff = ((leftShoulder.x + rightShoulder.x) / 2 - 
-                             (leftHip.x + rightHip.x) / 2).abs();
+    final shoulderHipXDiff =
+        ((leftShoulder.x + rightShoulder.x) / 2 - (leftHip.x + rightHip.x) / 2)
+            .abs();
     if (shoulderHipXDiff > 0.1) {
       formIssues.add('backStraight');
     }
@@ -333,8 +335,14 @@ class PoseAnalyzerService {
   /// Analyze pushup form
   Map<String, dynamic> _analyzePushup(List<PoseLandmark> landmarks) {
     final requiredLandmarks = {
-      'leftShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.leftShoulder),
-      'rightShoulder': _findLandmarkByType(landmarks, PoseLandmarkType.rightShoulder),
+      'leftShoulder': _findLandmarkByType(
+        landmarks,
+        PoseLandmarkType.leftShoulder,
+      ),
+      'rightShoulder': _findLandmarkByType(
+        landmarks,
+        PoseLandmarkType.rightShoulder,
+      ),
       'leftElbow': _findLandmarkByType(landmarks, PoseLandmarkType.leftElbow),
       'rightElbow': _findLandmarkByType(landmarks, PoseLandmarkType.rightElbow),
       'leftWrist': _findLandmarkByType(landmarks, PoseLandmarkType.leftWrist),
@@ -364,15 +372,21 @@ class PoseAnalyzerService {
 
     // Calculate elbow angles
     final leftElbowAngle = _calculateAngle(
-      leftShoulder.x, leftShoulder.y,
-      leftElbow.x, leftElbow.y,
-      leftWrist.x, leftWrist.y,
+      leftShoulder.x,
+      leftShoulder.y,
+      leftElbow.x,
+      leftElbow.y,
+      leftWrist.x,
+      leftWrist.y,
     );
 
     final rightElbowAngle = _calculateAngle(
-      rightShoulder.x, rightShoulder.y,
-      rightElbow.x, rightElbow.y,
-      rightWrist.x, rightWrist.y,
+      rightShoulder.x,
+      rightShoulder.y,
+      rightElbow.x,
+      rightElbow.y,
+      rightWrist.x,
+      rightWrist.y,
     );
 
     final avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
@@ -426,7 +440,14 @@ class PoseAnalyzerService {
   }
 
   /// Calculate angle between three points
-  double _calculateAngle(double ax, double ay, double bx, double by, double cx, double cy) {
+  double _calculateAngle(
+    double ax,
+    double ay,
+    double bx,
+    double by,
+    double cx,
+    double cy,
+  ) {
     final abx = bx - ax;
     final aby = by - ay;
     final cbx = bx - cx;
@@ -444,15 +465,20 @@ class PoseAnalyzerService {
 
   /// Update rep count based on position
   void _updateRepCount(double position) {
-    final bottomThreshold = _exerciseSettings['repThresholds']['bottom'] as double;
+    final bottomThreshold =
+        _exerciseSettings['repThresholds']['bottom'] as double;
     final topThreshold = _exerciseSettings['repThresholds']['top'] as double;
 
-    if (position >= bottomThreshold && !_wasInBottomPosition && _wasInTopPosition) {
+    if (position >= bottomThreshold &&
+        !_wasInBottomPosition &&
+        _wasInTopPosition) {
       _wasInBottomPosition = true;
       _wasInTopPosition = false;
     }
 
-    if (position <= topThreshold && _wasInBottomPosition && !_wasInTopPosition) {
+    if (position <= topThreshold &&
+        _wasInBottomPosition &&
+        !_wasInTopPosition) {
       _wasInBottomPosition = false;
       _wasInTopPosition = true;
       _repCount++;

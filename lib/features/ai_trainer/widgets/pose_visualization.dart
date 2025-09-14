@@ -14,10 +14,7 @@ class PoseVisualization extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: PosePainter(
-        poses: poses,
-        imageSize: imageSize,
-      ),
+      painter: PosePainter(poses: poses, imageSize: imageSize),
       child: Container(),
     );
   }
@@ -26,20 +23,19 @@ class PoseVisualization extends StatelessWidget {
 class PosePainter extends CustomPainter {
   final List<Pose> poses;
   final Size imageSize;
-  
-  // Cache paint objects for better performance
-  static final Paint _jointPaint = Paint()
-    ..color = Colors.green
-    ..strokeWidth = 4.0;
-    
-  static final Paint _connectionPaint = Paint()
-    ..color = Colors.blue
-    ..strokeWidth = 2.0;
 
-  PosePainter({
-    required this.poses,
-    required this.imageSize,
-  });
+  // Cache paint objects for better performance
+  static final Paint _jointPaint =
+      Paint()
+        ..color = Colors.green
+        ..strokeWidth = 4.0;
+
+  static final Paint _connectionPaint =
+      Paint()
+        ..color = Colors.blue
+        ..strokeWidth = 2.0;
+
+  PosePainter({required this.poses, required this.imageSize});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -52,7 +48,7 @@ class PosePainter extends CustomPainter {
 
   void _drawOptimizedSkeleton(Canvas canvas, Pose pose, Size size) {
     final landmarks = pose.landmarks;
-    
+
     // Essential joints for bicep curl detection - reduced from 33 to 6 landmarks
     final essentialJoints = [
       PoseLandmarkType.leftShoulder,
@@ -78,7 +74,11 @@ class PosePainter extends CustomPainter {
       final endLandmark = landmarks[connection[1]];
 
       if (startLandmark != null && endLandmark != null) {
-        final startPoint = _translatePoint(startLandmark.x, startLandmark.y, size);
+        final startPoint = _translatePoint(
+          startLandmark.x,
+          startLandmark.y,
+          size,
+        );
         final endPoint = _translatePoint(endLandmark.x, endLandmark.y, size);
         canvas.drawLine(startPoint, endPoint, _connectionPaint);
       }
@@ -103,7 +103,6 @@ class PosePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant PosePainter oldDelegate) {
-    return oldDelegate.poses != poses ||
-           oldDelegate.imageSize != imageSize;
+    return oldDelegate.poses != poses || oldDelegate.imageSize != imageSize;
   }
 }

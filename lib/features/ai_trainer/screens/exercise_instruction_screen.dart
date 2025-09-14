@@ -56,9 +56,9 @@ class ExerciseInstructionScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Exercise title
               Text(
                 exerciseType,
@@ -68,9 +68,9 @@ class ExerciseInstructionScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Instructions
               Expanded(
                 child: SingleChildScrollView(
@@ -87,15 +87,12 @@ class ExerciseInstructionScreen extends StatelessWidget {
                         _getExecutionInstructions(),
                       ),
                       const SizedBox(height: 20),
-                      _buildInstructionSection(
-                        'Important Tips',
-                        _getTips(),
-                      ),
+                      _buildInstructionSection('Important Tips', _getTips()),
                     ],
                   ),
                 ),
               ),
-              
+
               // Start workout button
               Container(
                 width: double.infinity,
