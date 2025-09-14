@@ -16,7 +16,7 @@ void main() {
       // Test that Firebase Auth instance is accessible
       final auth = FirebaseAuth.instance;
       expect(auth, isNotNull);
-      
+
       // Current user should be null when not logged in
       expect(auth.currentUser, isNull);
     });

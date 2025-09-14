@@ -13,25 +13,29 @@ class GamificationFirebaseService {
   static String? get currentUserId => FirebaseAuth.instance.currentUser?.uid;
 
   // ===== USER STATS MANAGEMENT =====
-  
+
   /// Check if username already exists
   static Future<bool> isUsernameAvailable(String username) async {
     try {
-      final querySnapshot = await _firestore
-          .collection('gamification_profile')
-          .where('username', isEqualTo: username)
-          .limit(1)
-          .get();
-      
+      final querySnapshot =
+          await _firestore
+              .collection('gamification_profile')
+              .where('username', isEqualTo: username)
+              .limit(1)
+              .get();
+
       return querySnapshot.docs.isEmpty;
     } catch (e) {
       print('❌ Error checking username availability: $e');
       return false; // Assume unavailable on error to be safe
     }
   }
-  
+
   /// Initialize user stats when user first signs up
-  static Future<void> initializeUserStats(String userId, String username) async {
+  static Future<void> initializeUserStats(
+    String userId,
+    String username,
+  ) async {
     try {
       final userStats = UserStats(
         userId: userId,
@@ -54,15 +58,12 @@ class GamificationFirebaseService {
           .doc(userId)
           .set(userStats.toJson());
 
-      await _firestore
-          .collection('gamification_profile')
-          .doc(userId)
-          .set({
-            'username': username,
-            'profileImageUrl': '',
-            'createdAt': FieldValue.serverTimestamp(),
-            'lastActive': FieldValue.serverTimestamp(),
-          });
+      await _firestore.collection('gamification_profile').doc(userId).set({
+        'username': username,
+        'profileImageUrl': '',
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastActive': FieldValue.serverTimestamp(),
+      });
 
       print('✅ Initialized gamification stats for user: $userId');
     } catch (e) {
@@ -74,27 +75,24 @@ class GamificationFirebaseService {
   /// Get user stats from Firebase
   static Future<UserStats?> getUserStats(String? userId) async {
     if (userId == null) return null;
-    
+
     try {
-      final doc = await _firestore
-          .collection('gamification_stats')
-          .doc(userId)
-          .get();
+      final doc =
+          await _firestore.collection('gamification_stats').doc(userId).get();
 
       if (doc.exists) {
         return UserStats.fromJson(doc.data()!);
       } else {
         // If stats don't exist, initialize them
-        final userDoc = await _firestore
-            .collection('users')
-            .doc(userId)
-            .get();
-        
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
           final username = userData['username'] ?? 'User';
           await initializeUserStats(userId, username);
-          return getUserStats(userId); // Recursive call to get the newly created stats
+          return getUserStats(
+            userId,
+          ); // Recursive call to get the newly created stats
         }
       }
       return null;
@@ -119,7 +117,9 @@ class GamificationFirebaseService {
 
     try {
       await _firestore.runTransaction((transaction) async {
-        final statsRef = _firestore.collection('gamification_stats').doc(userId);
+        final statsRef = _firestore
+            .collection('gamification_stats')
+            .doc(userId);
         final statsDoc = await transaction.get(statsRef);
 
         UserStats currentStats;
@@ -141,8 +141,11 @@ class GamificationFirebaseService {
         );
 
         // Update exercise count
-        final updatedExerciseCount = Map<String, int>.from(currentStats.exerciseCount);
-        updatedExerciseCount[exerciseType] = (updatedExerciseCount[exerciseType] ?? 0) + 1;
+        final updatedExerciseCount = Map<String, int>.from(
+          currentStats.exerciseCount,
+        );
+        updatedExerciseCount[exerciseType] =
+            (updatedExerciseCount[exerciseType] ?? 0) + 1;
 
         // Calculate streak
         final today = DateTime.now();
@@ -157,16 +160,22 @@ class GamificationFirebaseService {
           newStreak = 1;
         } else {
           // Same day workout
-          newStreak = currentStats.currentStreak > 0 ? currentStats.currentStreak : 1;
+          newStreak =
+              currentStats.currentStreak > 0 ? currentStats.currentStreak : 1;
         }
 
         // Calculate new average form score
         final totalWorkouts = currentStats.totalWorkouts + 1;
-        final newAverageFormScore = 
-            ((currentStats.averageFormScore * currentStats.totalWorkouts) + formScore) / totalWorkouts;
+        final newAverageFormScore =
+            ((currentStats.averageFormScore * currentStats.totalWorkouts) +
+                formScore) /
+            totalWorkouts;
 
         // Calculate estimated calories burned (simple estimation)
-        final estimatedCalories = _calculateCaloriesBurned(durationMinutes, exerciseType);
+        final estimatedCalories = _calculateCaloriesBurned(
+          durationMinutes,
+          exerciseType,
+        );
 
         // Create updated stats
         final updatedStats = UserStats(
@@ -178,7 +187,10 @@ class GamificationFirebaseService {
           totalCalories: currentStats.totalCalories + estimatedCalories,
           totalMinutes: currentStats.totalMinutes + durationMinutes,
           currentStreak: newStreak,
-          longestStreak: newStreak > currentStats.longestStreak ? newStreak : currentStats.longestStreak,
+          longestStreak:
+              newStreak > currentStats.longestStreak
+                  ? newStreak
+                  : currentStats.longestStreak,
           averageFormScore: newAverageFormScore,
           lastWorkoutDate: today,
           exerciseCount: updatedExerciseCount,
@@ -200,7 +212,10 @@ class GamificationFirebaseService {
   }
 
   /// Check and unlock achievements
-  static Future<void> _checkAndUnlockAchievements(UserStats stats, Transaction transaction) async {
+  static Future<void> _checkAndUnlockAchievements(
+    UserStats stats,
+    Transaction transaction,
+  ) async {
     try {
       final allAchievements = AchievementService.getAllAchievements();
       final newUnlocked = <String>[];
@@ -214,9 +229,14 @@ class GamificationFirebaseService {
       }
 
       if (newUnlocked.isNotEmpty) {
-        final updatedAchievements = [...stats.unlockedAchievements, ...newUnlocked];
-        final statsRef = _firestore.collection('gamification_stats').doc(stats.userId);
-        
+        final updatedAchievements = [
+          ...stats.unlockedAchievements,
+          ...newUnlocked,
+        ];
+        final statsRef = _firestore
+            .collection('gamification_stats')
+            .doc(stats.userId);
+
         transaction.update(statsRef, {
           'unlockedAchievements': updatedAchievements,
         });
@@ -226,7 +246,7 @@ class GamificationFirebaseService {
           final unlockRef = _firestore
               .collection('achievement_unlocks')
               .doc('${stats.userId}_$achievementId');
-          
+
           transaction.set(unlockRef, {
             'userId': stats.userId,
             'achievementId': achievementId,
@@ -242,7 +262,10 @@ class GamificationFirebaseService {
   }
 
   /// Check if achievement criteria is met
-  static bool _checkAchievementCriteria(Achievement achievement, UserStats stats) {
+  static bool _checkAchievementCriteria(
+    Achievement achievement,
+    UserStats stats,
+  ) {
     switch (achievement.id) {
       case 'first_workout':
         return stats.totalWorkouts >= 1;
@@ -292,18 +315,19 @@ class GamificationFirebaseService {
   }) async {
     try {
       // Simplified query - just get all users and filter in memory to avoid index requirements
-      final statsQuery = await _firestore
-          .collection('gamification_stats')
-          .orderBy('totalXP', descending: true)
-          .limit(limit * 2) // Get more to account for filtering
-          .get();
+      final statsQuery =
+          await _firestore
+              .collection('gamification_stats')
+              .orderBy('totalXP', descending: true)
+              .limit(limit * 2) // Get more to account for filtering
+              .get();
 
       final entries = <LeaderboardEntry>[];
       int rank = 1;
 
       for (final doc in statsQuery.docs) {
         final stats = UserStats.fromJson(doc.data());
-        
+
         // Apply time filtering in memory based on leaderboard type
         DateTime cutoffDate;
         switch (type) {
@@ -319,31 +343,35 @@ class GamificationFirebaseService {
         }
 
         // Skip if user hasn't been active in the time period (except for all-time)
-        if (type != LeaderboardType.allTime && stats.lastWorkoutDate.isBefore(cutoffDate)) {
+        if (type != LeaderboardType.allTime &&
+            stats.lastWorkoutDate.isBefore(cutoffDate)) {
           continue;
         }
-        
+
         // Get user profile
-        final profileDoc = await _firestore
-            .collection('gamification_profile')
-            .doc(stats.userId)
-            .get();
+        final profileDoc =
+            await _firestore
+                .collection('gamification_profile')
+                .doc(stats.userId)
+                .get();
 
         if (profileDoc.exists) {
           final profileData = profileDoc.data()!;
-          
-          entries.add(LeaderboardEntry(
-            rank: rank,
-            userId: stats.userId,
-            username: profileData['username'] ?? 'Anonymous',
-            totalXP: stats.totalXP,
-            level: stats.level,
-            avatarUrl: profileData['profileImageUrl'] ?? '',
-            weeklyXP: 0, // Will be calculated separately if needed
-            monthlyXP: 0, // Will be calculated separately if needed
-          ));
+
+          entries.add(
+            LeaderboardEntry(
+              rank: rank,
+              userId: stats.userId,
+              username: profileData['username'] ?? 'Anonymous',
+              totalXP: stats.totalXP,
+              level: stats.level,
+              avatarUrl: profileData['profileImageUrl'] ?? '',
+              weeklyXP: 0, // Will be calculated separately if needed
+              monthlyXP: 0, // Will be calculated separately if needed
+            ),
+          );
           rank++;
-          
+
           // Stop if we've reached the limit
           if (entries.length >= limit) {
             break;
@@ -379,10 +407,8 @@ class GamificationFirebaseService {
   /// Post to social feed
   static Future<void> createSocialPost(SocialPost post) async {
     try {
-      await _firestore
-          .collection('social_posts')
-          .add(post.toJson());
-      
+      await _firestore.collection('social_posts').add(post.toJson());
+
       print('✅ Created social post');
     } catch (e) {
       print('❌ Error creating social post: $e');
@@ -393,11 +419,12 @@ class GamificationFirebaseService {
   /// Get social feed posts
   static Future<List<SocialPost>> getSocialFeed({int limit = 20}) async {
     try {
-      final query = await _firestore
-          .collection('social_posts')
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
-          .get();
+      final query =
+          await _firestore
+              .collection('social_posts')
+              .orderBy('timestamp', descending: true)
+              .limit(limit)
+              .get();
 
       return query.docs
           .map((doc) => SocialPost.fromJson({...doc.data(), 'id': doc.id}))
@@ -434,7 +461,12 @@ class GamificationFirebaseService {
   }
 
   /// Add comment to post
-  static Future<void> addComment(String postId, String userId, String username, String content) async {
+  static Future<void> addComment(
+    String postId,
+    String userId,
+    String username,
+    String content,
+  ) async {
     try {
       final comment = {
         'userId': userId,
@@ -456,13 +488,14 @@ class GamificationFirebaseService {
   // ===== UTILITY METHODS =====
 
   /// Auto-post achievement unlock to social feed
-  static Future<void> postAchievementUnlock(String userId, String achievementId) async {
+  static Future<void> postAchievementUnlock(
+    String userId,
+    String achievementId,
+  ) async {
     try {
       // Get user profile
-      final profileDoc = await _firestore
-          .collection('gamification_profile')
-          .doc(userId)
-          .get();
+      final profileDoc =
+          await _firestore.collection('gamification_profile').doc(userId).get();
 
       if (!profileDoc.exists) return;
 
@@ -474,7 +507,8 @@ class GamificationFirebaseService {
           id: '',
           userId: userId,
           username: username,
-          content: 'Just unlocked the "${achievement.title}" achievement! ${achievement.description}',
+          content:
+              'Just unlocked the "${achievement.title}" achievement! ${achievement.description}',
           timestamp: DateTime.now(),
           likes: [],
           postType: PostType.achievement,
@@ -507,10 +541,8 @@ class GamificationFirebaseService {
 
     try {
       // Get user profile
-      final profileDoc = await _firestore
-          .collection('gamification_profile')
-          .doc(userId)
-          .get();
+      final profileDoc =
+          await _firestore.collection('gamification_profile').doc(userId).get();
 
       if (!profileDoc.exists) return;
 
@@ -541,7 +573,10 @@ class GamificationFirebaseService {
   }
 
   /// Calculate estimated calories burned based on exercise and duration
-  static int _calculateCaloriesBurned(int durationMinutes, String exerciseType) {
+  static int _calculateCaloriesBurned(
+    int durationMinutes,
+    String exerciseType,
+  ) {
     // Simple estimation using METs (Metabolic Equivalent of Task)
     double mets;
     switch (exerciseType.toLowerCase()) {
@@ -562,13 +597,13 @@ class GamificationFirebaseService {
       default:
         mets = 4.0; // Default moderate exercise
     }
-    
+
     // Estimation: METs * weight(kg) * duration(hours)
     // Using average weight of 70kg for calculation
     final weightKg = 70;
     final durationHours = durationMinutes / 60.0;
     final caloriesBurned = (mets * weightKg * durationHours).round();
-    
+
     return caloriesBurned;
   }
 }

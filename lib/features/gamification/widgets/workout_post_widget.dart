@@ -6,10 +6,8 @@ import '../models/gamification_models.dart';
 class WorkoutPostWidget extends StatelessWidget {
   final WorkoutSession workoutData;
 
-  const WorkoutPostWidget({
-    Key? key,
-    required this.workoutData,
-  }) : super(key: key);
+  const WorkoutPostWidget({Key? key, required this.workoutData})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +67,7 @@ class WorkoutPostWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Workout stats
           Row(
             children: [
@@ -104,7 +102,7 @@ class WorkoutPostWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           // Achievement badges (if any)
           if (workoutData.achievementsUnlocked.isNotEmpty)
             Column(
@@ -113,38 +111,43 @@ class WorkoutPostWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 const Text(
                   'Achievements Unlocked:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: workoutData.achievementsUnlocked.map((achievementId) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.amber, width: 1),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.emoji_events, size: 16, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            _getAchievementName(achievementId),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                  children:
+                      workoutData.achievementsUnlocked.map((achievementId) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber, width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.emoji_events,
+                                size: 16,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _getAchievementName(achievementId),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                 ),
               ],
             ),
@@ -179,13 +182,7 @@ class WorkoutPostWidget extends StatelessWidget {
               color: color,
             ),
           ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         ],
       ),
     );

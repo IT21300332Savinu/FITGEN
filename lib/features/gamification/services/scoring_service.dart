@@ -22,20 +22,26 @@ class ScoringService {
     int baseXP = repCount * BASE_XP_PER_REP;
 
     // Exercise difficulty multiplier based on string name
-    double difficultyMultiplier = _getExerciseDifficultyMultiplier(exerciseType);
+    double difficultyMultiplier = _getExerciseDifficultyMultiplier(
+      exerciseType,
+    );
 
     // Form quality bonus (0-100% form score)
     double formBonus = formScore * PERFECT_FORM_BONUS;
 
     // Streak bonus (increases XP by 10% per day in streak, max 100% bonus)
-    double streakMultiplier = 1.0 + (userStats.currentStreak * 0.1).clamp(0.0, 1.0);
+    double streakMultiplier =
+        1.0 + (userStats.currentStreak * 0.1).clamp(0.0, 1.0);
 
     // First workout bonus
     bool isFirstWorkout = userStats.totalWorkouts == 0;
-    double firstWorkoutBonus = isFirstWorkout ? FIRST_WORKOUT_BONUS.toDouble() : 0.0;
+    double firstWorkoutBonus =
+        isFirstWorkout ? FIRST_WORKOUT_BONUS.toDouble() : 0.0;
 
     // Calculate total XP
-    double totalXP = (baseXP * difficultyMultiplier + formBonus + firstWorkoutBonus) * streakMultiplier;
+    double totalXP =
+        (baseXP * difficultyMultiplier + formBonus + firstWorkoutBonus) *
+        streakMultiplier;
 
     return totalXP.round();
   }
@@ -90,11 +96,15 @@ class ScoringService {
     double streakMultiplier = 1.0 + (currentStreak * 0.1).clamp(0.0, 1.0);
 
     // Duration bonus for longer workouts (bonus for 5+ minute workouts)
-    double durationBonus = workoutDuration.inMinutes >= 5 ? 
-        (workoutDuration.inMinutes * 2).toDouble() : 0.0;
+    double durationBonus =
+        workoutDuration.inMinutes >= 5
+            ? (workoutDuration.inMinutes * 2).toDouble()
+            : 0.0;
 
     // Calculate total XP
-    double totalXP = (baseXP * difficultyMultiplier + formBonus + durationBonus) * streakMultiplier;
+    double totalXP =
+        (baseXP * difficultyMultiplier + formBonus + durationBonus) *
+        streakMultiplier;
 
     // First workout bonus
     if (isFirstWorkout) {
@@ -127,13 +137,17 @@ class ScoringService {
     workoutDates.sort((a, b) => b.compareTo(a)); // Sort descending
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
-    
+
     int streak = 0;
     DateTime checkDate = today;
 
     for (DateTime workoutDate in workoutDates) {
-      DateTime workoutDay = DateTime(workoutDate.year, workoutDate.month, workoutDate.day);
-      
+      DateTime workoutDay = DateTime(
+        workoutDate.year,
+        workoutDate.month,
+        workoutDate.day,
+      );
+
       if (workoutDay == checkDate) {
         streak++;
         checkDate = checkDate.subtract(const Duration(days: 1));
@@ -161,15 +175,16 @@ class ScoringService {
 
     // Good reps ratio bonus
     double goodRepsRatio = goodReps / totalReps;
-    
+
     // Angle accuracy (average of all angle measurements)
-    double avgAngleAccuracy = angleAccuracy.isNotEmpty ? 
-        angleAccuracy.reduce((a, b) => a + b) / angleAccuracy.length : 0.0;
+    double avgAngleAccuracy =
+        angleAccuracy.isNotEmpty
+            ? angleAccuracy.reduce((a, b) => a + b) / angleAccuracy.length
+            : 0.0;
 
     // Combined score (weighted average)
-    double combinedScore = (baseScore * 0.5) + 
-                          (goodRepsRatio * 0.3) + 
-                          (avgAngleAccuracy * 0.2);
+    double combinedScore =
+        (baseScore * 0.5) + (goodRepsRatio * 0.3) + (avgAngleAccuracy * 0.2);
 
     return (combinedScore * 100).clamp(0.0, 100.0);
   }
@@ -188,7 +203,7 @@ class ScoringService {
   static int calculateWeeklyXP(List<WorkoutSession> sessions) {
     DateTime now = DateTime.now();
     DateTime weekStart = now.subtract(Duration(days: now.weekday - 1));
-    
+
     return sessions
         .where((session) => session.startTime.isAfter(weekStart))
         .fold(0, (total, session) => total + session.xpEarned);
@@ -198,7 +213,7 @@ class ScoringService {
   static int calculateMonthlyXP(List<WorkoutSession> sessions) {
     DateTime now = DateTime.now();
     DateTime monthStart = DateTime(now.year, now.month, 1);
-    
+
     return sessions
         .where((session) => session.startTime.isAfter(monthStart))
         .fold(0, (total, session) => total + session.xpEarned);
@@ -219,7 +234,8 @@ class ScoringService {
       'repsCompleted': repsCompleted,
       'formScore': averageFormScore.toStringAsFixed(1),
       'formRating': getPerformanceRating(averageFormScore),
-      'duration': '${workoutDuration.inMinutes}m ${workoutDuration.inSeconds % 60}s',
+      'duration':
+          '${workoutDuration.inMinutes}m ${workoutDuration.inSeconds % 60}s',
       'xpEarned': xpEarned,
       'currentStreak': currentStreak,
       'achievementsUnlocked': achievementsUnlocked,
@@ -255,7 +271,7 @@ class ScoringService {
     if (hasNewAchievement) {
       return "🏆 Achievement Unlocked! You're crushing it!";
     }
-    
+
     if (formScore >= 95) {
       return "🔥 Perfect form! You're a fitness machine!";
     } else if (formScore >= 90) {
@@ -263,19 +279,19 @@ class ScoringService {
     } else if (formScore >= 80) {
       return "⭐ Great job! Your technique is improving!";
     }
-    
+
     if (streak >= 7) {
       return "🚀 Amazing ${streak}-day streak! You're unstoppable!";
     } else if (streak >= 3) {
       return "🔥 ${streak} days in a row! Building great habits!";
     }
-    
+
     if (xpEarned >= 200) {
       return "💯 Massive XP gain! You earned ${xpEarned} points!";
     } else if (xpEarned >= 100) {
       return "⚡ Great workout! ${xpEarned} XP earned!";
     }
-    
+
     return "🎯 Good work! Every rep counts towards your goals!";
   }
 

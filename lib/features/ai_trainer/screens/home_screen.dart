@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Get current user info for confirmation
       final user = FirebaseAuth.instance.currentUser;
       final userName = user?.email ?? 'User';
-      
+
       // Show confirmation dialog with user info
       final confirm = await showDialog<bool>(
         context: context,
@@ -158,18 +158,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         }
-        
+
         // Sign out from Firebase Auth
         await FirebaseAuth.instance.signOut();
-        
+
         debugPrint('👋 User signed out successfully');
-        
+
         // Navigate back to login screen
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const LoginScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
             (route) => false, // Remove all previous routes
           );
         }
@@ -195,23 +193,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserData() async {
     debugPrint('🔍 Loading user data...');
-    
+
     try {
       // Load user from Firebase Auth
       final user = FirebaseAuth.instance.currentUser;
       final userId = user?.uid;
       final userName = user?.email ?? 'User';
-      
+
       debugPrint('🆔 Firebase Auth User - ID: $userId, Email: $userName');
-      
+
       if (userId != null) {
         debugPrint('📊 Loading Firebase stats for user: $userId');
-        
+
         // Always fetch fresh data from Firebase
-        final userStats = await GamificationFirebaseService.getUserStats(userId);
-        
+        final userStats = await GamificationFirebaseService.getUserStats(
+          userId,
+        );
+
         debugPrint('📈 Firebase Stats Result: ${userStats?.toJson()}');
-        
+
         if (userStats != null) {
           setState(() {
             _userName = userName;
@@ -219,13 +219,18 @@ class _HomeScreenState extends State<HomeScreen> {
             _totalCalories = userStats.totalCalories;
             _totalMinutes = userStats.totalMinutes;
           });
-          
-          debugPrint('✅ UI Updated - $_userName: $_totalWorkouts workouts, $_totalCalories calories, $_totalMinutes minutes');
+
+          debugPrint(
+            '✅ UI Updated - $_userName: $_totalWorkouts workouts, $_totalCalories calories, $_totalMinutes minutes',
+          );
         } else {
           debugPrint('⚠️ No stats found in Firebase, initializing...');
           // Initialize user stats if they don't exist
-          await GamificationFirebaseService.initializeUserStats(userId, userName);
-          
+          await GamificationFirebaseService.initializeUserStats(
+            userId,
+            userName,
+          );
+
           setState(() {
             _userName = userName;
             _totalWorkouts = 0;
@@ -519,18 +524,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 await _handleSignout();
               }
             },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'signout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Sign Out'),
-                  ],
-                ),
-              ),
-            ],
+            itemBuilder:
+                (BuildContext context) => [
+                  const PopupMenuItem<String>(
+                    value: 'signout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Sign Out'),
+                      ],
+                    ),
+                  ),
+                ],
           ),
         ],
       ),
@@ -553,214 +559,214 @@ class _HomeScreenState extends State<HomeScreen> {
                       Theme.of(context).primaryColor.withOpacity(0.8),
                     ],
                     begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Welcome back, $_userName!',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).primaryColor.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Ready to crush your fitness goals?',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _showWorkoutOptions,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome back, $_userName!',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    child: const Text(
-                      'START WORKOUT',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Ready to crush your fitness goals?',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Stats Summary
-            const Text(
-              'Your Progress',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    icon: Icons.fitness_center,
-                    title: 'Workouts',
-                    value: '$_totalWorkouts',
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    icon: Icons.local_fire_department,
-                    title: 'Calories',
-                    value: '$_totalCalories',
-                    color: Colors.orange,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    icon: Icons.timer,
-                    title: 'Minutes',
-                    value: '$_totalMinutes',
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Featured Workout
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[200]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: Colors.blue[600], size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Featured: AI Trainer',
-                        style: TextStyle(
-                          color: Colors.blue[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _showWorkoutOptions,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Theme.of(context).primaryColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                    ],
+                      child: const Text(
+                        'START WORKOUT',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Stats Summary
+              const Text(
+                'Your Progress',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.fitness_center,
+                      title: 'Workouts',
+                      value: '$_totalWorkouts',
+                      color: Colors.blue,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Try our AI-powered bicep curl trainer with real-time form analysis and rep counting!',
-                    style: TextStyle(color: Colors.blue[700], fontSize: 14),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.local_fire_department,
+                      title: 'Calories',
+                      value: '$_totalCalories',
+                      color: Colors.orange,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed:
-                        () => _startExercise('Bicep Curl (AI)', 'strength'),
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Try AI Trainer'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
-                      foregroundColor: Colors.white,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      icon: Icons.timer,
+                      title: 'Minutes',
+                      value: '$_totalMinutes',
+                      color: Colors.green,
                     ),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Quick Actions
-            const Text(
-              'Quick Start',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildQuickAction(
-                    icon: Icons.fitness_center,
-                    title: 'Strength',
-                    color: Colors.orange,
-                    onTap: () => _showExerciseSelection('strength'),
-                  ),
+              // Featured Workout
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[200]!),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildQuickAction(
-                    icon: Icons.directions_run,
-                    title: 'Cardio',
-                    color: Colors.red,
-                    onTap: () => _showExerciseSelection('cardio'),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.blue[600], size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Featured: AI Trainer',
+                          style: TextStyle(
+                            color: Colors.blue[800],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Try our AI-powered bicep curl trainer with real-time form analysis and rep counting!',
+                      style: TextStyle(color: Colors.blue[700], fontSize: 14),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed:
+                          () => _startExercise('Bicep Curl (AI)', 'strength'),
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Try AI Trainer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[600],
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildQuickAction(
-                    icon: Icons.self_improvement,
-                    title: 'Flexibility',
-                    color: Colors.purple,
-                    onTap: () => _showExerciseSelection('flexibility'),
-                  ),
-                ),
-              ],
-            ),
+              ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Health & Nutrition Section
-            const Text(
-              'Health & Nutrition',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildQuickAction(
-                    icon: Icons.account_circle,
-                    title: 'Create Health Profile',
-                    color: Colors.green,
-                    onTap: () => _createHealthProfile(),
+              // Quick Actions
+              const Text(
+                'Quick Start',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.fitness_center,
+                      title: 'Strength',
+                      color: Colors.orange,
+                      onTap: () => _showExerciseSelection('strength'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildQuickAction(
-                    icon: Icons.restaurant_menu,
-                    title: 'Diet Plan Maker',
-                    color: Colors.teal,
-                    onTap: () => _createDietPlan(),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.directions_run,
+                      title: 'Cardio',
+                      color: Colors.red,
+                      onTap: () => _showExerciseSelection('cardio'),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.self_improvement,
+                      title: 'Flexibility',
+                      color: Colors.purple,
+                      onTap: () => _showExerciseSelection('flexibility'),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Health & Nutrition Section
+              const Text(
+                'Health & Nutrition',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.account_circle,
+                      title: 'Create Health Profile',
+                      color: Colors.green,
+                      onTap: () => _createHealthProfile(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickAction(
+                      icon: Icons.restaurant_menu,
+                      title: 'Diet Plan Maker',
+                      color: Colors.teal,
+                      onTap: () => _createDietPlan(),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
       ),
       // Removed floatingActionButton as it was covering the diet plan button
     );

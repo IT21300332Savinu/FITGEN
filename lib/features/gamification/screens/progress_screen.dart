@@ -14,7 +14,7 @@ class ProgressScreen extends StatefulWidget {
 class _ProgressScreenState extends State<ProgressScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // Mock user data - in a real app, this would come from your database
   final UserStats _userStats = UserStats(
     userId: "user123",
@@ -195,26 +195,17 @@ class _ProgressScreenState extends State<ProgressScreen>
             const SizedBox(height: 8),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null)
               Text(
                 subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
           ],
@@ -225,7 +216,7 @@ class _ProgressScreenState extends State<ProgressScreen>
 
   Widget _buildXPProgressSection() {
     final levelProgress = ScoringService.getLevelProgress(_userStats.totalXP);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -279,10 +270,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                       const SizedBox(height: 4),
                       Text(
                         '${levelProgress['xpNeededForNext']} XP to next level',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -399,7 +387,7 @@ class _ProgressScreenState extends State<ProgressScreen>
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
-          
+
           // Workout summary cards
           GridView.count(
             crossAxisCount: 2,
@@ -456,9 +444,11 @@ class _ProgressScreenState extends State<ProgressScreen>
                   ..._weeklyWorkouts.map((week) {
                     final workouts = week['workouts'] as int;
                     final xp = week['xp'] as int;
-                    final maxWorkouts = _weeklyWorkouts.map((w) => w['workouts'] as int).reduce((a, b) => a > b ? a : b);
+                    final maxWorkouts = _weeklyWorkouts
+                        .map((w) => w['workouts'] as int)
+                        .reduce((a, b) => a > b ? a : b);
                     final progress = workouts / maxWorkouts;
-                    
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
@@ -469,11 +459,15 @@ class _ProgressScreenState extends State<ProgressScreen>
                             children: [
                               Text(
                                 week['week'],
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 '$workouts workouts • $xp XP',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),
@@ -482,8 +476,11 @@ class _ProgressScreenState extends State<ProgressScreen>
                             value: progress,
                             backgroundColor: Colors.grey[300],
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              progress > 0.8 ? Colors.green : 
-                              progress > 0.6 ? Colors.amber : Colors.blue,
+                              progress > 0.8
+                                  ? Colors.green
+                                  : progress > 0.6
+                                  ? Colors.amber
+                                  : Colors.blue,
                             ),
                           ),
                         ],
@@ -527,7 +524,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _getFormScoreColor(_userStats.averageFormScore).withOpacity(0.2),
+                      color: _getFormScoreColor(
+                        _userStats.averageFormScore,
+                      ).withOpacity(0.2),
                       border: Border.all(
                         color: _getFormScoreColor(_userStats.averageFormScore),
                         width: 8,
@@ -547,7 +546,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                           _getFormScoreLabel(_userStats.averageFormScore),
                           style: TextStyle(
                             fontSize: 12,
-                            color: _getFormScoreColor(_userStats.averageFormScore),
+                            color: _getFormScoreColor(
+                              _userStats.averageFormScore,
+                            ),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -575,7 +576,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                   ..._formScoreHistory.map((day) {
                     final score = day['score'] as double;
                     final progress = score / 100;
-                    
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
@@ -586,7 +587,9 @@ class _ProgressScreenState extends State<ProgressScreen>
                             children: [
                               Text(
                                 day['date'],
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 '${score.toStringAsFixed(1)}%',
@@ -670,10 +673,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
               ],
             ),

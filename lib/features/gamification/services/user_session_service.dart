@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 class UserSessionService {
   static const String _userIdKey = 'user_id';
   static const String _userNameKey = 'user_name';
-  
+
   // Enhanced in-memory storage with persistence simulation
   static Map<String, String> _tempStorage = {};
   static bool _isInitialized = false;
@@ -13,7 +13,7 @@ class UserSessionService {
   /// Initialize the service (call this at app startup)
   static Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     // In a real app, you would load from SharedPreferences here
     // For now, we'll simulate persistence by keeping data in memory
     _isInitialized = true;
@@ -23,16 +23,21 @@ class UserSessionService {
   /// Check if user has entered their name
   static Future<bool> isUserLoggedIn() async {
     await initialize();
-    
+
     // Temporary implementation using in-memory storage
     final userId = _tempStorage[_userIdKey];
     final userName = _tempStorage[_userNameKey];
-    
+
     // Check that both values exist AND are not empty
-    final isValid = userId != null && userId.isNotEmpty && 
-                    userName != null && userName.isNotEmpty;
-    
-    debugPrint('🔍 Session Check - UserID: $userId, UserName: $userName, Valid: $isValid');
+    final isValid =
+        userId != null &&
+        userId.isNotEmpty &&
+        userName != null &&
+        userName.isNotEmpty;
+
+    debugPrint(
+      '🔍 Session Check - UserID: $userId, UserName: $userName, Valid: $isValid',
+    );
     return isValid;
   }
 
@@ -55,13 +60,13 @@ class UserSessionService {
   /// Save user session
   static Future<void> saveUserSession(String userId, String userName) async {
     await initialize();
-    
+
     // Enhanced implementation with validation
     _tempStorage[_userIdKey] = userId;
     _tempStorage[_userNameKey] = userName;
-    
+
     debugPrint('💾 Saved session - UserID: $userId, UserName: $userName');
-    
+
     // In a real app, you would also save to SharedPreferences here
     // await prefs.setString(_userIdKey, userId);
     // await prefs.setString(_userNameKey, userName);
@@ -70,11 +75,11 @@ class UserSessionService {
   /// Clear user session (logout)
   static Future<void> clearUserSession() async {
     await initialize();
-    
+
     debugPrint('🧹 Clearing user session');
     _tempStorage.remove(_userIdKey);
     _tempStorage.remove(_userNameKey);
-    
+
     // In a real app, you would also clear SharedPreferences here
     // await prefs.remove(_userIdKey);
     // await prefs.remove(_userNameKey);

@@ -1,12 +1,6 @@
 // lib/features/gamification/models/gamification_models.dart
 
-enum BadgeType {
-  bronze,
-  silver,
-  gold,
-  platinum,
-  diamond,
-}
+enum BadgeType { bronze, silver, gold, platinum, diamond }
 
 enum AchievementCategory {
   consistency,
@@ -16,17 +10,9 @@ enum AchievementCategory {
   special,
 }
 
-enum LeaderboardType {
-  weekly,
-  monthly,
-  allTime,
-}
+enum LeaderboardType { weekly, monthly, allTime }
 
-enum PostType {
-  workout,
-  achievement,
-  general,
-}
+enum PostType { workout, achievement, general }
 
 enum ExerciseDifficulty {
   beginner(1.0),
@@ -158,15 +144,18 @@ class UserStats {
       currentStreak: json['currentStreak'] ?? 0,
       longestStreak: json['longestStreak'] ?? 0,
       averageFormScore: json['averageFormScore']?.toDouble() ?? 0.0,
-      lastWorkoutDate: json['lastWorkoutDate'] != null 
-          ? DateTime.parse(json['lastWorkoutDate']) 
-          : DateTime.now(),
-      exerciseCount: json['exerciseCount'] != null 
-          ? Map<String, int>.from(json['exerciseCount'])
-          : {},
-      unlockedAchievements: json['unlockedAchievements'] != null
-          ? List<String>.from(json['unlockedAchievements'])
-          : [],
+      lastWorkoutDate:
+          json['lastWorkoutDate'] != null
+              ? DateTime.parse(json['lastWorkoutDate'])
+              : DateTime.now(),
+      exerciseCount:
+          json['exerciseCount'] != null
+              ? Map<String, int>.from(json['exerciseCount'])
+              : {},
+      unlockedAchievements:
+          json['unlockedAchievements'] != null
+              ? List<String>.from(json['unlockedAchievements'])
+              : [],
     );
   }
 }
@@ -196,10 +185,7 @@ class Achievement {
     this.unlockedAt,
   });
 
-  Achievement copyWith({
-    bool? isUnlocked,
-    DateTime? unlockedAt,
-  }) {
+  Achievement copyWith({bool? isUnlocked, DateTime? unlockedAt}) {
     return Achievement(
       id: id,
       title: title,
@@ -234,13 +220,20 @@ class Achievement {
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      badgeType: BadgeType.values.firstWhere((e) => e.name == json['badgeType']),
-      category: AchievementCategory.values.firstWhere((e) => e.name == json['category']),
+      badgeType: BadgeType.values.firstWhere(
+        (e) => e.name == json['badgeType'],
+      ),
+      category: AchievementCategory.values.firstWhere(
+        (e) => e.name == json['category'],
+      ),
       xpReward: json['xpReward'],
       iconPath: json['iconPath'],
       criteria: json['criteria'],
       isUnlocked: json['isUnlocked'],
-      unlockedAt: json['unlockedAt'] != null ? DateTime.parse(json['unlockedAt']) : null,
+      unlockedAt:
+          json['unlockedAt'] != null
+              ? DateTime.parse(json['unlockedAt'])
+              : null,
     );
   }
 }
@@ -294,11 +287,18 @@ class WorkoutSession {
       averageFormScore: (json['averageFormScore'] ?? 0.0).toDouble(),
       xpEarned: json['xpEarned'] ?? 0,
       duration: Duration(seconds: json['duration'] ?? 0),
-      startTime: json['startTime'] != null ? DateTime.parse(json['startTime']) : DateTime.now(),
-      endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : DateTime.now(),
-      achievementsUnlocked: json['achievementsUnlocked'] != null 
-          ? List<String>.from(json['achievementsUnlocked']) 
-          : <String>[],
+      startTime:
+          json['startTime'] != null
+              ? DateTime.parse(json['startTime'])
+              : DateTime.now(),
+      endTime:
+          json['endTime'] != null
+              ? DateTime.parse(json['endTime'])
+              : DateTime.now(),
+      achievementsUnlocked:
+          json['achievementsUnlocked'] != null
+              ? List<String>.from(json['achievementsUnlocked'])
+              : <String>[],
     );
   }
 }
@@ -418,7 +418,7 @@ class SocialPost {
     // Handle timestamp from Firestore - could be Timestamp, String, or null
     DateTime parsedTimestamp = DateTime.now();
     final timestampValue = json['timestamp'];
-    
+
     if (timestampValue != null) {
       try {
         if (timestampValue.runtimeType.toString().contains('Timestamp')) {
@@ -449,8 +449,9 @@ class SocialPost {
       if (postTypeValue is String) {
         try {
           postType = PostType.values.firstWhere(
-            (type) => type.toString().split('.').last == postTypeValue || 
-                     type.toString() == postTypeValue,
+            (type) =>
+                type.toString().split('.').last == postTypeValue ||
+                type.toString() == postTypeValue,
             orElse: () => PostType.general,
           );
         } catch (e) {
@@ -472,9 +473,16 @@ class SocialPost {
       exerciseType: json['exerciseType'],
       workoutData: json['workoutData'] as Map<String, dynamic>?,
       achievementData: json['achievementData'] as Map<String, dynamic>?,
-      achievementIds: json['achievementIds'] != null ? List<String>.from(json['achievementIds']) : null,
+      achievementIds:
+          json['achievementIds'] != null
+              ? List<String>.from(json['achievementIds'])
+              : null,
       imageUrl: json['imageUrl'],
-      comments: (json['comments'] as List?)?.map((c) => Comment.fromJson(c)).toList() ?? [],
+      comments:
+          (json['comments'] as List?)
+              ?.map((c) => Comment.fromJson(c))
+              .toList() ??
+          [],
       isPublic: json['isPublic'] ?? true,
     );
   }

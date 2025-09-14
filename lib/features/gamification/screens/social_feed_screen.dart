@@ -53,7 +53,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   Future<void> _loadFeed() async {
     print('Loading feed for user: $_currentUserId');
     setState(() => _isLoading = true);
-    
+
     try {
       final posts = await SocialService.getFeed(_currentUserId);
       print('Received ${posts.length} posts from SocialService');
@@ -70,9 +70,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
   Future<void> _loadMorePosts() async {
     if (_isLoadingMore) return;
-    
+
     setState(() => _isLoadingMore = true);
-    
+
     try {
       final morePosts = await SocialService.getRecentWorkouts(_posts.length);
       setState(() {
@@ -86,7 +86,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       _loadMorePosts();
     }
@@ -100,13 +100,13 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
         if (postIndex != -1) {
           final post = _posts[postIndex];
           final updatedLikes = List<String>.from(post.likes);
-          
+
           if (updatedLikes.contains(_currentUserId)) {
             updatedLikes.remove(_currentUserId);
           } else {
             updatedLikes.add(_currentUserId);
           }
-          
+
           _posts[postIndex] = SocialPost(
             id: post.id,
             userId: post.userId,
@@ -138,7 +138,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
         username: _currentUserName.isNotEmpty ? _currentUserName : "You",
         content: comment,
       );
-      
+
       setState(() {
         final postIndex = _posts.indexWhere((post) => post.id == postId);
         if (postIndex != -1) {
@@ -150,7 +150,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
             content: comment,
             createdAt: DateTime.now(),
           );
-          
+
           _posts[postIndex] = SocialPost(
             id: post.id,
             userId: post.userId,
@@ -186,29 +186,30 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadFeed,
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(8),
-                itemCount: _posts.length + (_isLoadingMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _posts.length) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: _loadFeed,
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _posts.length + (_isLoadingMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == _posts.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
 
-                  final post = _posts[index];
-                  return _buildPostCard(post);
-                },
+                    final post = _posts[index];
+                    return _buildPostCard(post);
+                  },
+                ),
               ),
-            ),
     );
   }
 
@@ -222,14 +223,19 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
           children: [
             // Post header
             ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               leading: CircleAvatar(
-                backgroundImage: post.userAvatar != null 
-                    ? NetworkImage(post.userAvatar!)
-                    : null,
-                child: post.userAvatar == null
-                    ? Text(post.username.substring(0, 1).toUpperCase())
-                    : null,
+                backgroundImage:
+                    post.userAvatar != null
+                        ? NetworkImage(post.userAvatar!)
+                        : null,
+                child:
+                    post.userAvatar == null
+                        ? Text(post.username.substring(0, 1).toUpperCase())
+                        : null,
               ),
               title: Text(
                 post.username,
@@ -242,23 +248,25 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              trailing: post.userId == _currentUserId
-                  ? PopupMenuButton(
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('Delete Post'),
-                        ),
-                      ],
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          _deletePost(post.id);
-                        }
-                      },
-                    )
-                  : null,
+              trailing:
+                  post.userId == _currentUserId
+                      ? PopupMenuButton(
+                        itemBuilder:
+                            (context) => [
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete Post'),
+                              ),
+                            ],
+                        onSelected: (value) {
+                          if (value == 'delete') {
+                            _deletePost(post.id);
+                          }
+                        },
+                      )
+                      : null,
             ),
-            
+
             // Post content
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -268,17 +276,22 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            
+
             // Workout or achievement data
             if (post.workoutData != null)
               Flexible(
-                child: WorkoutPostWidget(workoutData: WorkoutSession.fromJson(post.workoutData!)),
+                child: WorkoutPostWidget(
+                  workoutData: WorkoutSession.fromJson(post.workoutData!),
+                ),
               )
-            else if (post.achievementIds != null && post.achievementIds!.isNotEmpty)
+            else if (post.achievementIds != null &&
+                post.achievementIds!.isNotEmpty)
               Flexible(
-                child: AchievementPostWidget(achievementIds: post.achievementIds!),
+                child: AchievementPostWidget(
+                  achievementIds: post.achievementIds!,
+                ),
               ),
-            
+
             // Post image
             if (post.imageUrl != null)
               Padding(
@@ -293,7 +306,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                   ),
                 ),
               ),
-            
+
             // Post actions
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -304,9 +317,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                       post.likes.contains(_currentUserId)
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color: post.likes.contains(_currentUserId)
-                          ? Colors.red
-                          : null,
+                      color:
+                          post.likes.contains(_currentUserId)
+                              ? Colors.red
+                              : null,
                     ),
                     onPressed: () => _likePost(post.id),
                   ),
@@ -325,7 +339,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                 ],
               ),
             ),
-            
+
             // Show latest comments
             if (post.comments.isNotEmpty)
               Padding(
@@ -345,23 +359,29 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
                           ),
                         ),
                       ),
-                    ...post.comments.take(2).map((comment) => Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: RichText(
-                            text: TextSpan(
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              children: [
-                                TextSpan(
-                                  text: '${comment.username} ',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                TextSpan(text: comment.content),
-                              ],
+                    ...post.comments
+                        .take(2)
+                        .map(
+                          (comment) => Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: RichText(
+                              text: TextSpan(
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                children: [
+                                  TextSpan(
+                                    text: '${comment.username} ',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(text: comment.content),
+                                ],
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        )),
+                        ),
                   ],
                 ),
               ),
@@ -374,121 +394,140 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
   void _showCreatePostDialog() {
     final TextEditingController contentController = TextEditingController();
     File? selectedImage;
-    
+
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Create Post'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: contentController,
-                decoration: const InputDecoration(
-                  hintText: 'What\'s on your mind?',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                maxLength: 280,
-              ),
-              const SizedBox(height: 16),
-              
-              // Photo selection section
-              if (selectedImage != null)
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      selectedImage!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.grey.shade300,
-                      style: BorderStyle.solid,
-                    ),
-                    color: Colors.grey.shade50,
-                  ),
-                  child: Icon(
-                    Icons.add_photo_alternate,
-                    color: Colors.grey.shade400,
-                    size: 48,
-                  ),
-                ),
-              
-              const SizedBox(height: 12),
-              
-              // Photo action buttons (temporarily disabled)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  TextButton.icon(
-                    onPressed: null, // TODO: Re-enable when image_picker package is working
-                    icon: Icon(Icons.camera_alt, color: Colors.grey[400]),
-                    label: Text(
-                      'Camera',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: null, // TODO: Re-enable when image_picker package is working
-                    icon: Icon(Icons.photo_library, color: Colors.grey[400]),
-                    label: Text(
-                      'Gallery',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                    ),
-                  ),
-                  if (selectedImage != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          selectedImage = null;
-                        });
-                      },
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      label: const Text(
-                        'Remove',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: const Text('Create Post'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: contentController,
+                        decoration: const InputDecoration(
+                          hintText: 'What\'s on your mind?',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                        maxLength: 280,
                       ),
+                      const SizedBox(height: 16),
+
+                      // Photo selection section
+                      if (selectedImage != null)
+                        Container(
+                          height: 120,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              selectedImage!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          height: 120,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              style: BorderStyle.solid,
+                            ),
+                            color: Colors.grey.shade50,
+                          ),
+                          child: Icon(
+                            Icons.add_photo_alternate,
+                            color: Colors.grey.shade400,
+                            size: 48,
+                          ),
+                        ),
+
+                      const SizedBox(height: 12),
+
+                      // Photo action buttons (temporarily disabled)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TextButton.icon(
+                            onPressed:
+                                null, // TODO: Re-enable when image_picker package is working
+                            icon: Icon(
+                              Icons.camera_alt,
+                              color: Colors.grey[400],
+                            ),
+                            label: Text(
+                              'Camera',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed:
+                                null, // TODO: Re-enable when image_picker package is working
+                            icon: Icon(
+                              Icons.photo_library,
+                              color: Colors.grey[400],
+                            ),
+                            label: Text(
+                              'Gallery',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          if (selectedImage != null)
+                            TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  selectedImage = null;
+                                });
+                              },
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              label: const Text(
+                                'Remove',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
                     ),
-                ],
-              ),
-            ],
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (contentController.text.trim().isNotEmpty) {
+                          Navigator.pop(context);
+                          await _createPost(
+                            contentController.text.trim(),
+                            selectedImage,
+                          );
+                        }
+                      },
+                      child: const Text('Post'),
+                    ),
+                  ],
+                ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (contentController.text.trim().isNotEmpty) {
-                  Navigator.pop(context);
-                  await _createPost(
-                    contentController.text.trim(),
-                    selectedImage,
-                  );
-                }
-              },
-              child: const Text('Post'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -527,7 +566,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
       // Refresh the feed to show the new post
       print('Refreshing feed...');
       await _loadFeed();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Post created successfully!'),
@@ -547,67 +586,72 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 
   void _showCommentsDialog(SocialPost post) {
     final TextEditingController commentController = TextEditingController();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.95,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const Text(
-                'Comments',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: post.comments.length,
-                  itemBuilder: (context, index) {
-                    final comment = post.comments[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: Text(comment.username.substring(0, 1)),
+      builder:
+          (context) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            maxChildSize: 0.95,
+            minChildSize: 0.5,
+            builder:
+                (context, scrollController) => Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Comments',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      title: Text(comment.username),
-                      subtitle: Text(comment.content),
-                      trailing: Text(_formatTimeAgo(comment.createdAt)),
-                    );
-                  },
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: post.comments.length,
+                          itemBuilder: (context, index) {
+                            final comment = post.comments[index];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                child: Text(comment.username.substring(0, 1)),
+                              ),
+                              title: Text(comment.username),
+                              subtitle: Text(comment.content),
+                              trailing: Text(_formatTimeAgo(comment.createdAt)),
+                            );
+                          },
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: commentController,
+                              decoration: const InputDecoration(
+                                hintText: 'Add a comment...',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.send),
+                            onPressed: () {
+                              if (commentController.text.isNotEmpty) {
+                                _addComment(post.id, commentController.text);
+                                commentController.clear();
+                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: commentController,
-                      decoration: const InputDecoration(
-                        hintText: 'Add a comment...',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () {
-                      if (commentController.text.isNotEmpty) {
-                        _addComment(post.id, commentController.text);
-                        commentController.clear();
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ],
           ),
-        ),
-      ),
     );
   }
 

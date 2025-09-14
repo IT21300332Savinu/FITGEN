@@ -3,16 +3,17 @@
 import '../models/gamification_models.dart';
 
 class AchievementService {
-  
   /// Get achievement by ID
   static Achievement? getAchievementById(String id) {
     try {
-      return getAllAchievements().firstWhere((achievement) => achievement.id == id);
+      return getAllAchievements().firstWhere(
+        (achievement) => achievement.id == id,
+      );
     } catch (e) {
       return null;
     }
   }
-  
+
   /// Pre-defined achievements list
   static List<Achievement> getAllAchievements() {
     return [
@@ -282,16 +283,20 @@ class AchievementService {
           shouldUnlock = userStats.currentStreak >= 100;
           break;
         case 'perfect_form_workout':
-          shouldUnlock = latestSession != null && latestSession.averageFormScore >= 95.0;
+          shouldUnlock =
+              latestSession != null && latestSession.averageFormScore >= 95.0;
           break;
         case 'rep_master_50':
-          shouldUnlock = latestSession != null && latestSession.repsCompleted >= 50;
+          shouldUnlock =
+              latestSession != null && latestSession.repsCompleted >= 50;
           break;
         case 'rep_master_100':
-          shouldUnlock = latestSession != null && latestSession.repsCompleted >= 100;
+          shouldUnlock =
+              latestSession != null && latestSession.repsCompleted >= 100;
           break;
         case 'endurance_master':
-          shouldUnlock = latestSession != null && latestSession.duration.inMinutes >= 30;
+          shouldUnlock =
+              latestSession != null && latestSession.duration.inMinutes >= 30;
           break;
         case 'total_workouts_10':
           shouldUnlock = userStats.totalWorkouts >= 10;
@@ -323,10 +328,9 @@ class AchievementService {
       }
 
       if (shouldUnlock) {
-        newlyUnlocked.add(achievement.copyWith(
-          isUnlocked: true,
-          unlockedAt: DateTime.now(),
-        ));
+        newlyUnlocked.add(
+          achievement.copyWith(isUnlocked: true, unlockedAt: DateTime.now()),
+        );
       }
     }
 
@@ -358,10 +362,13 @@ class AchievementService {
   ) {
     return getAllAchievements()
         .where((achievement) => achievement.category == category)
-        .map((achievement) => achievement.copyWith(
-              isUnlocked: unlockedIds.contains(achievement.id),
-              unlockedAt: unlockedIds.contains(achievement.id) ? DateTime.now() : null,
-            ))
+        .map(
+          (achievement) => achievement.copyWith(
+            isUnlocked: unlockedIds.contains(achievement.id),
+            unlockedAt:
+                unlockedIds.contains(achievement.id) ? DateTime.now() : null,
+          ),
+        )
         .toList();
   }
 
@@ -369,10 +376,12 @@ class AchievementService {
   static List<Achievement> getUnlockedAchievements(List<String> unlockedIds) {
     return getAllAchievements()
         .where((achievement) => unlockedIds.contains(achievement.id))
-        .map((achievement) => achievement.copyWith(
-              isUnlocked: true,
-              unlockedAt: DateTime.now(),
-            ))
+        .map(
+          (achievement) => achievement.copyWith(
+            isUnlocked: true,
+            unlockedAt: DateTime.now(),
+          ),
+        )
         .toList();
   }
 
@@ -401,7 +410,10 @@ class AchievementService {
         int target = achievement.criteria['streak'];
         progress['current'] = userStats.currentStreak;
         progress['target'] = target;
-        progress['progress'] = (userStats.currentStreak / target).clamp(0.0, 1.0);
+        progress['progress'] = (userStats.currentStreak / target).clamp(
+          0.0,
+          1.0,
+        );
         progress['progressText'] = '${userStats.currentStreak}/$target days';
         break;
       case 'total_workouts_10':
@@ -410,8 +422,12 @@ class AchievementService {
         int target = achievement.criteria['totalWorkouts'];
         progress['current'] = userStats.totalWorkouts;
         progress['target'] = target;
-        progress['progress'] = (userStats.totalWorkouts / target).clamp(0.0, 1.0);
-        progress['progressText'] = '${userStats.totalWorkouts}/$target workouts';
+        progress['progress'] = (userStats.totalWorkouts / target).clamp(
+          0.0,
+          1.0,
+        );
+        progress['progressText'] =
+            '${userStats.totalWorkouts}/$target workouts';
         break;
       case 'level_5':
       case 'level_10':
@@ -434,7 +450,8 @@ class AchievementService {
         break;
       default:
         progress['progress'] = achievement.isUnlocked ? 1.0 : 0.0;
-        progress['progressText'] = achievement.isUnlocked ? 'Completed' : 'Not unlocked';
+        progress['progressText'] =
+            achievement.isUnlocked ? 'Completed' : 'Not unlocked';
     }
 
     return progress;

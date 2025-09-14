@@ -7,10 +7,8 @@ import '../models/gamification_models.dart';
 class AchievementPostWidget extends StatelessWidget {
   final List<String> achievementIds;
 
-  const AchievementPostWidget({
-    Key? key,
-    required this.achievementIds,
-  }) : super(key: key);
+  const AchievementPostWidget({Key? key, required this.achievementIds})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +25,7 @@ class AchievementPostWidget extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.amber.withOpacity(0.5),
-          width: 2,
-        ),
+        border: Border.all(color: Colors.amber.withOpacity(0.5), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,14 +33,12 @@ class AchievementPostWidget extends StatelessWidget {
           // Achievement header
           Row(
             children: [
-              Icon(
-                Icons.emoji_events,
-                color: Colors.amber[700],
-                size: 28,
-              ),
+              Icon(Icons.emoji_events, color: Colors.amber[700], size: 28),
               const SizedBox(width: 8),
               Text(
-                achievementIds.length == 1 ? 'Achievement Unlocked!' : 'Achievements Unlocked!',
+                achievementIds.length == 1
+                    ? 'Achievement Unlocked!'
+                    : 'Achievements Unlocked!',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -55,7 +48,7 @@ class AchievementPostWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Achievement cards
           ...achievementIds.map((achievementId) {
             final achievement = _getAchievementById(achievementId);
@@ -101,7 +94,7 @@ class AchievementPostWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          
+
           // Achievement details
           Expanded(
             child: Column(
@@ -119,7 +112,10 @@ class AchievementPostWidget extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(12),
@@ -138,18 +134,20 @@ class AchievementPostWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   achievement.description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: _getBadgeColor(achievement.badgeType).withOpacity(0.2),
+                        color: _getBadgeColor(
+                          achievement.badgeType,
+                        ).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -164,10 +162,7 @@ class AchievementPostWidget extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       _getCategoryName(achievement.category),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -183,17 +178,18 @@ class AchievementPostWidget extends StatelessWidget {
     final achievements = AchievementService.getAllAchievements();
     return achievements.firstWhere(
       (achievement) => achievement.id == achievementId,
-      orElse: () => Achievement(
-        id: achievementId,
-        title: 'Achievement',
-        description: 'Achievement unlocked!',
-        badgeType: BadgeType.bronze,
-        category: AchievementCategory.milestone,
-        xpReward: 50,
-        iconPath: '',
-        criteria: {},
-        isUnlocked: true,
-      ),
+      orElse:
+          () => Achievement(
+            id: achievementId,
+            title: 'Achievement',
+            description: 'Achievement unlocked!',
+            badgeType: BadgeType.bronze,
+            category: AchievementCategory.milestone,
+            xpReward: 50,
+            iconPath: '',
+            criteria: {},
+            isUnlocked: true,
+          ),
     );
   }
 

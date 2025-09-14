@@ -518,18 +518,23 @@ class WorkoutScreenState extends State<WorkoutScreen>
 
       // Update gamification stats
       try {
-        final gamificationResult = await WorkoutIntegrationService.onWorkoutCompleted(
-          exerciseType: widget.exerciseName,
-          repCount: _repCount,
-          formScore: _formQuality * 100,
-          durationMinutes: (_durationSeconds / 60).ceil(),
-        );
+        final gamificationResult =
+            await WorkoutIntegrationService.onWorkoutCompleted(
+              exerciseType: widget.exerciseName,
+              repCount: _repCount,
+              formScore: _formQuality * 100,
+              durationMinutes: (_durationSeconds / 60).ceil(),
+            );
 
         if (gamificationResult['success'] == true) {
           final xpEarned = gamificationResult['xpEarned'] as int;
-          final newAchievements = gamificationResult['newAchievements'] as List<String>;
-          final motivationMessage = WorkoutIntegrationService.getMotivationMessage(gamificationResult);
-          
+          final newAchievements =
+              gamificationResult['newAchievements'] as List<String>;
+          final motivationMessage =
+              WorkoutIntegrationService.getMotivationMessage(
+                gamificationResult,
+              );
+
           debugPrint('🎮 Gamification updated: +$xpEarned XP');
           if (newAchievements.isNotEmpty) {
             debugPrint('🏆 New achievements: ${newAchievements.join(", ")}');

@@ -17,7 +17,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   List<Achievement> _allAchievements = [];
   List<Achievement> _unlockedAchievements = [];
   List<Achievement> _lockedAchievements = [];
-  
+
   // Mock user data - in a real app, this would come from your user service
   final Set<String> _userUnlockedAchievements = {
     'first_workout',
@@ -42,15 +42,23 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   void _loadAchievements() {
     _allAchievements = AchievementService.getAllAchievements();
-    
-    _unlockedAchievements = _allAchievements
-        .where((achievement) => _userUnlockedAchievements.contains(achievement.id))
-        .toList();
-    
-    _lockedAchievements = _allAchievements
-        .where((achievement) => !_userUnlockedAchievements.contains(achievement.id))
-        .toList();
-    
+
+    _unlockedAchievements =
+        _allAchievements
+            .where(
+              (achievement) =>
+                  _userUnlockedAchievements.contains(achievement.id),
+            )
+            .toList();
+
+    _lockedAchievements =
+        _allAchievements
+            .where(
+              (achievement) =>
+                  !_userUnlockedAchievements.contains(achievement.id),
+            )
+            .toList();
+
     setState(() {});
   }
 
@@ -88,7 +96,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     );
   }
 
-  Widget _buildAchievementsList(List<Achievement> achievements, {required bool showAll}) {
+  Widget _buildAchievementsList(
+    List<Achievement> achievements, {
+    required bool showAll,
+  }) {
     if (achievements.isEmpty) {
       return const Center(
         child: Column(
@@ -124,7 +135,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       children: [
         // Summary card
         if (showAll) _buildSummaryCard(),
-        
+
         // Achievement categories
         ...groupedAchievements.entries.map((entry) {
           return _buildCategorySection(entry.key, entry.value);
@@ -135,11 +146,12 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Widget _buildSummaryCard() {
     final totalXP = _unlockedAchievements.fold<int>(
-      0, 
+      0,
       (sum, achievement) => sum + achievement.xpReward,
     );
-    
-    final completionRate = (_unlockedAchievements.length / _allAchievements.length * 100).round();
+
+    final completionRate =
+        (_unlockedAchievements.length / _allAchievements.length * 100).round();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
@@ -177,11 +189,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   ),
                 ),
                 Expanded(
-                  child: _buildSummaryItem(
-                    'Total XP',
-                    '$totalXP',
-                    Icons.star,
-                  ),
+                  child: _buildSummaryItem('Total XP', '$totalXP', Icons.star),
                 ),
                 Expanded(
                   child: _buildSummaryItem(
@@ -219,16 +227,16 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       ],
     );
   }
 
-  Widget _buildCategorySection(AchievementCategory category, List<Achievement> achievements) {
+  Widget _buildCategorySection(
+    AchievementCategory category,
+    List<Achievement> achievements,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -251,7 +259,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ],
           ),
         ),
-        ...achievements.map((achievement) => _buildAchievementCard(achievement)),
+        ...achievements.map(
+          (achievement) => _buildAchievementCard(achievement),
+        ),
         const SizedBox(height: 8),
       ],
     );
@@ -259,7 +269,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Widget _buildAchievementCard(Achievement achievement) {
     final isUnlocked = _userUnlockedAchievements.contains(achievement.id);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -268,9 +278,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           height: 50,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isUnlocked 
-                ? _getBadgeColor(achievement.badgeType)
-                : Colors.grey[300],
+            color:
+                isUnlocked
+                    ? _getBadgeColor(achievement.badgeType)
+                    : Colors.grey[300],
           ),
           child: Icon(
             Icons.emoji_events,
@@ -290,17 +301,20 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           children: [
             Text(
               achievement.description,
-              style: TextStyle(
-                color: isUnlocked ? null : Colors.grey[600],
-              ),
+              style: TextStyle(color: isUnlocked ? null : Colors.grey[600]),
             ),
             const SizedBox(height: 4),
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: _getBadgeColor(achievement.badgeType).withOpacity(0.2),
+                    color: _getBadgeColor(
+                      achievement.badgeType,
+                    ).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -325,9 +339,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ),
           ],
         ),
-        trailing: isUnlocked
-            ? const Icon(Icons.check_circle, color: Colors.green)
-            : const Icon(Icons.lock, color: Colors.grey),
+        trailing:
+            isUnlocked
+                ? const Icon(Icons.check_circle, color: Colors.green)
+                : const Icon(Icons.lock, color: Colors.grey),
         onTap: () => _showAchievementDetails(achievement, isUnlocked),
       ),
     );
@@ -336,118 +351,134 @@ class _AchievementsScreenState extends State<AchievementsScreen>
   void _showAchievementDetails(Achievement achievement, bool isUnlocked) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isUnlocked 
-                    ? _getBadgeColor(achievement.badgeType)
-                    : Colors.grey[300],
-              ),
-              child: Icon(
-                Icons.emoji_events,
-                color: isUnlocked ? Colors.white : Colors.grey[600],
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                achievement.title,
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(achievement.description),
-            const SizedBox(height: 16),
-            
-            // Badge info
-            Row(
+      builder:
+          (context) => AlertDialog(
+            title: Row(
               children: [
-                const Text('Badge: ', style: TextStyle(fontWeight: FontWeight.bold)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: _getBadgeColor(achievement.badgeType).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
+                    shape: BoxShape.circle,
+                    color:
+                        isUnlocked
+                            ? _getBadgeColor(achievement.badgeType)
+                            : Colors.grey[300],
                   ),
+                  child: Icon(
+                    Icons.emoji_events,
+                    color: isUnlocked ? Colors.white : Colors.grey[600],
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
                   child: Text(
-                    _getBadgeTitle(achievement.badgeType),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _getBadgeColor(achievement.badgeType),
-                    ),
+                    achievement.title,
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            
-            // XP reward
-            Row(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Reward: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(
-                  '+${achievement.xpReward} XP',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
-            // Category
-            Row(
-              children: [
-                const Text('Category: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(_getCategoryTitle(achievement.category)),
-              ],
-            ),
-            
-            if (!isUnlocked) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: const Row(
+                Text(achievement.description),
+                const SizedBox(height: 16),
+
+                // Badge info
+                Row(
                   children: [
-                    Icon(Icons.info, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
+                    const Text(
+                      'Badge: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getBadgeColor(
+                          achievement.badgeType,
+                        ).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       child: Text(
-                        'Keep working out to unlock this achievement!',
-                        style: TextStyle(color: Colors.blue),
+                        _getBadgeTitle(achievement.badgeType),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _getBadgeColor(achievement.badgeType),
+                        ),
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+
+                // XP reward
+                Row(
+                  children: [
+                    const Text(
+                      'Reward: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '+${achievement.xpReward} XP',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Category
+                Row(
+                  children: [
+                    const Text(
+                      'Category: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(_getCategoryTitle(achievement.category)),
+                  ],
+                ),
+
+                if (!isUnlocked) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue[200]!),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.blue, size: 20),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Keep working out to unlock this achievement!',
+                            style: TextStyle(color: Colors.blue),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
               ),
             ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
           ),
-        ],
-      ),
     );
   }
 

@@ -6,40 +6,38 @@ import 'user_session_service.dart';
 
 class SocialService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   /// Get user's social feed with real Firebase data
   static Future<List<SocialPost>> getFeed(String userId) async {
     try {
       print('Fetching feed for user: $userId');
-      
+
       // First try to get posts without ordering by timestamp to avoid Timestamp serialization issues
       QuerySnapshot querySnapshot;
       try {
-        querySnapshot = await _firestore
-            .collection('social_posts')
-            .orderBy('timestamp', descending: true)
-            .limit(20)
-            .get();
+        querySnapshot =
+            await _firestore
+                .collection('social_posts')
+                .orderBy('timestamp', descending: true)
+                .limit(20)
+                .get();
       } catch (e) {
         print('Error with timestamp ordering, trying without ordering: $e');
         // Fallback: get posts without timestamp ordering
-        querySnapshot = await _firestore
-            .collection('social_posts')
-            .limit(20)
-            .get();
+        querySnapshot =
+            await _firestore.collection('social_posts').limit(20).get();
       }
 
-      print('Found ${querySnapshot.docs.length} documents in social_posts collection');
+      print(
+        'Found ${querySnapshot.docs.length} documents in social_posts collection',
+      );
 
       final posts = <SocialPost>[];
       for (final doc in querySnapshot.docs) {
         try {
           print('Processing document: ${doc.id}');
           final data = doc.data() as Map<String, dynamic>;
-          final post = SocialPost.fromJson({
-            'id': doc.id,
-            ...data,
-          });
+          final post = SocialPost.fromJson({'id': doc.id, ...data});
           posts.add(post);
           print('Successfully parsed post: ${post.id} by ${post.username}');
         } catch (e) {
@@ -49,7 +47,9 @@ class SocialService {
         }
       }
 
-      print('Successfully parsed ${posts.length} posts out of ${querySnapshot.docs.length} documents');
+      print(
+        'Successfully parsed ${posts.length} posts out of ${querySnapshot.docs.length} documents',
+      );
 
       // Sort posts by timestamp after parsing (in case we couldn't order in Firestore)
       posts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -72,9 +72,11 @@ class SocialService {
   /// Create sample posts for demonstration with real user data
   static Future<List<SocialPost>> _createSamplePosts() async {
     // Get current user's name for more personalized content
-    final currentUserName = await UserSessionService.getCurrentUserName() ?? 'You';
-    final currentUserId = await UserSessionService.getCurrentUserId() ?? 'current_user';
-    
+    final currentUserName =
+        await UserSessionService.getCurrentUserName() ?? 'You';
+    final currentUserId =
+        await UserSessionService.getCurrentUserId() ?? 'current_user';
+
     return [
       // Add a post from the current user
       SocialPost(
@@ -82,7 +84,8 @@ class SocialService {
         userId: currentUserId,
         username: currentUserName,
         userAvatar: null,
-        content: 'Just started my fitness journey with FITGEN! 🚀 Ready to get stronger!',
+        content:
+            'Just started my fitness journey with FITGEN! 🚀 Ready to get stronger!',
         postType: PostType.general,
         exerciseType: null,
         workoutData: null,
@@ -106,21 +109,23 @@ class SocialService {
         userId: 'user1',
         username: 'FitnessKing',
         userAvatar: null,
-        content: 'Just crushed a 30-minute workout! 💪 Feeling stronger every day!',
+        content:
+            'Just crushed a 30-minute workout! 💪 Feeling stronger every day!',
         postType: PostType.workout,
         exerciseType: 'bicepCurl',
-        workoutData: WorkoutSession(
-          id: 'workout1',
-          userId: 'user1',
-          exerciseType: 'bicepCurl',
-          repsCompleted: 45,
-          averageFormScore: 92.5,
-          xpEarned: 380,
-          duration: Duration(minutes: 30),
-          startTime: DateTime.now().subtract(Duration(hours: 2)),
-          endTime: DateTime.now().subtract(Duration(hours: 1, minutes: 30)),
-          achievementsUnlocked: [],
-        ).toJson(),
+        workoutData:
+            WorkoutSession(
+              id: 'workout1',
+              userId: 'user1',
+              exerciseType: 'bicepCurl',
+              repsCompleted: 45,
+              averageFormScore: 92.5,
+              xpEarned: 380,
+              duration: Duration(minutes: 30),
+              startTime: DateTime.now().subtract(Duration(hours: 2)),
+              endTime: DateTime.now().subtract(Duration(hours: 1, minutes: 30)),
+              achievementsUnlocked: [],
+            ).toJson(),
         achievementIds: null,
         imageUrl: null,
         createdAt: DateTime.now().subtract(Duration(hours: 2)),
@@ -175,18 +180,19 @@ class SocialService {
         content: 'Perfect form day! Hit 95% form score on squats 🎯',
         postType: PostType.workout,
         exerciseType: 'squat',
-        workoutData: WorkoutSession(
-          id: 'workout2',
-          userId: 'user3',
-          exerciseType: 'squat',
-          repsCompleted: 32,
-          averageFormScore: 95.2,
-          xpEarned: 420,
-          duration: Duration(minutes: 25),
-          startTime: DateTime.now().subtract(Duration(hours: 6)),
-          endTime: DateTime.now().subtract(Duration(hours: 5, minutes: 35)),
-          achievementsUnlocked: ['perfect_form_workout'],
-        ).toJson(),
+        workoutData:
+            WorkoutSession(
+              id: 'workout2',
+              userId: 'user3',
+              exerciseType: 'squat',
+              repsCompleted: 32,
+              averageFormScore: 95.2,
+              xpEarned: 420,
+              duration: Duration(minutes: 25),
+              startTime: DateTime.now().subtract(Duration(hours: 6)),
+              endTime: DateTime.now().subtract(Duration(hours: 5, minutes: 35)),
+              achievementsUnlocked: ['perfect_form_workout'],
+            ).toJson(),
         achievementIds: null,
         imageUrl: null,
         createdAt: DateTime.now().subtract(Duration(hours: 6)),
@@ -223,21 +229,23 @@ class SocialService {
         userId: 'user5',
         username: 'CardioMaster',
         userAvatar: null,
-        content: 'Morning workout complete! Push-ups hitting different today 💯',
+        content:
+            'Morning workout complete! Push-ups hitting different today 💯',
         postType: PostType.workout,
         exerciseType: 'pushup',
-        workoutData: WorkoutSession(
-          id: 'workout3',
-          userId: 'user5',
-          exerciseType: 'pushup',
-          repsCompleted: 50,
-          averageFormScore: 88.7,
-          xpEarned: 320,
-          duration: Duration(minutes: 20),
-          startTime: DateTime.now().subtract(Duration(hours: 10)),
-          endTime: DateTime.now().subtract(Duration(hours: 9, minutes: 40)),
-          achievementsUnlocked: [],
-        ).toJson(),
+        workoutData:
+            WorkoutSession(
+              id: 'workout3',
+              userId: 'user5',
+              exerciseType: 'pushup',
+              repsCompleted: 50,
+              averageFormScore: 88.7,
+              xpEarned: 320,
+              duration: Duration(minutes: 20),
+              startTime: DateTime.now().subtract(Duration(hours: 10)),
+              endTime: DateTime.now().subtract(Duration(hours: 9, minutes: 40)),
+              achievementsUnlocked: [],
+            ).toJson(),
         achievementIds: null,
         imageUrl: null,
         createdAt: DateTime.now().subtract(Duration(hours: 10)),
@@ -275,7 +283,7 @@ class SocialService {
   /// Get recent workouts for feed
   static Future<List<SocialPost>> getRecentWorkouts(int offset) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    
+
     return [
       SocialPost(
         id: 'workout_post_${offset + 1}',
@@ -285,18 +293,21 @@ class SocialService {
         content: 'Just finished a quick bicep session! Form getting better! 💪',
         postType: PostType.workout,
         exerciseType: 'bicepCurl',
-        workoutData: WorkoutSession(
-          id: 'workout${offset + 1}',
-          userId: 'user6',
-          exerciseType: 'bicepCurl',
-          repsCompleted: 15,
-          averageFormScore: 78.5,
-          xpEarned: 150,
-          duration: Duration(minutes: 15),
-          startTime: DateTime.now().subtract(Duration(hours: 14 + offset)),
-          endTime: DateTime.now().subtract(Duration(hours: 13 + offset, minutes: 45)),
-          achievementsUnlocked: [],
-        ).toJson(),
+        workoutData:
+            WorkoutSession(
+              id: 'workout${offset + 1}',
+              userId: 'user6',
+              exerciseType: 'bicepCurl',
+              repsCompleted: 15,
+              averageFormScore: 78.5,
+              xpEarned: 150,
+              duration: Duration(minutes: 15),
+              startTime: DateTime.now().subtract(Duration(hours: 14 + offset)),
+              endTime: DateTime.now().subtract(
+                Duration(hours: 13 + offset, minutes: 45),
+              ),
+              achievementsUnlocked: [],
+            ).toJson(),
         achievementIds: null,
         imageUrl: null,
         createdAt: DateTime.now().subtract(Duration(hours: 14 + offset)),
@@ -375,11 +386,11 @@ class SocialService {
   }) async {
     try {
       final postId = 'post_${DateTime.now().millisecondsSinceEpoch}';
-      
+
       print('Creating post with ID: $postId');
       print('User: $username ($userId)');
       print('Content: $content');
-      
+
       final postData = {
         'id': postId,
         'userId': userId,
@@ -399,10 +410,7 @@ class SocialService {
 
       print('Saving post data: $postData');
 
-      await _firestore
-          .collection('social_posts')
-          .doc(postId)
-          .set(postData);
+      await _firestore.collection('social_posts').doc(postId).set(postData);
 
       print('Post saved successfully with ID: $postId');
       return postId;
@@ -419,9 +427,9 @@ class SocialService {
         print('Error: Post ID cannot be empty');
         return;
       }
-      
+
       final docRef = _firestore.collection('social_posts').doc(postId);
-      
+
       await _firestore.runTransaction((transaction) async {
         final doc = await transaction.get(docRef);
         if (!doc.exists) return;
@@ -459,14 +467,16 @@ class SocialService {
       );
 
       final docRef = _firestore.collection('social_posts').doc(postId);
-      
+
       await _firestore.runTransaction((transaction) async {
         final doc = await transaction.get(docRef);
         if (!doc.exists) return;
 
         final data = doc.data()!;
-        final comments = List<Map<String, dynamic>>.from(data['comments'] ?? []);
-        
+        final comments = List<Map<String, dynamic>>.from(
+          data['comments'] ?? [],
+        );
+
         final commentData = comment.toJson();
         commentData['id'] = 'comment_${DateTime.now().millisecondsSinceEpoch}';
         comments.add(commentData);
@@ -499,9 +509,11 @@ class SocialService {
   }
 
   /// Get user activity summary for sharing
-  static Future<Map<String, dynamic>> getUserActivitySummary(String userId) async {
+  static Future<Map<String, dynamic>> getUserActivitySummary(
+    String userId,
+  ) async {
     await Future.delayed(const Duration(milliseconds: 400));
-    
+
     return {
       'totalWorkouts': 25,
       'totalXP': 3420,

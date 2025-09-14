@@ -4,7 +4,6 @@ import '../models/gamification_models.dart';
 import 'gamification_firebase_service.dart';
 
 class LeaderboardService {
-  
   /// Get global leaderboard (all-time XP)
   static Future<List<LeaderboardEntry>> getGlobalLeaderboard() async {
     try {
@@ -45,19 +44,26 @@ class LeaderboardService {
   }
 
   /// Get friends leaderboard
-  static Future<List<LeaderboardEntry>> getFriendsLeaderboard(String userId) async {
+  static Future<List<LeaderboardEntry>> getFriendsLeaderboard(
+    String userId,
+  ) async {
     try {
       // For now, return all users as "friends" - in a real app, you'd have a friends system
-      final globalLeaderboard = await GamificationFirebaseService.getLeaderboard(
-        type: LeaderboardType.weekly,
-        limit: 20,
-      );
-      
+      final globalLeaderboard =
+          await GamificationFirebaseService.getLeaderboard(
+            type: LeaderboardType.weekly,
+            limit: 20,
+          );
+
       // Filter to show only current user and simulated friends
-      return globalLeaderboard.where((entry) => 
-        entry.userId == userId || 
-        globalLeaderboard.indexOf(entry) < 10 // Show top 10 as "friends"
-      ).toList();
+      return globalLeaderboard
+          .where(
+            (entry) =>
+                entry.userId == userId ||
+                globalLeaderboard.indexOf(entry) <
+                    10, // Show top 10 as "friends"
+          )
+          .toList();
     } catch (e) {
       print('Error getting friends leaderboard: $e');
       return [];
@@ -68,13 +74,13 @@ class LeaderboardService {
   static Future<int> getUserGlobalRank(String userId) async {
     try {
       final globalLeaderboard = await getGlobalLeaderboard();
-      
+
       for (int i = 0; i < globalLeaderboard.length; i++) {
         if (globalLeaderboard[i].userId == userId) {
           return i + 1;
         }
       }
-      
+
       return -1; // User not found
     } catch (e) {
       print('Error getting user global rank: $e');
@@ -94,11 +100,7 @@ class LeaderboardService {
       };
     } catch (e) {
       print('Error getting user rank changes: $e');
-      return {
-        'weeklyChange': 0,
-        'monthlyChange': 0,
-        'globalChange': 0,
-      };
+      return {'weeklyChange': 0, 'monthlyChange': 0, 'globalChange': 0};
     }
   }
 
@@ -106,7 +108,7 @@ class LeaderboardService {
   static Future<Map<String, dynamic>> getLeaderboardStats() async {
     try {
       final globalLeaderboard = await getGlobalLeaderboard();
-      
+
       if (globalLeaderboard.isEmpty) {
         return {
           'totalUsers': 0,
@@ -117,14 +119,19 @@ class LeaderboardService {
         };
       }
 
-      final totalXP = globalLeaderboard.fold<int>(0, (sum, entry) => sum + entry.totalXP);
-      
+      final totalXP = globalLeaderboard.fold<int>(
+        0,
+        (sum, entry) => sum + entry.totalXP,
+      );
+
       return {
         'totalUsers': globalLeaderboard.length,
-        'activeThisWeek': globalLeaderboard.length, // All users in leaderboard are active
+        'activeThisWeek':
+            globalLeaderboard.length, // All users in leaderboard are active
         'activeThisMonth': globalLeaderboard.length,
         'averageXP': totalXP ~/ globalLeaderboard.length,
-        'topUserXP': globalLeaderboard.isNotEmpty ? globalLeaderboard.first.totalXP : 0,
+        'topUserXP':
+            globalLeaderboard.isNotEmpty ? globalLeaderboard.first.totalXP : 0,
       };
     } catch (e) {
       print('Error getting leaderboard stats: $e');
@@ -142,9 +149,11 @@ class LeaderboardService {
   static Future<List<LeaderboardEntry>> searchUsers(String query) async {
     try {
       final allUsers = await getGlobalLeaderboard();
-      
+
       return allUsers
-          .where((user) => user.username.toLowerCase().contains(query.toLowerCase()))
+          .where(
+            (user) => user.username.toLowerCase().contains(query.toLowerCase()),
+          )
           .toList();
     } catch (e) {
       print('Error searching users: $e');
@@ -153,16 +162,24 @@ class LeaderboardService {
   }
 
   /// Get nearby users in ranking (users ranked around current user)
-  static Future<List<LeaderboardEntry>> getNearbyUsers(String userId, {int range = 3}) async {
+  static Future<List<LeaderboardEntry>> getNearbyUsers(
+    String userId, {
+    int range = 3,
+  }) async {
     try {
       final globalLeaderboard = await getGlobalLeaderboard();
-      
-      int userIndex = globalLeaderboard.indexWhere((user) => user.userId == userId);
+
+      int userIndex = globalLeaderboard.indexWhere(
+        (user) => user.userId == userId,
+      );
       if (userIndex == -1) return [];
-      
-      int startIndex = (userIndex - range).clamp(0, globalLeaderboard.length - 1);
+
+      int startIndex = (userIndex - range).clamp(
+        0,
+        globalLeaderboard.length - 1,
+      );
       int endIndex = (userIndex + range + 1).clamp(0, globalLeaderboard.length);
-      
+
       return globalLeaderboard.sublist(startIndex, endIndex);
     } catch (e) {
       print('Error getting nearby users: $e');
@@ -171,7 +188,9 @@ class LeaderboardService {
   }
 
   /// Get challenge leaderboard for specific challenge
-  static Future<List<LeaderboardEntry>> getChallengeLeaderboard(String challengeId) async {
+  static Future<List<LeaderboardEntry>> getChallengeLeaderboard(
+    String challengeId,
+  ) async {
     try {
       // In a real app, this would fetch challenge-specific leaderboard from Firebase
       // For now, return a subset of global leaderboard

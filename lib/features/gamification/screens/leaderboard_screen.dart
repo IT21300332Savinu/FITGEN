@@ -45,13 +45,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Future<void> _loadLeaderboards() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // In a real app, these would be API calls
       _globalLeaderboard = await LeaderboardService.getGlobalLeaderboard();
       _weeklyLeaderboard = await LeaderboardService.getWeeklyLeaderboard();
       _monthlyLeaderboard = await LeaderboardService.getMonthlyLeaderboard();
-      _friendsLeaderboard = await LeaderboardService.getFriendsLeaderboard(_currentUserId);
+      _friendsLeaderboard = await LeaderboardService.getFriendsLeaderboard(
+        _currentUserId,
+      );
     } catch (e) {
       print('Error loading leaderboards: $e');
     } finally {
@@ -74,17 +76,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildLeaderboardTab(_globalLeaderboard, 'Global Rankings'),
-                _buildLeaderboardTab(_weeklyLeaderboard, 'This Week'),
-                _buildLeaderboardTab(_monthlyLeaderboard, 'This Month'),
-                _buildLeaderboardTab(_friendsLeaderboard, 'Friends'),
-              ],
-            ),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildLeaderboardTab(_globalLeaderboard, 'Global Rankings'),
+                  _buildLeaderboardTab(_weeklyLeaderboard, 'This Week'),
+                  _buildLeaderboardTab(_monthlyLeaderboard, 'This Month'),
+                  _buildLeaderboardTab(_friendsLeaderboard, 'Friends'),
+                ],
+              ),
     );
   }
 
@@ -102,16 +105,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             const SizedBox(height: 16),
             Text(
               'No rankings yet',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 8),
             Text(
               'Complete workouts to appear on the leaderboard!',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
             ),
           ],
         ),
@@ -127,7 +130,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           if (index == 0) {
             return _buildTopThree(entries.take(3).toList());
           }
-          
+
           final entry = entries[index - 1];
           return _buildLeaderboardCard(entry, index - 1);
         },
@@ -144,9 +147,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         children: [
           Text(
             'Top Performers',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Row(
@@ -199,36 +202,30 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         CircleAvatar(
           radius: 30,
           backgroundColor: backgroundColor,
-          backgroundImage: entry.avatarUrl != null 
-              ? NetworkImage(entry.avatarUrl!)
-              : null,
-          child: entry.avatarUrl == null
-              ? Text(
-                  entry.username.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                )
-              : null,
+          backgroundImage:
+              entry.avatarUrl != null ? NetworkImage(entry.avatarUrl!) : null,
+          child:
+              entry.avatarUrl == null
+                  ? Text(
+                    entry.username.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  )
+                  : null,
         ),
         const SizedBox(height: 8),
         Text(
           entry.username,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         Text(
           'Level ${entry.level}',
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
         ),
         const SizedBox(height: 8),
         Container(
@@ -253,10 +250,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ),
               Text(
                 '${entry.totalXP} XP',
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: textColor, fontSize: 10),
               ),
             ],
           ),
@@ -267,16 +261,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildLeaderboardCard(LeaderboardEntry entry, int index) {
     bool isCurrentUser = entry.userId == _currentUserId;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isCurrentUser 
-            ? Theme.of(context).primaryColor.withOpacity(0.1)
-            : null,
-        border: isCurrentUser 
-            ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-            : null,
+        color:
+            isCurrentUser
+                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                : null,
+        border:
+            isCurrentUser
+                ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                : null,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -304,15 +300,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             const SizedBox(width: 12),
             CircleAvatar(
               radius: 20,
-              backgroundImage: entry.avatarUrl != null 
-                  ? NetworkImage(entry.avatarUrl!)
-                  : null,
-              child: entry.avatarUrl == null
-                  ? Text(
-                      entry.username.substring(0, 1).toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    )
-                  : null,
+              backgroundImage:
+                  entry.avatarUrl != null
+                      ? NetworkImage(entry.avatarUrl!)
+                      : null,
+              child:
+                  entry.avatarUrl == null
+                      ? Text(
+                        entry.username.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      )
+                      : null,
             ),
           ],
         ),
@@ -351,26 +349,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           children: [
             Text(
               '${entry.totalXP} XP',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             if (_tabController.index == 1) // Weekly tab
               Text(
                 '+${entry.weeklyXP} this week',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.green[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.green[600]),
               )
             else if (_tabController.index == 2) // Monthly tab
               Text(
                 '+${entry.monthlyXP} this month',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.blue[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.blue[600]),
               ),
           ],
         ),
