@@ -6,7 +6,6 @@ import '../models/user_profile.dart';
 import '../services/firebase_service.dart';
 import '../services/ocr_service.dart';
 import 'dashboard_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserProfile? existingProfile;
@@ -50,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isProcessing = false;
   String? _ocrStatus;
 
-  final List<String> _genders = ['Male', 'Female', 'Other'];
+  final List<String> _genders = ['Male', 'Female'];
   final List<String> _goals = [
     'Weight Loss',
     'Muscle Gain',
@@ -490,20 +489,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
+                  height:
+                      200, // Fixed height to prevent long text from making dialog too big
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.grey[300]!),
                   ),
-                  child: SelectableText(
-                    rawText.isNotEmpty
-                        ? rawText
-                        : 'No text extracted from this image.',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                      height: 1.4,
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      rawText.isNotEmpty
+                          ? rawText
+                          : 'No text extracted from this image.',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ),
@@ -655,6 +658,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text(
                             entry.value?.toString() ?? 'null',
                             style: const TextStyle(fontSize: 12),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -743,7 +748,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               extractedValues['detected_diabetes_interpretation'];
         }
 
-        _diabetesType = 'Type 2';
+        _diabetesType = '';
       }
 
       if (risks['hypertensionRisk'] == true) {
@@ -3687,7 +3692,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           ? Colors.green
                                           : Colors.red,
                                     ),
-                                    title: Text(report['fileName']),
+                                    title: Text(
+                                      report['fileName'],
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     subtitle: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -3713,6 +3722,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               fontWeight: FontWeight.w500,
                                               color: Colors.green,
                                             ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
                                       ],

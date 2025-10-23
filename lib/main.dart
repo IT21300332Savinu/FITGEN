@@ -8,6 +8,8 @@ import 'auth/firebase_auth/firebase_user_provider.dart';
 import 'auth/firebase_auth/auth_util.dart';
 
 import 'backend/firebase/firebase_config.dart';
+import 'services/firebase_config .dart';
+import 'services/firebase_service.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'index.dart';
@@ -17,7 +19,37 @@ void main() async {
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
 
+// This await call is used to initilize the social bridge function which is kept at the default, location is in backend
   await initFirebase();
+/*   // Initialize default Firebase (SocialBridge)
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyB5GFy_H4OUQ3kEauWbvPS07Etrh4oLK9w",
+      appId: "1:358273804497:web:74a6d2a9475541eec2bdf0",
+      messagingSenderId: "358273804497",
+      projectId: "fitgen-socialbridge-ihkwov",
+      storageBucket: "fitgen-socialbridge-ihkwov.firebasestorage.app",
+      authDomain: "fitgen-socialbridge-ihkwov.firebaseapp.com",
+    ),
+  );
+*/
+  // Initialize all secondary Firebase projects which are the IoT and Nutritionist functions
+  await FirebaseConfig.initializeFirebase();
+
+  // Ensure a (anonymous) user is signed in for normal/user flows so
+  // profile creation/uploads won't fail with "Authentication required".
+  // This uses the default Firebase app (SocialBridge) and will be
+  // replaced/linked if the user later signs in with the Social Bridge flow.
+  try {
+    await FirebaseService.signInAnonymously();
+    await Future.delayed(Duration(milliseconds: 500));
+    //print('Auth initialized: ${FirebaseAuth.instance.currentUser?.uid}');
+  } catch (e) {
+    // Log but don't block app startup - screen-level save operations
+    // will still show error if sign-in ultimately fails.
+    print('Anonymous sign-in failed at startup: $e');
+  }
+
 
   runApp(MyApp());
 }

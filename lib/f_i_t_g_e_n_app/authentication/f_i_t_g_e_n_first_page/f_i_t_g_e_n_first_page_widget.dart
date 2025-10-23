@@ -267,15 +267,12 @@ class _FITGENFirstPageWidgetState extends State<FITGENFirstPageWidget>
                                   ),
                                   FFButtonWidget(
                                     onPressed: () async {
-                                      context.pushNamed(
-                                        SPUSignUpPageWidget.routeName,
-                                        extra: <String, dynamic>{
-                                          kTransitionInfoKey: TransitionInfo(
-                                            hasTransition: true,
-                                            transitionType:
-                                                PageTransitionType.leftToRight,
-                                          ),
-                                        },
+                                      // Navigate to the Profile screen for Normal users
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProfileScreen(),
+                                        ),
                                       );
                                     },
                                     text: 'Login',
