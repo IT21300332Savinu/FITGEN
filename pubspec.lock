@@ -93,10 +93,10 @@ packages:
     dependency: transitive
     description:
       name: camera_android
-      sha256: cd49ccb409201a893bf625dca2df8746b88679f302826ab4d12748788a3a24b3
+      sha256: "4db8a27da163130d913ab4360297549ead1c7f9a6a88e71c44e5f4d10081a3d4"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.10+7"
+    version: "0.10.10+6"
   camera_avfoundation:
     dependency: transitive
     description:
@@ -1520,10 +1520,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "45caa6c5917fa127b5dbcfbd1fa60b14e583afdc08bfc96dda38886ca252eb60"
+      sha256: ddfa8d30d89985b96407efce8acbdd124701f96741f2d981ca860662f1c0dc02
       url: "https://pub.dev"
     source: hosted
-    version: "15.0.2"
+    version: "15.0.0"
   wakelock_plus:
     dependency: "direct main"
     description:
@@ -1573,5 +1573,5 @@ packages:
     source: hosted
     version: "6.5.0"
 sdks:
-  dart: ">=3.9.0 <4.0.0"
-  flutter: ">=3.35.0"
+  dart: ">=3.8.0 <4.0.0"
+  flutter: ">=3.29.0"

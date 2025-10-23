@@ -69,9 +69,9 @@
     },
     {
       "name": "camera_android",
-      "rootUri": "file:///C:/Users/savin/AppData/Local/Pub/Cache/hosted/pub.dev/camera_android-0.10.10+7",
+      "rootUri": "file:///C:/Users/savin/AppData/Local/Pub/Cache/hosted/pub.dev/camera_android-0.10.10+6",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.7"
     },
     {
       "name": "camera_avfoundation",
@@ -1149,9 +1149,9 @@
     },
     {
       "name": "vm_service",
-      "rootUri": "file:///C:/Users/savin/AppData/Local/Pub/Cache/hosted/pub.dev/vm_service-15.0.2",
+      "rootUri": "file:///C:/Users/savin/AppData/Local/Pub/Cache/hosted/pub.dev/vm_service-15.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "3.3"
     },
     {
       "name": "wakelock_plus",

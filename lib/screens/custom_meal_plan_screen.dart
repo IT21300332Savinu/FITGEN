@@ -3,7 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/meal_suggestions_service.dart' as svc;
 
 class CustomMealPlanScreen extends StatefulWidget {
-  const CustomMealPlanScreen({super.key});
+  const CustomMealPlanScreen({
+    super.key,
+    this.predictedCalories,
+    this.conditions,
+    this.profile,
+    this.mode,
+    this.plan,
+  });
+
+  final double? predictedCalories;
+  final List<String>? conditions;
+  final Map<String, dynamic>? profile;
+  final Map<String, dynamic>? plan;
+  final String? mode;
 
   @override
   State<CustomMealPlanScreen> createState() => _CustomMealPlanScreenState();
@@ -13,6 +26,7 @@ class _CustomMealPlanScreenState extends State<CustomMealPlanScreen> {
   final _formKey = GlobalKey<FormState>();
   double? _predictedCaloriesArg;
   Map<String, dynamic>? _profileArg;
+  List<String>? _conditionsArg;
 
   // One editor per meal type
   final _breakfast = _MealEditor();
@@ -25,8 +39,6 @@ class _CustomMealPlanScreenState extends State<CustomMealPlanScreen> {
   bool _saving = false;
   String? _editingPlanId;
 
-  List<String>? _conditionsArg;
-
   @override
   void dispose() {
     _breakfast.dispose();
@@ -37,29 +49,53 @@ class _CustomMealPlanScreenState extends State<CustomMealPlanScreen> {
     super.dispose();
   }
 
+  int _toInt(dynamic v) {
+    if (v is bool) return v ? 1 : 0;
+    if (v is num) return v.toInt();
+    return int.tryParse(v?.toString() ?? '0') ?? 0;
+  }
+
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map?;
-    if (args != null) {
-      _predictedCaloriesArg = (args["predictedCalories"] as num?)?.toDouble();
-      _profileArg = args["profile"] as Map<String, dynamic>?;
-      _conditionsArg = (args["conditions"] as List?)?.cast<String>();
+  void initState() {
+    super.initState();
 
-      if (args["mode"] == "edit" && args["plan"] != null) {
-        final plan = Map<String, dynamic>.from(args["plan"]);
-        _editingPlanId = plan["id"] as String?;
-        _predictedCaloriesArg ??=
-            (plan["predicted_calories"] as num?)?.toDouble();
-        final note = (plan["note"] ?? "").toString();
-        if (note.isNotEmpty) _noteCtrl.text = note;
+    // Seed from constructor (for create/direct open)
+    _predictedCaloriesArg = widget.predictedCalories;
+    _profileArg    = widget.profile == null ? null : Map<String, dynamic>.from(widget.profile!);
+    _conditionsArg = widget.conditions == null ? null : List<String>.from(widget.conditions!);
 
-        final meals = Map<String, dynamic>.from(plan["meals"] ?? {});
-        _prefillMealEditor(_breakfast, meals["breakfast"]);
-        _prefillMealEditor(_lunch, meals["lunch"]);
-        _prefillMealEditor(_dinner, meals["dinner"]);
-        _prefillMealEditor(_snack, meals["snack"]);
-        setState(() {});
+    // If edit mode, derive from the passed plan
+    if (widget.mode == 'edit' && widget.plan != null) {
+      final plan = Map<String, dynamic>.from(widget.plan!);
+      _editingPlanId = plan["id"] as String?;
+
+      _predictedCaloriesArg ??=
+          (plan["predicted_calories"] as num?)?.toDouble();
+
+      final note = (plan["note"] ?? "").toString();
+      if (note.isNotEmpty) _noteCtrl.text = note;
+
+      final meals = Map<String, dynamic>.from(plan["meals"] ?? {});
+      _prefillMealEditor(_breakfast, meals["breakfast"]);
+      _prefillMealEditor(_lunch,     meals["lunch"]);
+      _prefillMealEditor(_dinner,    meals["dinner"]);
+      _prefillMealEditor(_snack,     meals["snack"]);
+
+      // If profile/conditions weren’t provided, derive from plan.profile (space keys)
+      final pSpace = Map<String, dynamic>.from(plan["profile"] ?? {});
+      if (_profileArg == null && pSpace.isNotEmpty) {
+        _profileArg = <String, int>{
+          'Diabetes'      : _toInt(pSpace['Diabetes']),
+          'Hypertension'  : _toInt(pSpace['Hypertension']),
+          'Heart_Disease' : _toInt(pSpace['Heart Disease']),
+          'Kidney_Disease': _toInt(pSpace['Kidney Disease']),
+        };
+      }
+      if (_conditionsArg == null && pSpace.isNotEmpty) {
+        final conds = <String>[];
+        void addIf(String k){ if (_toInt(pSpace[k]) == 1) conds.add(k); }
+        addIf('Diabetes'); addIf('Hypertension'); addIf('Heart Disease'); addIf('Kidney Disease');
+        _conditionsArg = conds;
       }
     }
   }

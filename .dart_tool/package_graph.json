@@ -1611,7 +1611,7 @@
     },
     {
       "name": "camera_android",
-      "version": "0.10.10+7",
+      "version": "0.10.10+6",
       "dependencies": [
         "camera_platform_interface",
         "flutter",
@@ -1845,17 +1845,6 @@
       ]
     },
     {
-      "name": "leak_tracker",
-      "version": "11.0.2",
-      "dependencies": [
-        "clock",
-        "collection",
-        "meta",
-        "path",
-        "vm_service"
-      ]
-    },
-    {
       "name": "term_glyph",
       "version": "1.2.2",
       "dependencies": []
@@ -1897,8 +1886,19 @@
       ]
     },
     {
+      "name": "leak_tracker",
+      "version": "11.0.2",
+      "dependencies": [
+        "clock",
+        "collection",
+        "meta",
+        "path",
+        "vm_service"
+      ]
+    },
+    {
       "name": "vm_service",
-      "version": "15.0.2",
+      "version": "15.0.0",
       "dependencies": []
     }
   ],

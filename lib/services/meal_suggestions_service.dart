@@ -4,9 +4,9 @@ import 'package:dio/dio.dart';
 final _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8000'));
 
 class ApiDio {
-  Future<Map<String, dynamic>?> suggestMeal(Map<String, dynamic> userProfile) async {
+  Future<Map<String, dynamic>?> suggestMeal(String uid) async {
     try {
-      final res = await _dio.post('/suggest-meal', data: jsonEncode(userProfile));
+      final res = await _dio.post('/suggest-meal', data: {'uid': uid});
       if (res.statusCode == 200) return Map<String, dynamic>.from(res.data);
     } catch (e) {
       print("suggestMeal error: $e");

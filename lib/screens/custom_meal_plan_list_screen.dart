@@ -1,13 +1,17 @@
+import 'package:fitgen_socialbridge/screens/custom_meal_plan_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/meal_suggestions_service.dart';
 import '../theme/app_theme.dart';
+import 'custom_meal_plan_screen.dart';
+import 'custom_plan_suggestion_screen.dart';
 
 class CustomMealPlanListScreen extends StatefulWidget {
   const CustomMealPlanListScreen({super.key});
 
   @override
-  State<CustomMealPlanListScreen> createState() => _CustomMealPlanListScreenState();
+  State<CustomMealPlanListScreen> createState() =>
+      _CustomMealPlanListScreenState();
 }
 
 class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
@@ -28,10 +32,14 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
   Map<String, dynamic> _mealsMapForSuggestionScreen(Map<String, dynamic> plan) {
     final meals = Map<String, dynamic>.from(plan["meals"] ?? {});
     final out = <String, dynamic>{};
-    if (meals["breakfast"]?["recipe"] != null) out["breakfast"] = meals["breakfast"]["recipe"];
-    if (meals["lunch"]?["recipe"] != null)     out["lunch"]     = meals["lunch"]["recipe"];
-    if (meals["dinner"]?["recipe"] != null)    out["dinner"]    = meals["dinner"]["recipe"];
-    if (meals["snack"]?["recipe"] != null)     out["snack"]     = meals["snack"]["recipe"];
+    if (meals["breakfast"]?["recipe"] != null)
+      out["breakfast"] = meals["breakfast"]["recipe"];
+    if (meals["lunch"]?["recipe"] != null)
+      out["lunch"] = meals["lunch"]["recipe"];
+    if (meals["dinner"]?["recipe"] != null)
+      out["dinner"] = meals["dinner"]["recipe"];
+    if (meals["snack"]?["recipe"] != null)
+      out["snack"] = meals["snack"]["recipe"];
     return out;
   }
 
@@ -155,7 +163,8 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                           IconButton(
                             tooltip: "Delete",
                             onPressed: () async {
-                              final ok = await ApiDio().deleteCustomMealPlan(plan["id"]);
+                              final ok = await ApiDio()
+                                  .deleteCustomMealPlan(plan["id"]);
                               if (!mounted) return;
                               if (ok) {
                                 _reload();
@@ -183,10 +192,14 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                       // Meal chips
                       Wrap(
                         children: [
-                          _mealChip("Breakfast", meals["breakfast"], const Color(0xFFF8BBD0), cs),
-                          _mealChip("Lunch",     meals["lunch"],     const Color(0xFFC8E6C9), cs),
-                          _mealChip("Dinner",    meals["dinner"],    const Color(0xFFBBDEFB), cs),
-                          _mealChip("Snack",     meals["snack"],     const Color(0xFFFFE0B2), cs),
+                          _mealChip("Breakfast", meals["breakfast"],
+                              const Color(0xFFF8BBD0), cs),
+                          _mealChip("Lunch", meals["lunch"],
+                              const Color(0xFFC8E6C9), cs),
+                          _mealChip("Dinner", meals["dinner"],
+                              const Color(0xFFBBDEFB), cs),
+                          _mealChip("Snack", meals["snack"],
+                              const Color(0xFFFFE0B2), cs),
                         ],
                       ),
 
@@ -197,13 +210,13 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: () async {
-                              final changed = await Navigator.pushNamed(
-                                context,
-                                '/custom-meal-plan',
-                                arguments: {
-                                  "mode": "edit",
-                                  "plan": plan,
-                                },
+                              final changed = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => CustomMealPlanScreen(
+                                    mode: "edit",
+                                    plan: Map<String, dynamic>.from(plan),
+                                  ),
+                                ),
                               );
                               if (!mounted) return;
                               if (changed == true) _reload();
@@ -214,10 +227,12 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                           const SizedBox(width: 12),
                           OutlinedButton.icon(
                             onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/custom-meal-plan-view',
-                                arguments: plan,
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => CustomMealPlanViewScreen(
+                                    plan: Map<String, dynamic>.from(plan),
+                                  ),
+                                ),
                               );
                             },
                             icon: const Icon(Icons.visibility),
@@ -244,7 +259,8 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                               builder: (ctx) {
                                 final ctrl = TextEditingController();
                                 return AlertDialog(
-                                  title: const Text("Enter your daily calorie target"),
+                                  title: const Text(
+                                      "Enter your daily calorie target"),
                                   content: TextField(
                                     controller: ctrl,
                                     keyboardType: TextInputType.number,
@@ -260,7 +276,8 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                                     ),
                                     ElevatedButton(
                                       onPressed: () {
-                                        final v = double.tryParse(ctrl.text.trim());
+                                        final v =
+                                            double.tryParse(ctrl.text.trim());
                                         Navigator.pop(ctx, v);
                                       },
                                       child: const Text("Use"),
@@ -272,18 +289,19 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                             if (calories == null) return;
                           }
 
-                          Navigator.pushNamed(
-                            context,
-                            '/custom-plan-suggestion',
-                            arguments: {
-                              "plan": plan,
-                            },
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CustomPlanSuggestionScreen(
+                                plan: Map<String, dynamic>.from(plan),
+                              ),
+                            ),
                           );
                         },
                         icon: const Icon(Icons.check_circle),
                         label: const Text("Use this plan"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.successColor, // keep the green success accent
+                          backgroundColor: AppTheme.successColor,
+                          // keep the green success accent
                           foregroundColor: Colors.white,
                         ),
                       ),

@@ -2,23 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CustomPlanDetailScreen extends StatelessWidget {
-  const CustomPlanDetailScreen({super.key});
+  const CustomPlanDetailScreen({
+    super.key,
+    required this.mealType,
+    required this.block,
+    required this.color,
+    required this.icon,
+    required this.desc,
+  });
+
+  final String mealType;
+  final Map<String, dynamic> block; // { recipe, ingredients_with_alternatives: [...] }
+  final Color color;
+  final IconData icon;
+  final String desc;
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final String mealType = args["mealType"];
-    final Map<String, dynamic> block = Map<String, dynamic>.from(args["block"]);
-    final Color color = args["color"] as Color;
-    final IconData icon = args["icon"] as IconData;
-    final String desc = (args["desc"] ?? "") as String;
-
-    final recipe = (block["recipe"] ?? "").toString();
-    final List<Map<String, dynamic>> rows =
-    List<Map<String, dynamic>>.from(block["ingredients_with_alternatives"] ?? const []);
-
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+
+    final recipe = (block["recipe"] ?? "").toString();
+    final List<Map<String, dynamic>> rows = List<Map<String, dynamic>>.from(
+      block["ingredients_with_alternatives"] ?? const [],
+    );
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -134,14 +141,13 @@ class CustomPlanDetailScreen extends StatelessWidget {
     final cs = theme.colorScheme;
     final ing = (row["ingredient"] ?? "").toString();
     final alts = List<String>.from(row["alternatives"] ?? const []);
-
     final hasAlts = alts.isNotEmpty;
     final iconColor = hasAlts ? accent : cs.onSurfaceVariant;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: theme.cardTheme.shape,
-      elevation: theme.cardTheme.elevation == null ? 1 : theme.cardTheme.elevation,
+      elevation: theme.cardTheme.elevation ?? 1,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
