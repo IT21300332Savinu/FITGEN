@@ -43,7 +43,7 @@ class FirebaseService {
       
       String? userId = getCurrentUserId();
       if (userId == null) {
-        print('❌ No user ID available for profile creation');
+        print('No user ID available for profile creation');
         return false;
       }
 
@@ -63,10 +63,10 @@ class FirebaseService {
         }),
       ]);
 
-      print('✅ Profile created successfully');
+      print('Profile created successfully');
       return true;
     } catch (e) {
-      print('❌ Error creating user profile: $e');
+      print('Error creating user profile: $e');
       return false;
     }
   }
@@ -77,7 +77,7 @@ class FirebaseService {
       
       String? userId = getCurrentUserId();
       if (userId == null) {
-        print('❌ No user ID available for profile update');
+        print('No user ID available for profile update');
         return false;
       }
 
@@ -97,10 +97,10 @@ class FirebaseService {
         }),
       ]);
 
-      print('✅ Profile updated successfully');
+      print('Profile updated successfully');
       return true;
     } catch (e) {
-      print('❌ Error updating user profile: $e');
+      print('Error updating user profile: $e');
       return false;
     }
   }
@@ -202,7 +202,7 @@ class FirebaseService {
             .collection('health_parameters')
             .add(healthParams);
 
-        print('✅ Health parameters saved to separate collection');
+        print('Health parameters saved to separate collection');
       }
 
       print('Report data saved successfully with ID: ${docRef.id}');

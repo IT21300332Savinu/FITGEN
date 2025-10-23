@@ -43,9 +43,8 @@ class _MealSuggestionGateState extends State<MealSuggestionGate> {
         // Small pause to let the user read, then go to profile setup
         await Future.delayed(const Duration(milliseconds: 3000));
         if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        );
+  // Use GoRouter helper to avoid Navigator 2.0 assertion
+  context.pushNamedAuth('profile', mounted);
         return;
       }
 

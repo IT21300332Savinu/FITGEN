@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import '../services/firebase_config .dart';
 import '../models/user_model.dart';
 import '../services/meal_suggestions_service.dart';
 import '../widgets/CustomButton.dart';
@@ -115,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_healthDocumentFile == null) return _healthDocumentUrl;
     try {
       final userId = _user!.uid;
-      final storageRef = FirebaseStorage.instance
+      final storageRef = FirebaseStorage.instanceFor(app: FirebaseConfig.nutritionApp)
           .ref()
           .child('health_documents')
           .child('$userId-${DateTime.now().millisecondsSinceEpoch}.jpg');
