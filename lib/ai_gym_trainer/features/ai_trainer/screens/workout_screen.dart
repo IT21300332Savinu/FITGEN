@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:camera/camera.dart';
-import 'package:fitgen/features/painters/form_feedback_painter.dart';
+import 'package:fitgen/ai_gym_trainer/features/painters/form_feedback_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';

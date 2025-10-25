@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import '../services/firebase_service.dart';
-import '../services/pose_analyzer_service.dart';
+import 'firebase_service.dart';
+import 'pose_analyzer_service.dart';
 import '../models/workout_session.dart';
 
 class WorkoutScreen extends StatefulWidget {

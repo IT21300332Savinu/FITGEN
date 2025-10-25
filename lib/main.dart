@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 // Fixed import paths
-import 'features/ai_trainer/screens/home_screen.dart';
-import 'features/ai_trainer/screens/login_screen.dart';
-import 'features/ai_trainer/screens/signup_screen.dart';
-import 'features/ai_trainer/screens/profile_setup_screen.dart';
-import 'features/ai_trainer/services/firebase_service.dart';
-import 'features/gamification/widgets/auth_wrapper.dart';
+import 'ai_gym_trainer/features/ai_trainer/screens/home_screen.dart';
+import 'ai_gym_trainer/features/ai_trainer/screens/login_screen.dart';
+import 'ai_gym_trainer/features/ai_trainer/screens/signup_screen.dart';
+import 'ai_gym_trainer/features/ai_trainer/screens/profile_setup_screen.dart';
+import 'ai_gym_trainer/features/ai_trainer/services/firebase_service.dart';
+import 'ai_gym_trainer/features/gamification/widgets/auth_wrapper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

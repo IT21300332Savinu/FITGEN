@@ -2,7 +2,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
-import 'package:fitgen/features/ai_trainer/exercise/exercise_detector.dart';
+import 'package:fitgen/ai_gym_trainer/features/ai_trainer/exercise/exercise_detector.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 

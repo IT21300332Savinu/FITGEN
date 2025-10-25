@@ -1,5 +1,5 @@
 // Simple test to verify exercise detection
-import 'lib/features/ai_trainer/models/exercise_models.dart';
+import 'lib/ai_gym_trainer/features/ai_trainer/models/exercise_models.dart';
 
 void main() {
   print('🧪 Testing Exercise Type Mapping...\n');
