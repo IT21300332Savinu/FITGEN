@@ -5,6 +5,8 @@ import 'dart:io';
 import '../models/user_profile.dart';
 import '../services/firebase_service.dart';
 import '../services/ocr_service.dart';
+// Use GoRouter/FlutterFlow navigation helpers to avoid Navigator 2.0 assertion
+import '/flutter_flow/flutter_flow_util.dart';
 import 'dashboard_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -2327,11 +2329,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-          (route) => false,
-        );
+        // Navigate via GoRouter to avoid imperative API conflicts
+        context.goNamed('dashboard');
       }
     } else {
       print('❌ Profile save failed');
@@ -2512,11 +2511,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
 
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            (route) => false,
-          );
+          // Navigate via GoRouter to the Dashboard screen
+          context.goNamed('dashboard');
         }
       } else {
         throw Exception('Failed to save profile');
@@ -2550,7 +2546,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
       ),
       body: _isProcessing

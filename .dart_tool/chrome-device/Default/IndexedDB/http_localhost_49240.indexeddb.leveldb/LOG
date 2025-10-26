@@ -1,0 +1,10 @@
+2025/10/26-11:40:59.399 5da4 Reusing MANIFEST C:\Users\savin\AppData\Local\Temp\flutter_tools.8b21b004\flutter_tools_chrome_device.3b72a542\Default\IndexedDB\http_localhost_49240.indexeddb.leveldb/MANIFEST-000001
+2025/10/26-11:40:59.400 5da4 Recovering log #11
+2025/10/26-11:40:59.401 5da4 Reusing old log C:\Users\savin\AppData\Local\Temp\flutter_tools.8b21b004\flutter_tools_chrome_device.3b72a542\Default\IndexedDB\http_localhost_49240.indexeddb.leveldb/000011.log 
+2025/10/26-11:40:59.406 5da4 Manual compaction at level-0 from '\x00\x07\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x08\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/26-11:40:59.415 6534 Manual compaction at level-0 from '\x00\x08\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x09\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/26-11:41:00.842 5da4 Level-0 table #17: started
+2025/10/26-11:41:00.844 5da4 Level-0 table #17: 9220 bytes OK
+2025/10/26-11:41:00.845 5da4 Delete type=0 #11
+2025/10/26-11:41:00.845 47dc Manual compaction at level-0 from '\x00\x09\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0a\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/10/26-11:41:00.850 6534 Manual compaction at level-0 from '\x00\x0a\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x0b\x00\x00\x00' @ 0 : 0; will stop at (end)
