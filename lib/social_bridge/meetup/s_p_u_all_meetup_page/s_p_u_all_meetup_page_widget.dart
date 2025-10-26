@@ -53,9 +53,7 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => SPUMyMeetupPageWidget(),
-              ),
+              MaterialPageRoute(builder: (context) => SPUMyMeetupPageWidget()),
             );
           },
           backgroundColor: FlutterFlowTheme.of(context).primary,
@@ -63,27 +61,22 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
           label: Row(
             mainAxisSize: MainAxisSize.max,
             children: [
-              Icon(
-                Icons.list,
-                color: Color(0xFFFBFDFF),
-                size: 24.0,
-              ),
+              Icon(Icons.list, color: Color(0xFFFBFDFF), size: 24.0),
               Text(
                 'My Meetups',
                 style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      font: GoogleFonts.inter(
-                        fontWeight:
-                            FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                        fontStyle:
-                            FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                      ),
-                      color: Color(0xFFFEFFFF),
-                      letterSpacing: 0.0,
-                      fontWeight:
-                          FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                    ),
+                  font: GoogleFonts.inter(
+                    fontWeight:
+                        FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                  ),
+                  color: Color(0xFFFEFFFF),
+                  letterSpacing: 0.0,
+                  fontWeight:
+                      FlutterFlowTheme.of(context).bodyMedium.fontWeight,
+                  fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                ),
               ),
             ],
           ),
@@ -96,21 +89,20 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
             child: Text(
               'Meetup',
               style: FlutterFlowTheme.of(context).headlineMedium.override(
-                    font: GoogleFonts.interTight(
-                      fontWeight: FlutterFlowTheme.of(context)
-                          .headlineMedium
-                          .fontWeight,
-                      fontStyle:
-                          FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                    ),
-                    color: Colors.white,
-                    fontSize: 22.0,
-                    letterSpacing: 0.0,
-                    fontWeight:
-                        FlutterFlowTheme.of(context).headlineMedium.fontWeight,
-                    fontStyle:
-                        FlutterFlowTheme.of(context).headlineMedium.fontStyle,
-                  ),
+                font: GoogleFonts.interTight(
+                  fontWeight:
+                      FlutterFlowTheme.of(context).headlineMedium.fontWeight,
+                  fontStyle:
+                      FlutterFlowTheme.of(context).headlineMedium.fontStyle,
+                ),
+                color: Colors.white,
+                fontSize: 22.0,
+                letterSpacing: 0.0,
+                fontWeight:
+                    FlutterFlowTheme.of(context).headlineMedium.fontWeight,
+                fontStyle:
+                    FlutterFlowTheme.of(context).headlineMedium.fontStyle,
+              ),
             ),
           ),
           actions: [],
@@ -131,8 +123,8 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                 child: FlutterFlowGoogleMap(
                   controller: _model.googleMapsController,
                   onCameraIdle: (latLng) => _model.googleMapsCenter = latLng,
-                  initialLocation: _model.googleMapsCenter ??=
-                      LatLng(13.106061, -59.613158),
+                  initialLocation:
+                      _model.googleMapsCenter ??= LatLng(13.106061, -59.613158),
                   markerColor: GoogleMarkerColor.blue,
                   mapType: MapType.normal,
                   style: GoogleMapStyle.standard,
@@ -151,9 +143,10 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
               Flexible(
                 child: StreamBuilder<List<MeetupRecord>>(
                   stream: queryMeetupRecord(
-                    queryBuilder: (meetupRecord) => meetupRecord
-                        .orderBy('meetup_date')
-                        .orderBy('meetup_time'),
+                    queryBuilder:
+                        (meetupRecord) => meetupRecord
+                            .orderBy('meetup_date')
+                            .orderBy('meetup_time'),
                   ),
                   builder: (context, snapshot) {
                     // Customize what your widget looks like when it's loading.
@@ -184,9 +177,7 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                         return Padding(
                           padding: EdgeInsets.all(5.0),
                           child: StreamBuilder<List<MeetupReserveRecord>>(
-                            stream: queryMeetupReserveRecord(
-                              limit: 5,
-                            ),
+                            stream: queryMeetupReserveRecord(limit: 5),
                             builder: (context, snapshot) {
                               // Customize what your widget looks like when it's loading.
                               if (!snapshot.hasData) {
@@ -217,7 +208,11 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                   children: [
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          5.0, 10.0, 5.0, 5.0),
+                                        5.0,
+                                        10.0,
+                                        5.0,
+                                        5.0,
+                                      ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment:
@@ -228,195 +223,226 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                           Padding(
                                             padding:
                                                 EdgeInsetsDirectional.fromSTEB(
-                                                    5.0, 5.0, 5.0, 5.0),
+                                                  5.0,
+                                                  5.0,
+                                                  5.0,
+                                                  5.0,
+                                                ),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.max,
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 5.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        5.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     listViewMeetupRecord
                                                         .meetupSport,
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontStyle: FontStyle
-                                                                .italic,
-                                                          ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .primary,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                            context,
+                                                          ).primary,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontStyle:
+                                                          FontStyle.italic,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       dateTimeFormat(
-                                                          "d/M/y",
-                                                          listViewMeetupRecord
-                                                              .meetupDate),
+                                                        "d/M/y",
+                                                        listViewMeetupRecord
+                                                            .meetupDate,
+                                                      ),
                                                       '15/09/2025',
                                                     ),
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color:
-                                                              Color(0xFF090505),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color: Color(0xFF090505),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     'Currently going :',
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     'Equipment :',
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     'Host number :',
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -425,96 +451,115 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                           Padding(
                                             padding:
                                                 EdgeInsetsDirectional.fromSTEB(
-                                                    5.0, 5.0, 5.0, 5.0),
+                                                  5.0,
+                                                  5.0,
+                                                  5.0,
+                                                  5.0,
+                                                ),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.max,
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 5.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        5.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     listViewMeetupRecord
                                                         .meetupHost,
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color: FlutterFlowTheme
-                                                                  .of(context)
-                                                              .primary,
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color:
+                                                          FlutterFlowTheme.of(
+                                                            context,
+                                                          ).primary,
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       dateTimeFormat(
-                                                          "jm",
-                                                          listViewMeetupRecord
-                                                              .meetupTime),
+                                                        "jm",
+                                                        listViewMeetupRecord
+                                                            .meetupTime,
+                                                      ),
                                                       '09:00 AM',
                                                     ),
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          color:
-                                                              Color(0xFF131010),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      color: Color(0xFF131010),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       listViewMeetupRecord
@@ -523,40 +568,46 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                       '0',
                                                     ),
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       listViewMeetupRecord
@@ -564,72 +615,80 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                       'Provided',
                                                     ),
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsetsDirectional
-                                                      .fromSTEB(
-                                                          0.0, 10.0, 0.0, 0.0),
+                                                  padding:
+                                                      EdgeInsetsDirectional.fromSTEB(
+                                                        0.0,
+                                                        10.0,
+                                                        0.0,
+                                                        0.0,
+                                                      ),
                                                   child: Text(
                                                     listViewMeetupRecord
                                                         .meetupHostnum,
                                                     style: FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontWeight,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
+                                                      context,
+                                                    ).bodyMedium.override(
+                                                      font: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontWeight,
+                                                        fontStyle:
+                                                            FlutterFlowTheme.of(
+                                                                  context,
+                                                                )
+                                                                .bodyMedium
+                                                                .fontStyle,
+                                                      ),
+                                                      letterSpacing: 0.0,
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                context,
+                                                              )
+                                                              .bodyMedium
+                                                              .fontStyle,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -646,92 +705,104 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                         Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
-                                                  130.0, 10.0, 0.0, 10.0),
+                                                130.0,
+                                                10.0,
+                                                0.0,
+                                                10.0,
+                                              ),
                                           child: FFButtonWidget(
                                             onPressed: () async {
                                               await MeetupReserveRecord
                                                   .collection
                                                   .doc()
                                                   .set(
-                                                      createMeetupReserveRecordData(
-                                                    mrMeetup:
-                                                        listViewMeetupRecord
-                                                            .reference,
-                                                    mrReservation: true,
-                                                    mrDate: listViewMeetupRecord
-                                                        .meetupDate,
-                                                    mrTime: listViewMeetupRecord
-                                                        .meetupTime,
-                                                    mrHost: listViewMeetupRecord
-                                                        .meetupHost,
-                                                    mrSport:
-                                                        listViewMeetupRecord
-                                                            .meetupSport,
-                                                    meetupLoc:
-                                                        listViewMeetupRecord
-                                                            .meetupLocation,
-                                                    mrEquipment:
-                                                        listViewMeetupRecord
-                                                            .meetupEquipment,
-                                                    mrHostnum:
-                                                        listViewMeetupRecord
-                                                            .meetupHostnum,
-                                                  ));
+                                                    createMeetupReserveRecordData(
+                                                      mrMeetup:
+                                                          listViewMeetupRecord
+                                                              .reference,
+                                                      mrReservation: true,
+                                                      mrDate:
+                                                          listViewMeetupRecord
+                                                              .meetupDate,
+                                                      mrTime:
+                                                          listViewMeetupRecord
+                                                              .meetupTime,
+                                                      mrHost:
+                                                          listViewMeetupRecord
+                                                              .meetupHost,
+                                                      mrSport:
+                                                          listViewMeetupRecord
+                                                              .meetupSport,
+                                                      meetupLoc:
+                                                          listViewMeetupRecord
+                                                              .meetupLocation,
+                                                      mrEquipment:
+                                                          listViewMeetupRecord
+                                                              .meetupEquipment,
+                                                      mrHostnum:
+                                                          listViewMeetupRecord
+                                                              .meetupHostnum,
+                                                    ),
+                                                  );
 
                                               await listViewMeetupRecord
                                                   .reference
                                                   .update({
-                                                ...mapToFirestore(
-                                                  {
-                                                    'meetup_attendance':
-                                                        FieldValue.increment(1),
-                                                  },
-                                                ),
-                                              });
+                                                    ...mapToFirestore({
+                                                      'meetup_attendance':
+                                                          FieldValue.increment(
+                                                            1,
+                                                          ),
+                                                    }),
+                                                  });
                                               _model.buttonclicked = true;
                                               safeSetState(() {});
                                             },
                                             text: 'Attend',
                                             options: FFButtonOptions(
                                               height: 40.0,
-                                              padding: EdgeInsetsDirectional
-                                                  .fromSTEB(
-                                                      16.0, 0.0, 16.0, 0.0),
-                                              iconPadding: EdgeInsetsDirectional
-                                                  .fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                              color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primary,
-                                              textStyle: FlutterFlowTheme.of(
-                                                      context)
-                                                  .titleSmall
-                                                  .override(
-                                                    font:
-                                                        GoogleFonts.interTight(
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .titleSmall
-                                                              .fontStyle,
-                                                    ),
-                                                    color: Colors.white,
-                                                    letterSpacing: 0.0,
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .titleSmall
-                                                            .fontStyle,
+                                              padding:
+                                                  EdgeInsetsDirectional.fromSTEB(
+                                                    16.0,
+                                                    0.0,
+                                                    16.0,
+                                                    0.0,
                                                   ),
+                                              iconPadding:
+                                                  EdgeInsetsDirectional.fromSTEB(
+                                                    0.0,
+                                                    0.0,
+                                                    0.0,
+                                                    0.0,
+                                                  ),
+                                              color:
+                                                  FlutterFlowTheme.of(
+                                                    context,
+                                                  ).primary,
+                                              textStyle: FlutterFlowTheme.of(
+                                                context,
+                                              ).titleSmall.override(
+                                                font: GoogleFonts.interTight(
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                        context,
+                                                      ).titleSmall.fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                        context,
+                                                      ).titleSmall.fontStyle,
+                                                ),
+                                                color: Colors.white,
+                                                letterSpacing: 0.0,
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(
+                                                      context,
+                                                    ).titleSmall.fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(
+                                                      context,
+                                                    ).titleSmall.fontStyle,
+                                              ),
                                               elevation: 0.0,
                                               borderRadius:
                                                   BorderRadius.circular(8.0),
@@ -741,7 +812,11 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                         Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
-                                                  60.0, 0.0, 0.0, 0.0),
+                                                60.0,
+                                                0.0,
+                                                0.0,
+                                                0.0,
+                                              ),
                                           child: InkWell(
                                             splashColor: Colors.transparent,
                                             focusColor: Colors.transparent,
@@ -753,25 +828,28 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                 backgroundColor:
                                                     Colors.transparent,
                                                 barrierColor:
-                                                    FlutterFlowTheme.of(context)
-                                                        .primary,
+                                                    FlutterFlowTheme.of(
+                                                      context,
+                                                    ).primary,
                                                 enableDrag: false,
                                                 context: context,
                                                 builder: (context) {
                                                   return GestureDetector(
                                                     onTap: () {
-                                                      FocusScope.of(context)
-                                                          .unfocus();
+                                                      FocusScope.of(
+                                                        context,
+                                                      ).unfocus();
                                                       FocusManager
-                                                          .instance.primaryFocus
+                                                          .instance
+                                                          .primaryFocus
                                                           ?.unfocus();
                                                     },
                                                     child: Padding(
-                                                      padding: MediaQuery
-                                                          .viewInsetsOf(
-                                                              context),
-                                                      child:
-                                                          CommentcomponentWidget(
+                                                      padding:
+                                                          MediaQuery.viewInsetsOf(
+                                                            context,
+                                                          ),
+                                                      child: CommentcomponentWidget(
                                                         commentrefmeetupparam:
                                                             listViewMeetupRecord
                                                                 .reference,
@@ -779,14 +857,16 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                     ),
                                                   );
                                                 },
-                                              ).then((value) =>
-                                                  safeSetState(() {}));
+                                              ).then(
+                                                (value) => safeSetState(() {}),
+                                              );
                                             },
                                             child: FaIcon(
                                               FontAwesomeIcons.comment,
                                               color:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primary,
+                                                  FlutterFlowTheme.of(
+                                                    context,
+                                                  ).primary,
                                               size: 24.0,
                                             ),
                                           ),
@@ -794,15 +874,21 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                         Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
-                                                  5.0, 0.0, 0.0, 0.0),
+                                                5.0,
+                                                0.0,
+                                                0.0,
+                                                0.0,
+                                              ),
                                           child: FutureBuilder<int>(
                                             future: queryCommentsRecordCount(
-                                              queryBuilder: (commentsRecord) =>
-                                                  commentsRecord.where(
-                                                'meetupref',
-                                                isEqualTo: listViewMeetupRecord
-                                                    .reference,
-                                              ),
+                                              queryBuilder:
+                                                  (commentsRecord) =>
+                                                      commentsRecord.where(
+                                                        'meetupref',
+                                                        isEqualTo:
+                                                            listViewMeetupRecord
+                                                                .reference,
+                                                      ),
                                             ),
                                             builder: (context, snapshot) {
                                               // Customize what your widget looks like when it's loading.
@@ -811,15 +897,15 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                   child: SizedBox(
                                                     width: 50.0,
                                                     height: 50.0,
-                                                    child:
-                                                        CircularProgressIndicator(
+                                                    child: CircularProgressIndicator(
                                                       valueColor:
                                                           AlwaysStoppedAnimation<
-                                                              Color>(
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .primary,
-                                                      ),
+                                                            Color
+                                                          >(
+                                                            FlutterFlowTheme.of(
+                                                              context,
+                                                            ).primary,
+                                                          ),
                                                     ),
                                                   ),
                                                 );
@@ -832,37 +918,32 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                   '0',
                                                 ),
                                                 style: FlutterFlowTheme.of(
-                                                        context)
-                                                    .bodyMedium
-                                                    .override(
-                                                      font: GoogleFonts.inter(
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .bodyMedium
-                                                                .fontStyle,
-                                                      ),
-                                                      color:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .primary,
-                                                      letterSpacing: 0.0,
-                                                      fontWeight:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontWeight,
-                                                      fontStyle:
-                                                          FlutterFlowTheme.of(
-                                                                  context)
-                                                              .bodyMedium
-                                                              .fontStyle,
-                                                    ),
+                                                  context,
+                                                ).bodyMedium.override(
+                                                  font: GoogleFonts.inter(
+                                                    fontWeight:
+                                                        FlutterFlowTheme.of(
+                                                          context,
+                                                        ).bodyMedium.fontWeight,
+                                                    fontStyle:
+                                                        FlutterFlowTheme.of(
+                                                          context,
+                                                        ).bodyMedium.fontStyle,
+                                                  ),
+                                                  color:
+                                                      FlutterFlowTheme.of(
+                                                        context,
+                                                      ).primary,
+                                                  letterSpacing: 0.0,
+                                                  fontWeight:
+                                                      FlutterFlowTheme.of(
+                                                        context,
+                                                      ).bodyMedium.fontWeight,
+                                                  fontStyle:
+                                                      FlutterFlowTheme.of(
+                                                        context,
+                                                      ).bodyMedium.fontStyle,
+                                                ),
                                               );
                                             },
                                           ),

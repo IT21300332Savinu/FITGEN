@@ -39,13 +39,15 @@ class _GymHomeState extends State<GymHome> {
         // Sign in anonymously for seamless experience
         debugPrint('🔐 No gym user found, signing in anonymously...');
         final userCredential = await auth.signInAnonymously();
-        debugPrint('✅ Anonymous sign-in successful: ${userCredential.user?.uid}');
-        
+        debugPrint(
+          '✅ Anonymous sign-in successful: ${userCredential.user?.uid}',
+        );
+
         // Initialize anonymous user profile and gamification
         await _firebaseService.initializeAnonymousUser();
       } else {
         debugPrint('✅ Gym user already signed in: ${currentUser.uid}');
-        
+
         // Initialize if anonymous user doesn't have profile yet
         if (currentUser.isAnonymous) {
           await _firebaseService.initializeAnonymousUser();

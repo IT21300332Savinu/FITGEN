@@ -21,7 +21,9 @@ class GamificationFirebaseService {
   // Get current user ID from Firebase Auth
   static String? get currentUserId {
     try {
-      return FirebaseAuth.instanceFor(app: Firebase.app('fitgen')).currentUser?.uid;
+      return FirebaseAuth.instanceFor(
+        app: Firebase.app('fitgen'),
+      ).currentUser?.uid;
     } catch (e) {
       print('⚠️ Fitgen Firebase not initialized, using default: $e');
       return FirebaseAuth.instance.currentUser?.uid;

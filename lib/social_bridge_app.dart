@@ -24,10 +24,10 @@ class _SocialBridgeAppState extends State<SocialBridgeApp> {
 
     _appStateNotifier = AppStateNotifier.instance;
     _router = createRouter(_appStateNotifier);
-    userStream = fitgenSocialbridgeFirebaseUserStream()
-      ..listen((user) {
-        _appStateNotifier.update(user);
-      });
+    userStream =
+        fitgenSocialbridgeFirebaseUserStream()..listen((user) {
+          _appStateNotifier.update(user);
+        });
 
     Future.delayed(
       const Duration(milliseconds: 1000),

@@ -18,7 +18,7 @@ class FirebaseService {
       return FirebaseAuth.instance;
     }
   }
-  
+
   FirebaseFirestore get _firestore {
     try {
       return FirebaseFirestore.instanceFor(app: Firebase.app('fitgen'));

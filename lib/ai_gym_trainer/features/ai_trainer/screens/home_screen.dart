@@ -420,7 +420,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             subtitle: Text(exercise['description']!),
                             leading:
                                 exercise['name']!.contains('(AI)')
-                                    ? const Icon(Icons.smart_toy, color: Colors.blue)
+                                    ? const Icon(
+                                      Icons.smart_toy,
+                                      color: Colors.blue,
+                                    )
                                     : const Icon(Icons.fitness_center),
                             onTap: () {
                               debugPrint(

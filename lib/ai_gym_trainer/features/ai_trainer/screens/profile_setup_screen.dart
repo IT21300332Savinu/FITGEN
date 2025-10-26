@@ -303,7 +303,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         context,
         listen: false,
       );
-      
+
       // Get fitgen Firebase auth instance (same as Medical Guidance)
       FirebaseAuth auth;
       try {

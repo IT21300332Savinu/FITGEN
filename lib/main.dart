@@ -36,7 +36,6 @@ Future<void> main() async {
       await FirebaseConfig.initializeFirebase(); // Initialize medical Firebase
       debugPrint('✅ Medical Guidance Firebase initialized');
     }
-
   } catch (e) {
     debugPrint('⚠️ Firebase initialization error: $e');
   }
@@ -83,10 +82,7 @@ class UserTypeChooser extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.orange.shade50,
-              Colors.orange.shade100,
-            ],
+            colors: [Colors.orange.shade50, Colors.orange.shade100],
           ),
         ),
         child: SafeArea(
@@ -139,7 +135,7 @@ class UserTypeChooser extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 60),
-                  
+
                   // User Type Selection
                   Text(
                     'Choose Your Experience',
@@ -284,10 +280,7 @@ class FunctionChooser extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.orange.shade700,
-              Colors.orange.shade50,
-            ],
+            colors: [Colors.orange.shade700, Colors.orange.shade50],
           ),
         ),
         child: SafeArea(

@@ -8,9 +8,15 @@ import 'dart:io';
 
 class FirebaseService {
   // Use the named 'fitgen' Firebase app for medical guidance
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(app: FirebaseConfig.mainApp);
-  static final FirebaseAuth _auth = FirebaseAuth.instanceFor(app: FirebaseConfig.mainApp);
-  static final FirebaseStorage _storage = FirebaseStorage.instanceFor(app: FirebaseConfig.mainApp);
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
+    app: FirebaseConfig.mainApp,
+  );
+  static final FirebaseAuth _auth = FirebaseAuth.instanceFor(
+    app: FirebaseConfig.mainApp,
+  );
+  static final FirebaseStorage _storage = FirebaseStorage.instanceFor(
+    app: FirebaseConfig.mainApp,
+  );
 
   // User Authentication
   static Future<User?> signInAnonymously() async {

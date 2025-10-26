@@ -52,9 +52,7 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
         clipBehavior: Clip.antiAliasWithSaveLayer,
         color: FlutterFlowTheme.of(context).tertiary,
         elevation: 10.0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         child: Padding(
           padding: EdgeInsetsDirectional.fromSTEB(5.0, 5.0, 5.0, 5.0),
           child: Column(
@@ -78,33 +76,41 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                           Align(
                             alignment: AlignmentDirectional(-1.0, 0.0),
                             child: FlutterFlowDropDown<String>(
-                              controller: _model
-                                      .createMeetupSportDropDownValueController ??=
-                                  FormFieldController<String>(null),
+                              controller:
+                                  _model.createMeetupSportDropDownValueController ??=
+                                      FormFieldController<String>(null),
                               options: ['Badminton', 'Football'],
-                              onChanged: (val) => safeSetState(() =>
-                                  _model.createMeetupSportDropDownValue = val),
+                              onChanged:
+                                  (val) => safeSetState(
+                                    () =>
+                                        _model.createMeetupSportDropDownValue =
+                                            val,
+                                  ),
                               width: 200.0,
                               height: 40.0,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
+                              textStyle: FlutterFlowTheme.of(
+                                context,
+                              ).bodyMedium.override(
+                                font: GoogleFonts.inter(
+                                  fontWeight:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontWeight,
+                                  fontStyle:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontStyle,
+                                ),
+                                letterSpacing: 0.0,
+                                fontWeight:
+                                    FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontWeight,
+                                fontStyle:
+                                    FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontStyle,
+                              ),
                               hintText: 'Select Sport',
                               icon: Icon(
                                 Icons.keyboard_arrow_down_rounded,
@@ -112,15 +118,21 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                                     FlutterFlowTheme.of(context).secondaryText,
                                 size: 24.0,
                               ),
-                              fillColor: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
+                              fillColor:
+                                  FlutterFlowTheme.of(
+                                    context,
+                                  ).secondaryBackground,
                               elevation: 2.0,
                               borderColor:
                                   FlutterFlowTheme.of(context).primaryText,
                               borderWidth: 0.0,
                               borderRadius: 8.0,
                               margin: EdgeInsetsDirectional.fromSTEB(
-                                  12.0, 0.0, 12.0, 0.0),
+                                12.0,
+                                0.0,
+                                12.0,
+                                0.0,
+                              ),
                               hidesUnderline: true,
                               isOverButton: false,
                               isSearchable: false,
@@ -143,29 +155,35 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                         ],
                       ),
                       AuthUserStreamWidget(
-                        builder: (context) => Text(
-                          currentUserDisplayName,
-                          textAlign: TextAlign.start,
-                          style:
-                              FlutterFlowTheme.of(context).bodyMedium.override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    color: FlutterFlowTheme.of(context).primary,
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                        ),
+                        builder:
+                            (context) => Text(
+                              currentUserDisplayName,
+                              textAlign: TextAlign.start,
+                              style: FlutterFlowTheme.of(
+                                context,
+                              ).bodyMedium.override(
+                                font: GoogleFonts.inter(
+                                  fontWeight:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontWeight,
+                                  fontStyle:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontStyle,
+                                ),
+                                color: FlutterFlowTheme.of(context).primary,
+                                letterSpacing: 0.0,
+                                fontWeight:
+                                    FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontWeight,
+                                fontStyle:
+                                    FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontStyle,
+                              ),
+                            ),
                       ),
                       FlutterFlowPlacePicker(
                         iOSGoogleMapsApiKey:
@@ -177,8 +195,11 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                         onSelect: (place) async {
                           safeSetState(() => _model.placePickerValue = place);
                           (await _model.googleMapsController.future)
-                              .animateCamera(CameraUpdate.newLatLng(
-                                  place.latLng.toGoogleMaps()));
+                              .animateCamera(
+                                CameraUpdate.newLatLng(
+                                  place.latLng.toGoogleMaps(),
+                                ),
+                              );
                         },
                         defaultText: 'Select Location',
                         icon: Icon(
@@ -190,25 +211,30 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                           width: 200.0,
                           height: 40.0,
                           color: Color(0xFFF1F0F7),
-                          textStyle:
-                              FlutterFlowTheme.of(context).titleSmall.override(
-                                    font: GoogleFonts.interTight(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .titleSmall
-                                          .fontStyle,
-                                    ),
-                                    color: Color(0xFF1E1511),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .titleSmall
-                                        .fontStyle,
-                                  ),
+                          textStyle: FlutterFlowTheme.of(
+                            context,
+                          ).titleSmall.override(
+                            font: GoogleFonts.interTight(
+                              fontWeight:
+                                  FlutterFlowTheme.of(
+                                    context,
+                                  ).titleSmall.fontWeight,
+                              fontStyle:
+                                  FlutterFlowTheme.of(
+                                    context,
+                                  ).titleSmall.fontStyle,
+                            ),
+                            color: Color(0xFF1E1511),
+                            letterSpacing: 0.0,
+                            fontWeight:
+                                FlutterFlowTheme.of(
+                                  context,
+                                ).titleSmall.fontWeight,
+                            fontStyle:
+                                FlutterFlowTheme.of(
+                                  context,
+                                ).titleSmall.fontStyle,
+                          ),
                           elevation: 0.0,
                           borderSide: BorderSide(
                             color: Colors.transparent,
@@ -218,8 +244,12 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                         ),
                       ),
                       Padding(
-                        padding:
-                            EdgeInsetsDirectional.fromSTEB(10.0, 0.0, 0.0, 0.0),
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                          10.0,
+                          0.0,
+                          0.0,
+                          0.0,
+                        ),
                         child: InkWell(
                           splashColor: Colors.transparent,
                           focusColor: Colors.transparent,
@@ -228,9 +258,9 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                           onTap: () async {
                             await _model.googleMapsController.future.then(
                               (c) => c.animateCamera(
-                                CameraUpdate.newLatLng(_model
-                                    .placePickerValue.latLng
-                                    .toGoogleMaps()),
+                                CameraUpdate.newLatLng(
+                                  _model.placePickerValue.latLng.toGoogleMaps(),
+                                ),
                               ),
                             );
                           },
@@ -238,330 +268,359 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                             width: 240.2,
                             height: 199.9,
                             decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context)
-                                  .secondaryBackground,
+                              color:
+                                  FlutterFlowTheme.of(
+                                    context,
+                                  ).secondaryBackground,
                               borderRadius: BorderRadius.circular(3.0),
                             ),
-                            child: Builder(builder: (context) {
-                              final _googleMapMarker = _model.selectedLatLng;
-                              return FlutterFlowGoogleMap(
-                                controller: _model.googleMapsController,
-                                onCameraIdle: (latLng) =>
-                                    _model.googleMapsCenter = latLng,
-                                initialLocation: _model.googleMapsCenter ??=
-                                    _model.placePickerValue.latLng,
-                                markers: [
-                                  if (_googleMapMarker != null)
-                                    FlutterFlowMarker(
-                                      _googleMapMarker.serialize(),
-                                      _googleMapMarker,
-                                    ),
-                                ],
-                                markerColor: GoogleMarkerColor.violet,
-                                mapType: MapType.normal,
-                                style: GoogleMapStyle.standard,
-                                initialZoom: 15.0,
-                                allowInteraction: false,
-                                allowZoom: false,
-                                showZoomControls: true,
-                                showLocation: false,
-                                showCompass: false,
-                                showMapToolbar: false,
-                                showTraffic: false,
-                                centerMapOnMarkerTap: true,
-                                mapTakesGesturePreference: false,
-                              );
-                            }),
+                            child: Builder(
+                              builder: (context) {
+                                final _googleMapMarker = _model.selectedLatLng;
+                                return FlutterFlowGoogleMap(
+                                  controller: _model.googleMapsController,
+                                  onCameraIdle:
+                                      (latLng) =>
+                                          _model.googleMapsCenter = latLng,
+                                  initialLocation:
+                                      _model.googleMapsCenter ??=
+                                          _model.placePickerValue.latLng,
+                                  markers: [
+                                    if (_googleMapMarker != null)
+                                      FlutterFlowMarker(
+                                        _googleMapMarker.serialize(),
+                                        _googleMapMarker,
+                                      ),
+                                  ],
+                                  markerColor: GoogleMarkerColor.violet,
+                                  mapType: MapType.normal,
+                                  style: GoogleMapStyle.standard,
+                                  initialZoom: 15.0,
+                                  allowInteraction: false,
+                                  allowZoom: false,
+                                  showZoomControls: true,
+                                  showLocation: false,
+                                  showCompass: false,
+                                  showMapToolbar: false,
+                                  showTraffic: false,
+                                  centerMapOnMarkerTap: true,
+                                  mapTakesGesturePreference: false,
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
                       Text(
                         'Select a Date',
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
+                          font: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontStyle:
+                                FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.bold,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
                       ),
                       Row(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          InkWell(
-                            splashColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onTap: () async {
-                              final _datePicked1Date = await showDatePicker(
-                                context: context,
-                                initialDate: getCurrentTimestamp,
-                                firstDate:
-                                    getCurrentTimestamp,
-                                lastDate: DateTime(2050),
-                                builder: (context, child) {
-                                  return wrapInMaterialDatePickerTheme(
-                                    context,
-                                    child!,
-                                    headerBackgroundColor:
-                                        FlutterFlowTheme.of(context).primary,
-                                    headerForegroundColor:
-                                        FlutterFlowTheme.of(context).info,
-                                    headerTextStyle:
-                                        FlutterFlowTheme.of(context)
-                                            .headlineLarge
-                                            .override(
-                                              font: GoogleFonts.interTight(
-                                                fontWeight: FontWeight.w600,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .headlineLarge
-                                                        .fontStyle,
-                                              ),
-                                              fontSize: 32.0,
-                                              letterSpacing: 0.0,
-                                              fontWeight: FontWeight.w600,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .headlineLarge
-                                                      .fontStyle,
-                                            ),
-                                    pickerBackgroundColor:
-                                        FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
-                                    pickerForegroundColor:
-                                        FlutterFlowTheme.of(context)
-                                            .primaryText,
-                                    selectedDateTimeBackgroundColor:
-                                        FlutterFlowTheme.of(context).primary,
-                                    selectedDateTimeForegroundColor:
-                                        FlutterFlowTheme.of(context).info,
-                                    actionButtonForegroundColor:
-                                        FlutterFlowTheme.of(context)
-                                            .primaryText,
-                                    iconSize: 24.0,
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  final _datePicked1Date = await showDatePicker(
+                                    context: context,
+                                    initialDate: getCurrentTimestamp,
+                                    firstDate: getCurrentTimestamp,
+                                    lastDate: DateTime(2050),
+                                    builder: (context, child) {
+                                      return wrapInMaterialDatePickerTheme(
+                                        context,
+                                        child!,
+                                        headerBackgroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primary,
+                                        headerForegroundColor:
+                                            FlutterFlowTheme.of(context).info,
+                                        headerTextStyle: FlutterFlowTheme.of(
+                                          context,
+                                        ).headlineLarge.override(
+                                          font: GoogleFonts.interTight(
+                                            fontWeight: FontWeight.w600,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(
+                                                  context,
+                                                ).headlineLarge.fontStyle,
+                                          ),
+                                          fontSize: 32.0,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FontWeight.w600,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(
+                                                context,
+                                              ).headlineLarge.fontStyle,
+                                        ),
+                                        pickerBackgroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).secondaryBackground,
+                                        pickerForegroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primaryText,
+                                        selectedDateTimeBackgroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primary,
+                                        selectedDateTimeForegroundColor:
+                                            FlutterFlowTheme.of(context).info,
+                                        actionButtonForegroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primaryText,
+                                        iconSize: 24.0,
+                                      );
+                                    },
                                   );
-                                },
-                              );
 
-                              if (_datePicked1Date != null) {
-                                safeSetState(() {
-                                  _model.datePicked1 = DateTime(
-                                    _datePicked1Date.year,
-                                    _datePicked1Date.month,
-                                    _datePicked1Date.day,
-                                  );
-                                });
-                              } else if (_model.datePicked1 != null) {
-                                safeSetState(() {
-                                  _model.datePicked1 = getCurrentTimestamp;
-                                });
-                              }
-                              _model.selectedDate = null;
-                              safeSetState(() {});
-                            },
-                            child: Icon(
-                              Icons.date_range,
-                              color: Color(0xFFEFF3F6),
-                              size: 24.0,
-                            ),
-                          ),
-                          Text(
-                            valueOrDefault<String>(
-                              dateTimeFormat("d/M/y", _model.datePicked1),
-                              'dd/mm/yyyy',
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
+                                  if (_datePicked1Date != null) {
+                                    safeSetState(() {
+                                      _model.datePicked1 = DateTime(
+                                        _datePicked1Date.year,
+                                        _datePicked1Date.month,
+                                        _datePicked1Date.day,
+                                      );
+                                    });
+                                  } else if (_model.datePicked1 != null) {
+                                    safeSetState(() {
+                                      _model.datePicked1 = getCurrentTimestamp;
+                                    });
+                                  }
+                                  _model.selectedDate = null;
+                                  safeSetState(() {});
+                                },
+                                child: Icon(
+                                  Icons.date_range,
+                                  color: Color(0xFFEFF3F6),
+                                  size: 24.0,
+                                ),
+                              ),
+                              Text(
+                                valueOrDefault<String>(
+                                  dateTimeFormat("d/M/y", _model.datePicked1),
+                                  'dd/mm/yyyy',
+                                ),
+                                style: FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.override(
                                   font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
+                                    fontWeight:
+                                        FlutterFlowTheme.of(
+                                          context,
+                                        ).bodyMedium.fontWeight,
+                                    fontStyle:
+                                        FlutterFlowTheme.of(
+                                          context,
+                                        ).bodyMedium.fontStyle,
                                   ),
                                   color: FlutterFlowTheme.of(context).primary,
                                   letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
+                                  fontWeight:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontWeight,
+                                  fontStyle:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontStyle,
                                 ),
-                          ),
-                        ]
+                              ),
+                            ]
                             .divide(SizedBox(width: 20.0))
                             .around(SizedBox(width: 20.0)),
                       ),
                       Text(
                         'Select a Time',
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
-                              font: GoogleFonts.inter(
-                                fontWeight: FontWeight.bold,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              letterSpacing: 0.0,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
+                          font: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontStyle:
+                                FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primaryBackground,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.bold,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
                       ),
                       Row(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          InkWell(
-                            splashColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onTap: () async {
-                              final _datePicked2Time = await showTimePicker(
-                                context: context,
-                                initialTime:
-                                    TimeOfDay.fromDateTime(getCurrentTimestamp),
-                                builder: (context, child) {
-                                  return wrapInMaterialTimePickerTheme(
-                                    context,
-                                    child!,
-                                    headerBackgroundColor:
-                                        FlutterFlowTheme.of(context).primary,
-                                    headerForegroundColor:
-                                        FlutterFlowTheme.of(context).info,
-                                    headerTextStyle:
-                                        FlutterFlowTheme.of(context)
-                                            .headlineLarge
-                                            .override(
-                                              font: GoogleFonts.interTight(
-                                                fontWeight: FontWeight.w600,
-                                                fontStyle:
-                                                    FlutterFlowTheme.of(context)
-                                                        .headlineLarge
-                                                        .fontStyle,
-                                              ),
-                                              fontSize: 32.0,
-                                              letterSpacing: 0.0,
-                                              fontWeight: FontWeight.w600,
-                                              fontStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .headlineLarge
-                                                      .fontStyle,
-                                            ),
-                                    pickerBackgroundColor:
-                                        FlutterFlowTheme.of(context)
-                                            .secondaryBackground,
-                                    pickerForegroundColor:
-                                        FlutterFlowTheme.of(context)
-                                            .primaryText,
-                                    selectedDateTimeBackgroundColor:
-                                        FlutterFlowTheme.of(context).primary,
-                                    selectedDateTimeForegroundColor:
-                                        FlutterFlowTheme.of(context).info,
-                                    actionButtonForegroundColor:
-                                        FlutterFlowTheme.of(context)
-                                            .primaryText,
-                                    iconSize: 24.0,
+                              InkWell(
+                                splashColor: Colors.transparent,
+                                focusColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                onTap: () async {
+                                  final _datePicked2Time = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.fromDateTime(
+                                      getCurrentTimestamp,
+                                    ),
+                                    builder: (context, child) {
+                                      return wrapInMaterialTimePickerTheme(
+                                        context,
+                                        child!,
+                                        headerBackgroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primary,
+                                        headerForegroundColor:
+                                            FlutterFlowTheme.of(context).info,
+                                        headerTextStyle: FlutterFlowTheme.of(
+                                          context,
+                                        ).headlineLarge.override(
+                                          font: GoogleFonts.interTight(
+                                            fontWeight: FontWeight.w600,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(
+                                                  context,
+                                                ).headlineLarge.fontStyle,
+                                          ),
+                                          fontSize: 32.0,
+                                          letterSpacing: 0.0,
+                                          fontWeight: FontWeight.w600,
+                                          fontStyle:
+                                              FlutterFlowTheme.of(
+                                                context,
+                                              ).headlineLarge.fontStyle,
+                                        ),
+                                        pickerBackgroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).secondaryBackground,
+                                        pickerForegroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primaryText,
+                                        selectedDateTimeBackgroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primary,
+                                        selectedDateTimeForegroundColor:
+                                            FlutterFlowTheme.of(context).info,
+                                        actionButtonForegroundColor:
+                                            FlutterFlowTheme.of(
+                                              context,
+                                            ).primaryText,
+                                        iconSize: 24.0,
+                                      );
+                                    },
                                   );
+                                  if (_datePicked2Time != null) {
+                                    safeSetState(() {
+                                      _model.datePicked2 = DateTime(
+                                        getCurrentTimestamp.year,
+                                        getCurrentTimestamp.month,
+                                        getCurrentTimestamp.day,
+                                        _datePicked2Time.hour,
+                                        _datePicked2Time.minute,
+                                      );
+                                    });
+                                  } else if (_model.datePicked2 != null) {
+                                    safeSetState(() {
+                                      _model.datePicked2 = getCurrentTimestamp;
+                                    });
+                                  }
+                                  _model.selectedTime = _model.selectedTime;
+                                  safeSetState(() {});
                                 },
-                              );
-                              if (_datePicked2Time != null) {
-                                safeSetState(() {
-                                  _model.datePicked2 = DateTime(
-                                    getCurrentTimestamp.year,
-                                    getCurrentTimestamp.month,
-                                    getCurrentTimestamp.day,
-                                    _datePicked2Time.hour,
-                                    _datePicked2Time.minute,
-                                  );
-                                });
-                              } else if (_model.datePicked2 != null) {
-                                safeSetState(() {
-                                  _model.datePicked2 = getCurrentTimestamp;
-                                });
-                              }
-                              _model.selectedTime = _model.selectedTime;
-                              safeSetState(() {});
-                            },
-                            child: FaIcon(
-                              FontAwesomeIcons.solidClock,
-                              color: Color(0xFFEEF2F6),
-                              size: 24.0,
-                            ),
-                          ),
-                          Text(
-                            valueOrDefault<String>(
-                              dateTimeFormat("jm", _model.datePicked2),
-                              'hh/mm a/pm',
-                            ),
-                            style: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .override(
+                                child: FaIcon(
+                                  FontAwesomeIcons.solidClock,
+                                  color: Color(0xFFEEF2F6),
+                                  size: 24.0,
+                                ),
+                              ),
+                              Text(
+                                valueOrDefault<String>(
+                                  dateTimeFormat("jm", _model.datePicked2),
+                                  'hh/mm a/pm',
+                                ),
+                                style: FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.override(
                                   font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
+                                    fontWeight:
+                                        FlutterFlowTheme.of(
+                                          context,
+                                        ).bodyMedium.fontWeight,
+                                    fontStyle:
+                                        FlutterFlowTheme.of(
+                                          context,
+                                        ).bodyMedium.fontStyle,
                                   ),
                                   color: FlutterFlowTheme.of(context).primary,
                                   letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
+                                  fontWeight:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontWeight,
+                                  fontStyle:
+                                      FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontStyle,
                                 ),
-                          ),
-                        ]
+                              ),
+                            ]
                             .divide(SizedBox(width: 20.0))
                             .around(SizedBox(width: 20.0)),
                       ),
                       FlutterFlowDropDown<String>(
-                        controller: _model.dropDownValueController ??=
-                            FormFieldController<String>(null),
+                        controller:
+                            _model.dropDownValueController ??=
+                                FormFieldController<String>(null),
                         options: ['Provided', 'Not Provided'],
-                        onChanged: (val) =>
-                            safeSetState(() => _model.dropDownValue = val),
+                        onChanged:
+                            (val) =>
+                                safeSetState(() => _model.dropDownValue = val),
                         width: 200.0,
                         height: 40.0,
-                        textStyle:
-                            FlutterFlowTheme.of(context).bodyMedium.override(
-                                  font: GoogleFonts.inter(
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
+                        textStyle: FlutterFlowTheme.of(
+                          context,
+                        ).bodyMedium.override(
+                          font: GoogleFonts.inter(
+                            fontWeight:
+                                FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.fontWeight,
+                            fontStyle:
+                                FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.fontStyle,
+                          ),
+                          letterSpacing: 0.0,
+                          fontWeight:
+                              FlutterFlowTheme.of(
+                                context,
+                              ).bodyMedium.fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).bodyMedium.fontStyle,
+                        ),
                         hintText: 'Equipment',
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
@@ -575,7 +634,11 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                         borderWidth: 0.0,
                         borderRadius: 8.0,
                         margin: EdgeInsetsDirectional.fromSTEB(
-                            12.0, 0.0, 12.0, 0.0),
+                          12.0,
+                          0.0,
+                          12.0,
+                          0.0,
+                        ),
                         hidesUnderline: true,
                         isOverButton: false,
                         isSearchable: false,
@@ -596,18 +659,18 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                       print('Date: ${_model.datePicked1}');
                       print('Time: ${_model.datePicked2}');
                       print('Address: ${_model.placePickerValue.address}');
-                      
+
                       // Validate required fields (Location is optional)
                       if (_model.createMeetupSportDropDownValue == null) {
                         print('❌ Sport not selected');
                         return;
                       }
-                      
+
                       if (_model.datePicked1 == null) {
                         print('❌ Date not selected');
                         return;
                       }
-                      
+
                       if (_model.datePicked2 == null) {
                         print('❌ Time not selected');
                         return;
@@ -616,30 +679,34 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                       // Save meetup to Firebase (location is optional)
                       try {
                         print('💾 Saving meetup to Firebase...');
-                        await MeetupRecord.collection
-                            .doc()
-                            .set(createMeetupRecordData(
-                              meetupSport: _model.createMeetupSportDropDownValue,
-                              meetupDate: _model.datePicked1,
-                              meetupTime: _model.datePicked2,
-                              meetupLocation: _model.placePickerValue.address.isNotEmpty 
-                                  ? _model.placePickerValue.latLng 
-                                  : null,
-                              meetupAddress: _model.placePickerValue.address.isNotEmpty 
-                                  ? _model.placePickerValue.address 
-                                  : '',
-                              meetupHost: currentUserDisplayName,
-                              meetupHostnum: currentPhoneNumber,
-                            ));
+                        await MeetupRecord.collection.doc().set(
+                          createMeetupRecordData(
+                            meetupSport: _model.createMeetupSportDropDownValue,
+                            meetupDate: _model.datePicked1,
+                            meetupTime: _model.datePicked2,
+                            meetupLocation:
+                                _model.placePickerValue.address.isNotEmpty
+                                    ? _model.placePickerValue.latLng
+                                    : null,
+                            meetupAddress:
+                                _model.placePickerValue.address.isNotEmpty
+                                    ? _model.placePickerValue.address
+                                    : '',
+                            meetupHost: currentUserDisplayName,
+                            meetupHostnum: currentPhoneNumber,
+                          ),
+                        );
 
                         print('✅ Meetup saved successfully!');
-                        
+
                         // Close the dialog
                         if (!mounted) return;
                         Navigator.pop(context);
                         print('✅ Dialog closed');
 
-                        print('✅ Meetup creation complete - dialog will close and page will refresh');
+                        print(
+                          '✅ Meetup creation complete - dialog will close and page will refresh',
+                        );
                       } catch (e) {
                         print('❌ Error creating meetup: $e');
                         // Close dialog even on error
@@ -651,30 +718,37 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                     text: 'Create Meetup',
                     options: FFButtonOptions(
                       height: 40.0,
-                      padding:
-                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
-                      iconPadding:
-                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      padding: EdgeInsetsDirectional.fromSTEB(
+                        16.0,
+                        0.0,
+                        16.0,
+                        0.0,
+                      ),
+                      iconPadding: EdgeInsetsDirectional.fromSTEB(
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                      ),
                       color: FlutterFlowTheme.of(context).primary,
-                      textStyle:
-                          FlutterFlowTheme.of(context).titleSmall.override(
-                                font: GoogleFonts.interTight(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .titleSmall
-                                      .fontStyle,
-                                ),
-                                color: Colors.white,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .titleSmall
-                                    .fontStyle,
-                              ),
+                      textStyle: FlutterFlowTheme.of(
+                        context,
+                      ).titleSmall.override(
+                        font: GoogleFonts.interTight(
+                          fontWeight:
+                              FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontWeight,
+                          fontStyle:
+                              FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                        ),
+                        color: Colors.white,
+                        letterSpacing: 0.0,
+                        fontWeight:
+                            FlutterFlowTheme.of(context).titleSmall.fontWeight,
+                        fontStyle:
+                            FlutterFlowTheme.of(context).titleSmall.fontStyle,
+                      ),
                       elevation: 0.0,
                       borderRadius: BorderRadius.circular(8.0),
                     ),

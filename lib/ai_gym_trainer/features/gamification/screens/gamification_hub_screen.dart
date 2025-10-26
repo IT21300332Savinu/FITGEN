@@ -497,7 +497,11 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
+                        const Icon(
+                          Icons.emoji_events,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -650,7 +654,9 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   // Get fitgen Firebase auth instance (same as Medical Guidance)
                   FirebaseAuth auth;
                   try {
-                    auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+                    auth = FirebaseAuth.instanceFor(
+                      app: Firebase.app('fitgen'),
+                    );
                   } catch (e) {
                     auth = FirebaseAuth.instance;
                   }

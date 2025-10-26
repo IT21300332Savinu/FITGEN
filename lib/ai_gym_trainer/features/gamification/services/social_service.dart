@@ -132,7 +132,9 @@ class SocialService {
               xpEarned: 380,
               duration: const Duration(minutes: 30),
               startTime: DateTime.now().subtract(const Duration(hours: 2)),
-              endTime: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+              endTime: DateTime.now().subtract(
+                const Duration(hours: 1, minutes: 30),
+              ),
               achievementsUnlocked: [],
             ).toJson(),
         achievementIds: null,
@@ -199,7 +201,9 @@ class SocialService {
               xpEarned: 420,
               duration: const Duration(minutes: 25),
               startTime: DateTime.now().subtract(const Duration(hours: 6)),
-              endTime: DateTime.now().subtract(const Duration(hours: 5, minutes: 35)),
+              endTime: DateTime.now().subtract(
+                const Duration(hours: 5, minutes: 35),
+              ),
               achievementsUnlocked: ['perfect_form_workout'],
             ).toJson(),
         achievementIds: null,
@@ -252,7 +256,9 @@ class SocialService {
               xpEarned: 320,
               duration: const Duration(minutes: 20),
               startTime: DateTime.now().subtract(const Duration(hours: 10)),
-              endTime: DateTime.now().subtract(const Duration(hours: 9, minutes: 40)),
+              endTime: DateTime.now().subtract(
+                const Duration(hours: 9, minutes: 40),
+              ),
               achievementsUnlocked: [],
             ).toJson(),
         achievementIds: null,
