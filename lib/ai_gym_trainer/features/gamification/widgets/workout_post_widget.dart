@@ -6,8 +6,7 @@ import '../models/gamification_models.dart';
 class WorkoutPostWidget extends StatelessWidget {
   final WorkoutSession workoutData;
 
-  const WorkoutPostWidget({Key? key, required this.workoutData})
-    : super(key: key);
+  const WorkoutPostWidget({super.key, required this.workoutData});
 
   @override
   Widget build(BuildContext context) {

@@ -5,10 +5,10 @@ class ExerciseInstructionScreen extends StatelessWidget {
   final VoidCallback onStartWorkout;
 
   const ExerciseInstructionScreen({
-    Key? key,
+    super.key,
     required this.exerciseType,
     required this.onStartWorkout,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +175,7 @@ class ExerciseInstructionScreen extends StatelessWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

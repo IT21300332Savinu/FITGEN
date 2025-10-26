@@ -7,8 +7,7 @@ import '../models/gamification_models.dart';
 class AchievementPostWidget extends StatelessWidget {
   final List<String> achievementIds;
 
-  const AchievementPostWidget({Key? key, required this.achievementIds})
-    : super(key: key);
+  const AchievementPostWidget({super.key, required this.achievementIds});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +52,7 @@ class AchievementPostWidget extends StatelessWidget {
           ...achievementIds.map((achievementId) {
             final achievement = _getAchievementById(achievementId);
             return _buildAchievementCard(context, achievement);
-          }).toList(),
+          }),
         ],
       ),
     );

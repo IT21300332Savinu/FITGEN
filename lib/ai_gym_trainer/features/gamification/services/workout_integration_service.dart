@@ -20,7 +20,7 @@ class WorkoutIntegrationService {
       );
 
       // Get current user ID
-      final userId = await GamificationFirebaseService.currentUserId;
+      final userId = GamificationFirebaseService.currentUserId;
       print('🆔 Current User ID: $userId');
 
       if (userId == null) {
@@ -115,7 +115,7 @@ class WorkoutIntegrationService {
 
   /// Get user's current gamification stats
   static Future<UserStats?> getCurrentStats() async {
-    final userId = await GamificationFirebaseService.currentUserId;
+    final userId = GamificationFirebaseService.currentUserId;
     if (userId == null) return null;
     return await GamificationFirebaseService.getUserStats(userId);
   }
@@ -127,7 +127,7 @@ class WorkoutIntegrationService {
 
   /// Get current leaderboard position
   static Future<int> getCurrentRank() async {
-    final userId = await GamificationFirebaseService.currentUserId;
+    final userId = GamificationFirebaseService.currentUserId;
     if (userId == null) return -1;
 
     return await GamificationFirebaseService.getUserRank(
@@ -156,11 +156,11 @@ class WorkoutIntegrationService {
     }
 
     if (currentStreak >= 7) {
-      return "🔥 ${currentStreak}-day streak! You're on fire! $xpEarned XP earned!";
+      return "🔥 $currentStreak-day streak! You're on fire! $xpEarned XP earned!";
     }
 
     if (currentStreak >= 3) {
-      return "🎉 Great consistency! ${currentStreak} days in a row! $xpEarned XP earned!";
+      return "🎉 Great consistency! $currentStreak days in a row! $xpEarned XP earned!";
     }
 
     if (xpEarned >= 100) {

@@ -2,10 +2,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
-import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:flutter/foundation.dart';
 
 /// Result class for pose analysis

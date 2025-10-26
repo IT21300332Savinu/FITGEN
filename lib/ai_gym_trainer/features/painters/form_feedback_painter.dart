@@ -477,7 +477,7 @@ class FormFeedbackPainter extends CustomPainter {
   void _drawFormQualityIndicator(Canvas canvas, Size size, FormColors colors) {
     // Top-right corner form indicator
     final center = Offset(size.width - 50, 50);
-    final radius = 30.0;
+    const radius = 30.0;
     
     // Main circle
     final paint = Paint()
@@ -585,17 +585,17 @@ class FormFeedbackPainter extends CustomPainter {
     double translatedY = y;
     
     if (rotation == 90) {
-      const double VERTICAL_STRETCH_FACTOR = 1.0;
+      const double verticalStretchFactor = 1.0;
       
       double normalizedX = x / imageSize.height;
       double normalizedY = y / imageSize.width;
       
-      normalizedY = normalizedY * VERTICAL_STRETCH_FACTOR;
+      normalizedY = normalizedY * verticalStretchFactor;
       
       translatedX = normalizedX * canvasSize.width;
       translatedY = normalizedY * canvasSize.height;
       
-      double verticalOffset = (canvasSize.height - (canvasSize.height / VERTICAL_STRETCH_FACTOR)) / 2;
+      double verticalOffset = (canvasSize.height - (canvasSize.height / verticalStretchFactor)) / 2;
       translatedY = translatedY - verticalOffset;
       
     } else if (rotation == 270) {

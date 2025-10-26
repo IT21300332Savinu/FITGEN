@@ -23,7 +23,7 @@ class VoiceCoachService {
   // Voice settings
   double _volume = 0.8;
   double _rate = 0.5; // Slower speech for better understanding
-  double _pitch = 1.0;
+  final double _pitch = 1.0;
 
   // Set the current exercise type for appropriate coaching
   void setExerciseType(ExerciseType exerciseType) {

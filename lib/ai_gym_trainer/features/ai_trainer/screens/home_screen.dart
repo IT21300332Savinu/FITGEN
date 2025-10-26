@@ -7,7 +7,7 @@ import 'login_screen.dart';
 import '../../gamification/services/gamification_firebase_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -403,8 +403,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             subtitle: Text(exercise['description']!),
                             leading:
                                 exercise['name']!.contains('(AI)')
-                                    ? Icon(Icons.smart_toy, color: Colors.blue)
-                                    : Icon(Icons.fitness_center),
+                                    ? const Icon(Icons.smart_toy, color: Colors.blue)
+                                    : const Icon(Icons.fitness_center),
                             onTap: () {
                               debugPrint(
                                 '🏠 Home Screen: User selected exercise: ${exercise['name']}',

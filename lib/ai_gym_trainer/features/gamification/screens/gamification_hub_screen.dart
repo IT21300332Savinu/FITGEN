@@ -13,7 +13,7 @@ import 'achievements_screen.dart';
 import 'progress_screen.dart';
 
 class GamificationHubScreen extends StatefulWidget {
-  const GamificationHubScreen({Key? key}) : super(key: key);
+  const GamificationHubScreen({super.key});
 
   @override
   State<GamificationHubScreen> createState() => _GamificationHubScreenState();
@@ -488,7 +488,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.emoji_events, color: Colors.amber, size: 20),
+                        const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(

@@ -11,7 +11,7 @@ import '../widgets/workout_post_widget.dart';
 import '../widgets/achievement_post_widget.dart';
 
 class SocialFeedScreen extends StatefulWidget {
-  const SocialFeedScreen({Key? key}) : super(key: key);
+  const SocialFeedScreen({super.key});
 
   @override
   State<SocialFeedScreen> createState() => _SocialFeedScreenState();

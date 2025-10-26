@@ -5,7 +5,7 @@ import '../models/gamification_models.dart';
 import '../services/achievement_service.dart';
 
 class AchievementsScreen extends StatefulWidget {
-  const AchievementsScreen({Key? key}) : super(key: key);
+  const AchievementsScreen({super.key});
 
   @override
   State<AchievementsScreen> createState() => _AchievementsScreenState();
@@ -139,7 +139,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         // Achievement categories
         ...groupedAchievements.entries.map((entry) {
           return _buildCategorySection(entry.key, entry.value);
-        }).toList(),
+        }),
       ],
     );
   }

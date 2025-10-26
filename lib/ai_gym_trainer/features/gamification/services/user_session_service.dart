@@ -7,7 +7,7 @@ class UserSessionService {
   static const String _userNameKey = 'user_name';
 
   // Enhanced in-memory storage with persistence simulation
-  static Map<String, String> _tempStorage = {};
+  static final Map<String, String> _tempStorage = {};
   static bool _isInitialized = false;
 
   /// Initialize the service (call this at app startup)

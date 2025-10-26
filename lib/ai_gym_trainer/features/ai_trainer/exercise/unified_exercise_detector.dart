@@ -76,7 +76,7 @@ class UnifiedExerciseDetector {
       return null;
     }
 
-    print('🔍 UnifiedExerciseDetector: Detecting ${_currentExerciseType}...');
+    print('🔍 UnifiedExerciseDetector: Detecting $_currentExerciseType...');
 
     switch (_currentExerciseType!) {
       case ExerciseType.bicepCurl:

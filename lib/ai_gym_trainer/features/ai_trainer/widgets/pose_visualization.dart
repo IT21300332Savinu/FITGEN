@@ -6,10 +6,10 @@ class PoseVisualization extends StatelessWidget {
   final Size imageSize;
 
   const PoseVisualization({
-    Key? key,
+    super.key,
     required this.poses,
     required this.imageSize,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

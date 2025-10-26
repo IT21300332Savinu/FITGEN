@@ -6,7 +6,7 @@ import '../services/user_session_service.dart';
 import '../../ai_trainer/screens/home_screen.dart';
 
 class SimpleAuthWrapper extends StatelessWidget {
-  const SimpleAuthWrapper({Key? key}) : super(key: key);
+  const SimpleAuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {

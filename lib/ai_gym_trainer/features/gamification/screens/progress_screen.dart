@@ -5,7 +5,7 @@ import '../models/gamification_models.dart';
 import '../services/scoring_service.dart';
 
 class ProgressScreen extends StatefulWidget {
-  const ProgressScreen({Key? key}) : super(key: key);
+  const ProgressScreen({super.key});
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -333,7 +333,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -354,7 +354,7 @@ class _ProgressScreenState extends State<ProgressScreen>
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.emoji_events, color: Colors.amber, size: 24),
+                const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -486,7 +486,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -611,7 +611,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),

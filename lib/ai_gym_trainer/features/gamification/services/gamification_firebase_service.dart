@@ -600,7 +600,7 @@ class GamificationFirebaseService {
 
     // Estimation: METs * weight(kg) * duration(hours)
     // Using average weight of 70kg for calculation
-    final weightKg = 70;
+    const weightKg = 70;
     final durationHours = durationMinutes / 60.0;
     final caloriesBurned = (mets * weightKg * durationHours).round();
 

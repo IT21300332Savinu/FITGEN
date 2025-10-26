@@ -281,15 +281,15 @@ class ScoringService {
     }
 
     if (streak >= 7) {
-      return "🚀 Amazing ${streak}-day streak! You're unstoppable!";
+      return "🚀 Amazing $streak-day streak! You're unstoppable!";
     } else if (streak >= 3) {
-      return "🔥 ${streak} days in a row! Building great habits!";
+      return "🔥 $streak days in a row! Building great habits!";
     }
 
     if (xpEarned >= 200) {
-      return "💯 Massive XP gain! You earned ${xpEarned} points!";
+      return "💯 Massive XP gain! You earned $xpEarned points!";
     } else if (xpEarned >= 100) {
-      return "⚡ Great workout! ${xpEarned} XP earned!";
+      return "⚡ Great workout! $xpEarned XP earned!";
     }
 
     return "🎯 Good work! Every rep counts towards your goals!";

@@ -12,7 +12,7 @@ apply(from = "${rootProject.projectDir}/mlkit_commons_fix.gradle")
 
 android {
     namespace = "com.example.fitgen"
-    compileSdk = 35
+    compileSdk = 36
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -26,7 +26,7 @@ android {
     defaultConfig {
         applicationId = "com.example.fitgen"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }

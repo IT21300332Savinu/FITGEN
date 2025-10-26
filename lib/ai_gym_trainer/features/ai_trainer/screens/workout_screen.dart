@@ -22,10 +22,10 @@ class WorkoutScreen extends StatefulWidget {
   final String workoutType;
 
   const WorkoutScreen({
-    Key? key,
+    super.key,
     required this.exerciseName,
     required this.workoutType,
-  }) : super(key: key);
+  });
 
   @override
   State<WorkoutScreen> createState() => WorkoutScreenState();
@@ -66,7 +66,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
   bool _isDetecting = false;
 
   // Display settings
-  bool _showFormFeedback = true;
+  final bool _showFormFeedback = true;
   bool _showAllKeypoints = true;
   bool _voiceCoachEnabled = true;
 
@@ -708,7 +708,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
   }
 
   Widget _buildCameraView() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: double.infinity,
       child: Stack(
@@ -754,7 +754,7 @@ class WorkoutScreenState extends State<WorkoutScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.fitness_center, size: 64, color: Colors.white70),
+            const Icon(Icons.fitness_center, size: 64, color: Colors.white70),
             const SizedBox(height: 16),
             const Text(
               'Camera Preview',

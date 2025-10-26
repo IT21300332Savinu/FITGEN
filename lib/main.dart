@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-// Fixed import paths
-import 'ai_gym_trainer/features/ai_trainer/screens/home_screen.dart';
-import 'ai_gym_trainer/features/ai_trainer/screens/login_screen.dart';
-import 'ai_gym_trainer/features/ai_trainer/screens/signup_screen.dart';
-import 'ai_gym_trainer/features/ai_trainer/screens/profile_setup_screen.dart';
-import 'ai_gym_trainer/features/ai_trainer/services/firebase_service.dart';
-import 'ai_gym_trainer/features/gamification/widgets/auth_wrapper.dart';
+import 'screens/gym_home.dart';
+import 'screens/medical_home.dart';
+import 'ai_medical_guidance/services/firebase_config .dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  if (kIsWeb) {
-    try {
+  // Initialize Firebase for both projects using the existing config
+  try {
+    if (kIsWeb) {
+      // Web initialization
       await Firebase.initializeApp(
         options: const FirebaseOptions(
           apiKey: "AIzaSyDZawBGupkkbzaF_M_RN1gvnsNP3IjlnoA",
@@ -28,14 +24,15 @@ Future<void> main() async {
           measurementId: "G-3ETVGV9BRT",
         ),
       );
-      debugPrint('Firebase initialized for web successfully');
-    } catch (e) {
-      debugPrint('Firebase initialization error: $e');
+    } else {
+      // Mobile Firebase initialization with both projects
+      await FirebaseConfig.initializeFirebase();
     }
-  } else {
-    // Mobile Firebase initialization
-    await Firebase.initializeApp();
-    debugPrint('Firebase initialized for mobile successfully');
+    
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('⚠️ Firebase initialization error: $e');
+    // Continue anyway, Firebase might already be initialized
   }
 
   runApp(const MyApp());
@@ -46,154 +43,46 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<FirebaseService>(
-      create: (_) => FirebaseService(),
-      child: MaterialApp(
-        title: 'FITGEN',
-        theme: ThemeData(
-          // Light theme only - removed dark theme
-          primarySwatch: createMaterialColor(const Color(0xFFF97000)), // Orange
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          brightness: Brightness.light,
-
-          // Enhanced light theme
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: createMaterialColor(
-              const Color(0xFFF97000),
-            ), // Orange
-            brightness: Brightness.light,
-            accentColor: const Color(0xFFF97000), // Orange accent
-            backgroundColor: Colors.white,
-          ).copyWith(
-            surface: Colors.white,
-            onSurface: Colors.black87,
-            secondary: const Color(0xFFF97000),
-            onSecondary: Colors.white,
-          ),
-
-          // App bar theme
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFF97000),
-            foregroundColor: Colors.white,
-            elevation: 2,
-            centerTitle: true,
-            titleTextStyle: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          // Scaffold theme
-          scaffoldBackgroundColor: Colors.white,
-
-          // Card theme
-          cardTheme: const CardThemeData(
-            color: Colors.white,
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-            ),
-          ),
-
-          // Button themes
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFF97000),
-              foregroundColor: Colors.white,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            backgroundColor: Color(0xFFF97000),
-            foregroundColor: Colors.white,
-          ),
-
-          // Input decoration theme
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFF97000), width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-          ),
-
-          // Text themes
-          textTheme: const TextTheme(
-            displayLarge: TextStyle(color: Colors.black87),
-            displayMedium: TextStyle(color: Colors.black87),
-            displaySmall: TextStyle(color: Colors.black87),
-            headlineLarge: TextStyle(color: Colors.black87),
-            headlineMedium: TextStyle(color: Colors.black87),
-            headlineSmall: TextStyle(color: Colors.black87),
-            titleLarge: TextStyle(color: Colors.black87),
-            titleMedium: TextStyle(color: Colors.black87),
-            titleSmall: TextStyle(color: Colors.black87),
-            bodyLarge: TextStyle(color: Colors.black87),
-            bodyMedium: TextStyle(color: Colors.black87),
-            bodySmall: TextStyle(color: Colors.black87),
-            labelLarge: TextStyle(color: Colors.black87),
-            labelMedium: TextStyle(color: Colors.black87),
-            labelSmall: TextStyle(color: Colors.black87),
-          ),
-
-          // Bottom navigation theme
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: Colors.white,
-            selectedItemColor: Color(0xFFF97000),
-            unselectedItemColor: Colors.grey,
-            elevation: 8,
-          ),
-
-          // Divider theme
-          dividerTheme: DividerThemeData(
-            color: Colors.grey.shade300,
-            thickness: 1,
-          ),
-        ),
-
-        // Remove dark theme completely
-        themeMode: ThemeMode.light, // Force light theme only
-
-        home: const AuthWrapper(),
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/signup': (context) => const SignupScreen(),
-          '/profile_setup': (context) => const ProfileSetupScreen(),
-          '/home': (context) => const HomeScreen(),
-        },
-      ),
+    return MaterialApp(
+      title: 'FITGEN',
+      theme: ThemeData(primarySwatch: Colors.orange),
+      home: const HomeChooser(),
+      routes: {
+        '/gym': (c) => const GymHome(),
+        '/medical': (c) => const MedicalHome(),
+      },
     );
   }
+}
 
-  MaterialColor createMaterialColor(Color color) {
-    List<double> strengths = <double>[.05, .1, .2, .3, .4, .5, .6, .7, .8, .9];
-    Map<int, Color> swatch = {};
-    final int r = color.red, g = color.green, b = color.blue;
+class HomeChooser extends StatelessWidget {
+  const HomeChooser({super.key});
 
-    for (var strength in strengths) {
-      final double ds = 0.5 - strength;
-      swatch[(strength * 1000).round()] = Color.fromRGBO(
-        r + ((ds < 0 ? r : (255 - r)) * ds).round(),
-        g + ((ds < 0 ? g : (255 - g)) * ds).round(),
-        b + ((ds < 0 ? b : (255 - b)) * ds).round(),
-        1,
-      );
-    }
-    return MaterialColor(color.value, swatch);
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('FITGEN')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, '/gym'),
+                style: ElevatedButton.styleFrom(minimumSize: const Size(220, 56)),
+                child: const Text('AI Gym Trainer'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, '/medical'),
+                style: ElevatedButton.styleFrom(minimumSize: const Size(220, 56)),
+                child: const Text('AI Medical Guidance'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

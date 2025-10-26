@@ -8,7 +8,7 @@ import '../services/user_session_service.dart'; // Use the fixed service instead
 import '../../ai_trainer/screens/home_screen.dart';
 
 class SimpleNameEntryScreen extends StatefulWidget {
-  const SimpleNameEntryScreen({Key? key}) : super(key: key);
+  const SimpleNameEntryScreen({super.key});
 
   @override
   State<SimpleNameEntryScreen> createState() => _SimpleNameEntryScreenState();

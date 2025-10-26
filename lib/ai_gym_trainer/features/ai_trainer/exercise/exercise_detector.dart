@@ -38,8 +38,8 @@ class BicepCurlDetector {
   // State tracking
   ExerciseState _currentState = ExerciseState.ready;
   int _repCount = 0;
-  List<double> _angleHistory = [];
-  List<double> _elbowPositionHistory = [];
+  final List<double> _angleHistory = [];
+  final List<double> _elbowPositionHistory = [];
   DateTime _lastStateChange = DateTime.now();
 
   // Configuration
