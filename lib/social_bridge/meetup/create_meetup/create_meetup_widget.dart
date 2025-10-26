@@ -591,40 +591,62 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 20.0, 0.0, 0.0),
                   child: FFButtonWidget(
                     onPressed: () async {
-                      await MeetupRecord.collection
-                          .doc()
-                          .set(createMeetupRecordData(
-                            meetupSport: _model.createMeetupSportDropDownValue,
-                            meetupDate: _model.datePicked1,
-                            meetupTime: _model.datePicked2,
-                            meetupLocation: _model.placePickerValue.latLng,
-                            meetupAddress: _model.placePickerValue.address,
-                            meetupHost: currentUserDisplayName,
-                            meetupHostnum: currentPhoneNumber,
-                          ));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Meetup created',
-                            style: TextStyle(
-                              color: FlutterFlowTheme.of(context).primaryText,
-                            ),
-                          ),
-                          duration: Duration(milliseconds: 4000),
-                          backgroundColor: Color(0xFFF3F8F7),
-                        ),
-                      );
-                      Navigator.pop(context);
+                      print('🔵 Create Meetup button pressed');
+                      print('Sport: ${_model.createMeetupSportDropDownValue}');
+                      print('Date: ${_model.datePicked1}');
+                      print('Time: ${_model.datePicked2}');
+                      print('Address: ${_model.placePickerValue.address}');
+                      
+                      // Validate required fields (Location is optional)
+                      if (_model.createMeetupSportDropDownValue == null) {
+                        print('❌ Sport not selected');
+                        return;
+                      }
+                      
+                      if (_model.datePicked1 == null) {
+                        print('❌ Date not selected');
+                        return;
+                      }
+                      
+                      if (_model.datePicked2 == null) {
+                        print('❌ Time not selected');
+                        return;
+                      }
 
-                      context.pushNamed(
-                        SPUAllMeetupPageWidget.routeName,
-                        extra: <String, dynamic>{
-                          kTransitionInfoKey: TransitionInfo(
-                            hasTransition: true,
-                            transitionType: PageTransitionType.leftToRight,
-                          ),
-                        },
-                      );
+                      // Save meetup to Firebase (location is optional)
+                      try {
+                        print('💾 Saving meetup to Firebase...');
+                        await MeetupRecord.collection
+                            .doc()
+                            .set(createMeetupRecordData(
+                              meetupSport: _model.createMeetupSportDropDownValue,
+                              meetupDate: _model.datePicked1,
+                              meetupTime: _model.datePicked2,
+                              meetupLocation: _model.placePickerValue.address.isNotEmpty 
+                                  ? _model.placePickerValue.latLng 
+                                  : null,
+                              meetupAddress: _model.placePickerValue.address.isNotEmpty 
+                                  ? _model.placePickerValue.address 
+                                  : '',
+                              meetupHost: currentUserDisplayName,
+                              meetupHostnum: currentPhoneNumber,
+                            ));
+
+                        print('✅ Meetup saved successfully!');
+                        
+                        // Close the dialog
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                        print('✅ Dialog closed');
+
+                        print('✅ Meetup creation complete - dialog will close and page will refresh');
+                      } catch (e) {
+                        print('❌ Error creating meetup: $e');
+                        // Close dialog even on error
+                        if (mounted) {
+                          Navigator.pop(context);
+                        }
+                      }
                     },
                     text: 'Create Meetup',
                     options: FFButtonOptions(

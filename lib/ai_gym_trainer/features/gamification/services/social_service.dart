@@ -1,11 +1,20 @@
 // lib/features/gamification/services/social_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/gamification_models.dart';
 import 'user_session_service.dart';
 
 class SocialService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Use the named 'fitgen' Firebase app (shared with Medical Guidance)
+  static FirebaseFirestore get _firestore {
+    try {
+      return FirebaseFirestore.instanceFor(app: Firebase.app('fitgen'));
+    } catch (e) {
+      print('⚠️ Fitgen Firebase not initialized, using default: $e');
+      return FirebaseFirestore.instance;
+    }
+  }
 
   /// Get user's social feed with real Firebase data
   static Future<List<SocialPost>> getFeed(String userId) async {

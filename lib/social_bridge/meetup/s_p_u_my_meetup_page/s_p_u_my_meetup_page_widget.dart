@@ -196,6 +196,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                       initialLocation: _model.googleMapsCenter ??=
                           LatLng(13.106061, -59.613158),
                       markers: containerMeetupRecordList
+                          .where((marker) => marker.meetupLocation != null)
                           .map(
                             (marker) => FlutterFlowMarker(
                               marker.reference.path,

@@ -79,7 +79,9 @@ dependencies:
   video_player: ^2.8.1
   file_picker: ^8.0.0+1
   package_info_plus: ^9.0.0
-  # sqflite: 2.3.3  # Temporarily disabled due to Android embedding compatibility issues
+  # Downgrade sqflite to avoid Android API 35-only constants in sqflite_android 2.4.x
+  # 2.3.3+1 uses a compatible Android implementation without BAKLAVA/Locale.of/threadId
+  sqflite: ^2.3.3+1
   rxdart: ^0.27.7
   stop_watch_timer: ^3.1.1
   smooth_page_indicator: ^1.1.0
@@ -88,6 +90,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+
+dependency_overrides:
+  # Force Android implementation to a version that doesn't require API 35-only constants
+  sqflite_android: 2.4.0
 
 flutter:
   uses-material-design: true

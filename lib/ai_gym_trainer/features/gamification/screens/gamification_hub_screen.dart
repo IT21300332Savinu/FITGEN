@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/gamification_models.dart';
 import '../services/scoring_service.dart';
 import '../services/achievement_service.dart';
@@ -36,8 +37,16 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Get fitgen Firebase auth instance (same as Medical Guidance)
+      FirebaseAuth auth;
+      try {
+        auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+      } catch (e) {
+        auth = FirebaseAuth.instance;
+      }
+
       // Get current user ID from Firebase Auth
-      _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      _currentUserId = auth.currentUser?.uid;
 
       if (_currentUserId == null) {
         print('❌ No user logged in to Firebase');
@@ -60,7 +69,7 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
       } else {
         print('⚠️ No user stats found, initializing...');
         // Initialize user stats if they don't exist
-        final user = FirebaseAuth.instance.currentUser;
+        final user = auth.currentUser;
         final userName = user?.email ?? 'User';
         await GamificationFirebaseService.initializeUserStats(
           _currentUserId!,
@@ -638,7 +647,15 @@ class _GamificationHubScreenState extends State<GamificationHubScreen> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
+                  // Get fitgen Firebase auth instance (same as Medical Guidance)
+                  FirebaseAuth auth;
+                  try {
+                    auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+                  } catch (e) {
+                    auth = FirebaseAuth.instance;
+                  }
+
+                  await auth.signOut();
                   if (mounted) {
                     Navigator.of(context).pop(); // Close dialog
                     // Navigate to auth wrapper which will show login screen

@@ -2,14 +2,31 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_storage/firebase_storage.dart';
 import '../models/user_profile.dart';
 import '../models/workout_session.dart';
 import '../models/achievement.dart';
 
 class FirebaseService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Use the named 'fitgen' Firebase app (shared with Medical Guidance)
+  FirebaseAuth get _auth {
+    try {
+      return FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+    } catch (e) {
+      print('⚠️ Fitgen Firebase not initialized, using default: $e');
+      return FirebaseAuth.instance;
+    }
+  }
+  
+  FirebaseFirestore get _firestore {
+    try {
+      return FirebaseFirestore.instanceFor(app: Firebase.app('fitgen'));
+    } catch (e) {
+      print('⚠️ Fitgen Firebase not initialized, using default: $e');
+      return FirebaseFirestore.instance;
+    }
+  }
   //final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Authentication methods
@@ -37,8 +54,60 @@ class FirebaseService {
     }
   }
 
+  Future<UserCredential> signInAnonymously() async {
+    try {
+      return await _auth.signInAnonymously();
+    } catch (e) {
+      print('Error during anonymous sign in: $e');
+      rethrow;
+    }
+  }
+
   Future<void> signOut() async {
     return await _auth.signOut();
+  }
+
+  // Initialize anonymous user with default profile
+  Future<void> initializeAnonymousUser() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null || !currentUser.isAnonymous) return;
+
+      // Check if profile already exists
+      final existingProfile = await getUserProfile();
+      if (existingProfile != null) {
+        print('✅ Anonymous user profile already exists');
+        return;
+      }
+
+      // Create default profile for anonymous user
+      final defaultProfile = UserProfile(
+        userId: currentUser.uid,
+        name: 'Guest User',
+        age: 25,
+        weight: 70.0,
+        height: 170.0,
+        fitnessGoal: 'general_fitness',
+        healthConditions: [],
+      );
+
+      await createUserProfile(defaultProfile);
+      print('✅ Created default profile for anonymous user');
+
+      // Initialize gamification stats
+      await _firestore.collection('users').doc(currentUser.uid).set({
+        'totalWorkouts': 0,
+        'totalCaloriesBurned': 0,
+        'totalWorkoutMinutes': 0,
+        'experiencePoints': 0,
+        'lastWorkout': null,
+      }, SetOptions(merge: true));
+
+      print('✅ Initialized gamification stats for anonymous user');
+    } catch (e) {
+      print('Error initializing anonymous user: $e');
+      // Don't rethrow - we can continue without profile
+    }
   }
 
   // User profile methods

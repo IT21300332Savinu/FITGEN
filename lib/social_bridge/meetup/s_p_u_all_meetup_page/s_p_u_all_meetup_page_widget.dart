@@ -52,7 +52,11 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
         backgroundColor: Color(0xFFDB9D83),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
-            context.pushNamed(SPUMyMeetupPageWidget.routeName);
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SPUMyMeetupPageWidget(),
+              ),
+            );
           },
           backgroundColor: FlutterFlowTheme.of(context).primary,
           elevation: 8.0,

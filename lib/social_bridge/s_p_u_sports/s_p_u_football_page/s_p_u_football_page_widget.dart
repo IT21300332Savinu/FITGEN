@@ -464,9 +464,8 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                               FlutterFlowVideoPlayer(
                                                             path:
                                                                 'assets/videos/Screen_Recording_2025-09-07_041917.mp4',
-                                                            videoType:
-                                                                VideoType.asset,
-                                                            autoPlay: false,
+                                                            videoType: VideoType.asset,
+                                                            autoPlay: true,
                                                             looping: true,
                                                             showControls: true,
                                                             allowFullScreen:
@@ -668,9 +667,8 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                               FlutterFlowVideoPlayer(
                                                             path:
                                                                 'assets/videos/Screen_Recording_2025-09-07_042540.mp4',
-                                                            videoType:
-                                                                VideoType.asset,
-                                                            autoPlay: false,
+                                                            videoType: VideoType.asset,
+                                                            autoPlay: true,
                                                             looping: true,
                                                             showControls: true,
                                                             allowFullScreen:
@@ -872,9 +870,8 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                               FlutterFlowVideoPlayer(
                                                             path:
                                                                 'assets/videos/Screen_Recording_2025-09-07_043113.mp4',
-                                                            videoType:
-                                                                VideoType.asset,
-                                                            autoPlay: false,
+                                                            videoType: VideoType.asset,
+                                                            autoPlay: true,
                                                             looping: true,
                                                             showControls: true,
                                                             allowFullScreen:

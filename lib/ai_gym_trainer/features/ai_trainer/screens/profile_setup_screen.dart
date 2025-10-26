@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import '../services/firebase_service.dart';
 import '../models/user_profile.dart';
@@ -302,7 +303,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         context,
         listen: false,
       );
-      final user = FirebaseAuth.instance.currentUser;
+      
+      // Get fitgen Firebase auth instance (same as Medical Guidance)
+      FirebaseAuth auth;
+      try {
+        auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+      } catch (e) {
+        auth = FirebaseAuth.instance;
+      }
+
+      final user = auth.currentUser;
 
       if (user == null) {
         setState(() {

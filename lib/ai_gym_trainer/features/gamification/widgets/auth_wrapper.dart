@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../../ai_trainer/screens/home_screen.dart';
 import '../../ai_trainer/screens/login_screen.dart';
 
@@ -10,8 +11,16 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get fitgen Firebase auth instance (same as Medical Guidance)
+    FirebaseAuth auth;
+    try {
+      auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+    } catch (e) {
+      auth = FirebaseAuth.instance;
+    }
+
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: auth.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Loading screen

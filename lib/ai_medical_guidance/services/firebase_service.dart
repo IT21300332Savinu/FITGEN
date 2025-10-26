@@ -3,12 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/user_profile.dart';
 import '../models/health_data.dart';
+import 'firebase_config .dart';
 import 'dart:io';
 
 class FirebaseService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final FirebaseStorage _storage = FirebaseStorage.instance;
+  // Use the named 'fitgen' Firebase app for medical guidance
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(app: FirebaseConfig.mainApp);
+  static final FirebaseAuth _auth = FirebaseAuth.instanceFor(app: FirebaseConfig.mainApp);
+  static final FirebaseStorage _storage = FirebaseStorage.instanceFor(app: FirebaseConfig.mainApp);
 
   // User Authentication
   static Future<User?> signInAnonymously() async {

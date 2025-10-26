@@ -46,10 +46,9 @@ class _FFPlacePickerState extends State<FlutterFlowPlacePicker> {
       text: _selectedPlace ?? widget.defaultText ?? 'Search places',
       icon: widget.icon,
       onPressed: () async {
-        // TODO: Implement with Google Places packages
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Place picker requires additional packages. Coming soon!')),
-        );
+        // Place picker functionality
+        print('🔵 Place picker tapped');
+        // Note: Place picker requires additional packages
       },
       options: widget.buttonOptions,
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'workout_screen.dart';
 import 'exercise_instruction_screen.dart';
 import '../../gamification/screens/gamification_hub_screen.dart';
@@ -119,8 +120,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleSignout() async {
     try {
+      // Get fitgen Firebase auth instance (same as Medical Guidance)
+      FirebaseAuth auth;
+      try {
+        auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+      } catch (e) {
+        auth = FirebaseAuth.instance;
+      }
+
       // Get current user info for confirmation
-      final user = FirebaseAuth.instance.currentUser;
+      final user = auth.currentUser;
       final userName = user?.email ?? 'User';
 
       // Show confirmation dialog with user info
@@ -160,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         // Sign out from Firebase Auth
-        await FirebaseAuth.instance.signOut();
+        await auth.signOut();
 
         debugPrint('👋 User signed out successfully');
 
@@ -195,8 +204,16 @@ class _HomeScreenState extends State<HomeScreen> {
     debugPrint('🔍 Loading user data...');
 
     try {
+      // Get fitgen Firebase auth instance (same as Medical Guidance)
+      FirebaseAuth auth;
+      try {
+        auth = FirebaseAuth.instanceFor(app: Firebase.app('fitgen'));
+      } catch (e) {
+        auth = FirebaseAuth.instance;
+      }
+
       // Load user from Firebase Auth
-      final user = FirebaseAuth.instance.currentUser;
+      final user = auth.currentUser;
       final userId = user?.uid;
       final userName = user?.email ?? 'User';
 

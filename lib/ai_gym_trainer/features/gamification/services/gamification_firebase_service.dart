@@ -2,15 +2,31 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/gamification_models.dart';
 import 'scoring_service.dart';
 import 'achievement_service.dart';
 
 class GamificationFirebaseService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Use the named 'fitgen' Firebase app (shared with Medical Guidance)
+  static FirebaseFirestore get _firestore {
+    try {
+      return FirebaseFirestore.instanceFor(app: Firebase.app('fitgen'));
+    } catch (e) {
+      print('⚠️ Fitgen Firebase not initialized, using default: $e');
+      return FirebaseFirestore.instance;
+    }
+  }
 
   // Get current user ID from Firebase Auth
-  static String? get currentUserId => FirebaseAuth.instance.currentUser?.uid;
+  static String? get currentUserId {
+    try {
+      return FirebaseAuth.instanceFor(app: Firebase.app('fitgen')).currentUser?.uid;
+    } catch (e) {
+      print('⚠️ Fitgen Firebase not initialized, using default: $e');
+      return FirebaseAuth.instance.currentUser?.uid;
+    }
+  }
 
   // ===== USER STATS MANAGEMENT =====
 

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 // Screens
 import 'screens/gym_home.dart';
 import 'screens/medical_home.dart';
+import 'social_bridge_app.dart';
 
 // Firebase configurations
 import 'backend/firebase/firebase_config.dart';
-import 'firebase_options_gym.dart';
 import 'ai_medical_guidance/services/firebase_config .dart';
 
 // Social Bridge (Special User flow) - Using updated paths
@@ -29,20 +28,15 @@ Future<void> main() async {
     // 2. AI Nutritionist (Uses default Firebase or separate - check requirements)
     // Nutritionist uses Flask API backend, no separate Firebase needed
 
-    // 3. AI Gym Trainer (Separate Firebase)
-    if (!kIsWeb) {
-      await Firebase.initializeApp(
-        name: 'gym',
-        options: DefaultFirebaseOptionsGym,
-      );
-      debugPrint('✅ Gym Trainer Firebase initialized');
-    }
+    // 3. AI Gym Trainer - Uses 'fitgen' Firebase (same as Medical Guidance)
+    // No separate Firebase initialization needed - will use 'fitgen' app
 
     // 4. AI Medical Guidance (Separate Firebase)
     if (!kIsWeb) {
       await FirebaseConfig.initializeFirebase(); // Initialize medical Firebase
       debugPrint('✅ Medical Guidance Firebase initialized');
     }
+
   } catch (e) {
     debugPrint('⚠️ Firebase initialization error: $e');
   }
@@ -164,11 +158,12 @@ class UserTypeChooser extends StatelessWidget {
                     subtitle: 'Full Social & Fitness Platform',
                     color: Colors.deepOrange,
                     onTap: () {
-                      // Navigate to FlutterFlow's Special User flow
-                      Navigator.of(context).push(
+                      // Navigate to FlutterFlow's Special User flow with full router support
+                      Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
-                          builder: (context) => const FITGENFirstPageWidget(),
+                          builder: (context) => const SocialBridgeApp(),
                         ),
+                        (route) => false,
                       );
                     },
                   ),
