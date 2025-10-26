@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">47999782996</string>
+    <string name="google_api_key" translatable="false">AIzaSyACE8oof_0mmDfsKHOnv3e3ebJKIfh0qG0</string>
+    <string name="google_app_id" translatable="false">1:47999782996:android:9e384ab18ec4de243f5dc1</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyACE8oof_0mmDfsKHOnv3e3ebJKIfh0qG0</string>
+    <string name="google_storage_bucket" translatable="false">fitgen-bd7d8.firebasestorage.app</string>
+    <string name="project_id" translatable="false">fitgen-bd7d8</string>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

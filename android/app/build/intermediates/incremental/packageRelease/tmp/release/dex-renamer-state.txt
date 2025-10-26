@@ -1,0 +1,4 @@
+#Mon Apr 07 15:56:09 IST 2025
+base.0=C\:\\AI_Gym_Triny_and_Gamification\\FITGEN\\android\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex
