@@ -89,13 +89,12 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
@@ -272,10 +271,11 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => WorkoutRecommendationsScreen(
-          userProfile: widget.userProfile,
-          selectedLevel: _selectedLevel, // Pass only the selected level
-        ),
+        builder:
+            (_) => WorkoutRecommendationsScreen(
+              userProfile: widget.userProfile,
+              selectedLevel: _selectedLevel, // Pass only the selected level
+            ),
       ),
     );
   }
@@ -443,21 +443,22 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                         duration: const Duration(milliseconds: 300),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? question.gradient[0]
-                              : Colors.white,
+                          color:
+                              isSelected ? question.gradient[0] : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected
-                                ? question.gradient[1]
-                                : Colors.grey[300]!,
+                            color:
+                                isSelected
+                                    ? question.gradient[1]
+                                    : Colors.grey[300]!,
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: isSelected
-                                  ? question.gradient[0].withOpacity(0.3)
-                                  : Colors.grey.withOpacity(0.1),
+                              color:
+                                  isSelected
+                                      ? question.gradient[0].withOpacity(0.3)
+                                      : Colors.grey.withOpacity(0.1),
                               spreadRadius: 0,
                               blurRadius: isSelected ? 15 : 8,
                               offset: Offset(0, isSelected ? 8 : 4),
@@ -471,23 +472,26 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                               height: 28,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.transparent,
+                                color:
+                                    isSelected
+                                        ? Colors.white
+                                        : Colors.transparent,
                                 border: Border.all(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.grey[400]!,
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : Colors.grey[400]!,
                                   width: 2,
                                 ),
                               ),
-                              child: isSelected
-                                  ? Icon(
-                                      Icons.check,
-                                      size: 18,
-                                      color: question.gradient[0],
-                                    )
-                                  : null,
+                              child:
+                                  isSelected
+                                      ? Icon(
+                                        Icons.check,
+                                        size: 18,
+                                        color: question.gradient[0],
+                                      )
+                                      : null,
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -496,9 +500,10 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.black87,
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
                                 ),
                               ),
                             ),
@@ -776,48 +781,51 @@ class _FitnessAssessmentScreenState extends State<FitnessAssessmentScreen>
                     prefixIcon: Icon(Icons.fitness_center),
                     hintText: 'Select your fitness level',
                   ),
-                  items: ['Easy', 'Intermediate', 'Advanced'].map((level) {
-                    final isRecommended = level == _suggestedLevel;
-                    return DropdownMenuItem(
-                      value: level,
-                      child: Row(
-                        children: [
-                          Text(
-                            level,
-                            style: TextStyle(
-                              fontWeight: isRecommended
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isRecommended
-                                  ? _getLevelColor()
-                                  : Colors.black,
-                            ),
-                          ),
-                          if (isRecommended) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getLevelColor().withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'AI Pick',
+                  items:
+                      ['Easy', 'Intermediate', 'Advanced'].map((level) {
+                        final isRecommended = level == _suggestedLevel;
+                        return DropdownMenuItem(
+                          value: level,
+                          child: Row(
+                            children: [
+                              Text(
+                                level,
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  color: _getLevelColor(),
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight:
+                                      isRecommended
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                  color:
+                                      isRecommended
+                                          ? _getLevelColor()
+                                          : Colors.black,
                                 ),
                               ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                              if (isRecommended) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _getLevelColor().withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'AI Pick',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: _getLevelColor(),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedLevel = value;

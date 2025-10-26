@@ -28,7 +28,7 @@ Future<void> main() async {
       // Mobile Firebase initialization with both projects
       await FirebaseConfig.initializeFirebase();
     }
-    
+
     debugPrint('✅ Firebase initialized successfully');
   } catch (e) {
     debugPrint('⚠️ Firebase initialization error: $e');
@@ -70,13 +70,17 @@ class HomeChooser extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () => Navigator.pushNamed(context, '/gym'),
-                style: ElevatedButton.styleFrom(minimumSize: const Size(220, 56)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(220, 56),
+                ),
                 child: const Text('AI Gym Trainer'),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.pushNamed(context, '/medical'),
-                style: ElevatedButton.styleFrom(minimumSize: const Size(220, 56)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(220, 56),
+                ),
                 child: const Text('AI Medical Guidance'),
               ),
             ],

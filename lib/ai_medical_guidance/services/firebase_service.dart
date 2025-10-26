@@ -40,7 +40,7 @@ class FirebaseService {
   static Future<bool> createUserProfile(UserProfile profile) async {
     try {
       print('🔄 Starting profile creation...');
-      
+
       String? userId = getCurrentUserId();
       if (userId == null) {
         print('❌ No user ID available for profile creation');
@@ -54,12 +54,11 @@ class FirebaseService {
 
       // Reduced timeout to 10 seconds for quicker feedback
       await Future.any([
-        _firestore
-            .collection('users')
-            .doc(userId)
-            .set(updatedProfile.toMap()),
+        _firestore.collection('users').doc(userId).set(updatedProfile.toMap()),
         Future.delayed(const Duration(seconds: 10), () {
-          throw Exception('Firebase connection timeout. Please check your internet connection.');
+          throw Exception(
+            'Firebase connection timeout. Please check your internet connection.',
+          );
         }),
       ]);
 
@@ -74,7 +73,7 @@ class FirebaseService {
   static Future<bool> updateUserProfile(UserProfile profile) async {
     try {
       print('🔄 Starting profile update...');
-      
+
       String? userId = getCurrentUserId();
       if (userId == null) {
         print('❌ No user ID available for profile update');
@@ -93,7 +92,9 @@ class FirebaseService {
             .doc(userId)
             .set(updatedProfile.toMap(), SetOptions(merge: true)),
         Future.delayed(const Duration(seconds: 10), () {
-          throw Exception('Firebase connection timeout. Please check your internet connection.');
+          throw Exception(
+            'Firebase connection timeout. Please check your internet connection.',
+          );
         }),
       ]);
 
@@ -115,10 +116,8 @@ class FirebaseService {
 
       print('Fetching profile for user: $userId');
 
-      DocumentSnapshot doc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .get();
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(userId).get();
 
       if (doc.exists && doc.data() != null) {
         print('Profile found for user');
@@ -224,16 +223,20 @@ class FirebaseService {
 
       print('Fetching reports for user: $userId');
 
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('reports')
-          .orderBy('uploadDate', descending: true)
-          .get();
+      QuerySnapshot snapshot =
+          await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('reports')
+              .orderBy('uploadDate', descending: true)
+              .get();
 
-      List<Map<String, dynamic>> reports = snapshot.docs
-          .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
-          .toList();
+      List<Map<String, dynamic>> reports =
+          snapshot.docs
+              .map(
+                (doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>},
+              )
+              .toList();
 
       print('Found ${reports.length} reports');
       return reports;
@@ -249,17 +252,18 @@ class FirebaseService {
       String? userId = getCurrentUserId();
       if (userId == null) return null;
 
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('reports')
-          .orderBy('uploadDate', descending: true)
-          .limit(1)
-          .get();
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('reports')
+              .orderBy('uploadDate', descending: true)
+              .limit(1)
+              .get();
 
       if (snapshot.docs.isEmpty) return null;
-  // snapshot.docs.first.data() already returns a Map<String, dynamic>.
-  final data = snapshot.docs.first.data();
+      // snapshot.docs.first.data() already returns a Map<String, dynamic>.
+      final data = snapshot.docs.first.data();
       final uploadDate = data['uploadDate'];
       if (uploadDate is String) return DateTime.tryParse(uploadDate);
       if (uploadDate is DateTime) return uploadDate;
@@ -282,13 +286,14 @@ class FirebaseService {
         return null;
       }
 
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('health_parameters')
-          .orderBy('createdAt', descending: true)
-          .limit(1)
-          .get();
+      QuerySnapshot snapshot =
+          await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('health_parameters')
+              .orderBy('createdAt', descending: true)
+              .limit(1)
+              .get();
 
       if (snapshot.docs.isNotEmpty) {
         return snapshot.docs.first.data() as Map<String, dynamic>;
@@ -312,13 +317,14 @@ class FirebaseService {
         return [];
       }
 
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('health_parameters')
-          .orderBy('createdAt', descending: true)
-          .limit(limit)
-          .get();
+      QuerySnapshot snapshot =
+          await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('health_parameters')
+              .orderBy('createdAt', descending: true)
+              .limit(limit)
+              .get();
 
       return snapshot.docs
           .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
@@ -364,17 +370,21 @@ class FirebaseService {
 
       print('Fetching latest health data for user: $userId');
 
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('healthData')
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
-          .get();
+      QuerySnapshot snapshot =
+          await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('healthData')
+              .orderBy('timestamp', descending: true)
+              .limit(limit)
+              .get();
 
-      List<HealthData> healthDataList = snapshot.docs
-          .map((doc) => HealthData.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
+      List<HealthData> healthDataList =
+          snapshot.docs
+              .map(
+                (doc) => HealthData.fromMap(doc.data() as Map<String, dynamic>),
+              )
+              .toList();
 
       print('Found ${healthDataList.length} health data entries');
       return healthDataList;
@@ -402,9 +412,10 @@ class FirebaseService {
         .limit(50)
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => HealthData.fromMap(doc.data()))
-              .toList(),
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => HealthData.fromMap(doc.data()))
+                  .toList(),
         );
   }
 

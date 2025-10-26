@@ -87,12 +87,13 @@ class _DashboardScreenState extends State<DashboardScreen>
   void _updateECGData() {
     if (_currentIoTData != null) {
       double heartRate = (_currentIoTData!['BPM'] ?? 75).toDouble();
-      _ecgData = IoTDataService.generateSimulatedECGData(heartRate)
-          .map(
-            (point) =>
-                FlSpot(point['index'].toDouble(), point['voltage'] + 0.5),
-          )
-          .toList();
+      _ecgData =
+          IoTDataService.generateSimulatedECGData(heartRate)
+              .map(
+                (point) =>
+                    FlSpot(point['index'].toDouble(), point['voltage'] + 0.5),
+              )
+              .toList();
     }
   }
 
@@ -154,8 +155,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ProfileScreen(existingProfile: _userProfile, isUpdate: true),
+        builder:
+            (context) =>
+                ProfileScreen(existingProfile: _userProfile, isUpdate: true),
       ),
     ).then((_) => _loadUserData());
   }
@@ -164,8 +166,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            FitnessAssessmentScreen(userProfile: _userProfile),
+        builder:
+            (context) => FitnessAssessmentScreen(userProfile: _userProfile),
       ),
     );
   }
@@ -367,17 +369,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: _deviceStatus['isConnected'] == true
-                          ? Colors.green
-                          : Colors.red,
+                      color:
+                          _deviceStatus['isConnected'] == true
+                              ? Colors.green
+                              : Colors.red,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              (_deviceStatus['isConnected'] == true
-                                      ? Colors.green
-                                      : Colors.red)
-                                  .withOpacity(0.5),
+                          color: (_deviceStatus['isConnected'] == true
+                                  ? Colors.green
+                                  : Colors.red)
+                              .withOpacity(0.5),
                           spreadRadius: 2,
                           blurRadius: 4,
                         ),
@@ -395,9 +397,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ? 'Connected to FitgenMedical '
                         : 'Disconnected from  Device',
                     style: TextStyle(
-                      color: _deviceStatus['isConnected'] == true
-                          ? Colors.green[700]
-                          : Colors.red[700],
+                      color:
+                          _deviceStatus['isConnected'] == true
+                              ? Colors.green[700]
+                              : Colors.red[700],
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -541,11 +544,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildHistoricalHRChart() {
     // Prepare data for chart (last 20 points for readability)
-    List<Map<String, dynamic>> chartData = _historicalHRData
-        .take(20)
-        .toList()
-        .reversed
-        .toList();
+    List<Map<String, dynamic>> chartData =
+        _historicalHRData.take(20).toList().reversed.toList();
 
     List<FlSpot> hrSpots = [];
     for (int i = 0; i < chartData.length; i++) {
@@ -746,12 +746,13 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildECGChart(double heartRate) {
     if (_ecgData.isEmpty) {
-      _ecgData = IoTDataService.generateSimulatedECGData(heartRate)
-          .map(
-            (point) =>
-                FlSpot(point['index'].toDouble(), point['voltage'] + 0.5),
-          )
-          .toList();
+      _ecgData =
+          IoTDataService.generateSimulatedECGData(heartRate)
+              .map(
+                (point) =>
+                    FlSpot(point['index'].toDouble(), point['voltage'] + 0.5),
+              )
+              .toList();
     }
 
     return Container(
@@ -1006,9 +1007,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildReportReminderBanner() {
-    final dueText = _latestReportDate == null
-        ? 'No report uploaded yet'
-        : 'Last report: ${_latestReportDate!.toLocal().toString().split(' ').first}';
+    final dueText =
+        _latestReportDate == null
+            ? 'No report uploaded yet'
+            : 'Last report: ${_latestReportDate!.toLocal().toString().split(' ').first}';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -1107,154 +1109,158 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () async {
-                await _loadUserData();
-                await _loadIoTData();
-              },
-              color: Colors.orange,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome Header
-                    _buildWelcomeHeader(),
-                    const SizedBox(height: 20),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: () async {
+                  await _loadUserData();
+                  await _loadIoTData();
+                },
+                color: Colors.orange,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Welcome Header
+                      _buildWelcomeHeader(),
+                      const SizedBox(height: 20),
 
-                    // Quick Stats
-                    _buildQuickStats(),
-                    const SizedBox(height: 20),
+                      // Quick Stats
+                      _buildQuickStats(),
+                      const SizedBox(height: 20),
 
-                    // IoT Heart Rate Monitor (MAIN FEATURE)
-                    _buildIoTHeartRateCard(),
-                    const SizedBox(height: 20),
+                      // IoT Heart Rate Monitor (MAIN FEATURE)
+                      _buildIoTHeartRateCard(),
+                      const SizedBox(height: 20),
 
-                    // Historical HR Chart (NEW FEATURE)
-                    _buildHistoricalHRChart(),
-                    const SizedBox(height: 20),
+                      // Historical HR Chart (NEW FEATURE)
+                      _buildHistoricalHRChart(),
+                      const SizedBox(height: 20),
 
-                    // Action Buttons Section
-                    Row(
-                      children: [
-                        // Update Profile Button
-                        Expanded(
-                          child: Container(
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Colors.blue[400]!, Colors.blue[600]!],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.3),
-                                  spreadRadius: 1,
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
+                      // Action Buttons Section
+                      Row(
+                        children: [
+                          // Update Profile Button
+                          Expanded(
+                            child: Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue[400]!,
+                                    Colors.blue[600]!,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _navigateToUpdateProfile,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Update Profile',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.blue.withOpacity(0.3),
+                                    spreadRadius: 1,
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
+                              child: ElevatedButton(
+                                onPressed: _navigateToUpdateProfile,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.edit,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Update Profile',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Workout Plan Button
-                    Container(
-                      width: double.infinity,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.orange[400]!, Colors.orange[600]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.orange.withOpacity(0.3),
-                            spreadRadius: 1,
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: ElevatedButton(
-                        onPressed: _navigateToWorkoutPlan,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      const SizedBox(height: 16),
+
+                      // Workout Plan Button
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.orange[400]!, Colors.orange[600]!],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.fitness_center,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'View Workout Plan',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
+                        child: ElevatedButton(
+                          onPressed: _navigateToWorkoutPlan,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.fitness_center,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'View Workout Plan',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
 
-                    // Report Reminder Section
-                    if (_shouldShowReportReminder()) ...[
-                      const SizedBox(height: 20),
-                      _buildReportReminderBanner(),
+                      // Report Reminder Section
+                      if (_shouldShowReportReminder()) ...[
+                        const SizedBox(height: 20),
+                        _buildReportReminderBanner(),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

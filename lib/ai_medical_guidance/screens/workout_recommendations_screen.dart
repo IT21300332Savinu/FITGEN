@@ -46,13 +46,12 @@ class _WorkoutRecommendationsScreenState
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
 
     _animationController.forward();
   }
@@ -370,45 +369,48 @@ class _WorkoutRecommendationsScreenState
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: predictedTypes.map<Widget>((type) {
-                double probability = probabilities[type] ?? 0.0;
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getProbabilityColor(probability).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _getProbabilityColor(probability),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _formatWorkoutTypeName(type),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: _getProbabilityColor(probability),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
+              children:
+                  predictedTypes.map<Widget>((type) {
+                    double probability = probabilities[type] ?? 0.0;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      Text(
-                        '${(probability * 100).toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 10,
+                      decoration: BoxDecoration(
+                        color: _getProbabilityColor(
+                          probability,
+                        ).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
                           color: _getProbabilityColor(probability),
-                          fontWeight: FontWeight.w500,
+                          width: 1,
                         ),
                       ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatWorkoutTypeName(type),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _getProbabilityColor(probability),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            '${(probability * 100).toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: _getProbabilityColor(probability),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
             ),
             const SizedBox(height: 16),
           ],
@@ -493,9 +495,10 @@ class _WorkoutRecommendationsScreenState
                   color: isSelected ? Colors.deepPurple[50] : Colors.grey[50],
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected
-                        ? Colors.deepPurple[600]!
-                        : Colors.grey[300]!,
+                    color:
+                        isSelected
+                            ? Colors.deepPurple[600]!
+                            : Colors.grey[300]!,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -506,23 +509,26 @@ class _WorkoutRecommendationsScreenState
                       height: 20,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected
-                            ? Colors.deepPurple[600]
-                            : Colors.transparent,
+                        color:
+                            isSelected
+                                ? Colors.deepPurple[600]
+                                : Colors.transparent,
                         border: Border.all(
-                          color: isSelected
-                              ? Colors.deepPurple[600]!
-                              : Colors.grey[400]!,
+                          color:
+                              isSelected
+                                  ? Colors.deepPurple[600]!
+                                  : Colors.grey[400]!,
                           width: 2,
                         ),
                       ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              size: 12,
-                              color: Colors.white,
-                            )
-                          : null,
+                      child:
+                          isSelected
+                              ? const Icon(
+                                Icons.check,
+                                size: 12,
+                                color: Colors.white,
+                              )
+                              : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -534,9 +540,10 @@ class _WorkoutRecommendationsScreenState
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.deepPurple[600]
-                                  : Colors.black87,
+                              color:
+                                  isSelected
+                                      ? Colors.deepPurple[600]
+                                      : Colors.black87,
                             ),
                           ),
                           Text(
@@ -552,9 +559,10 @@ class _WorkoutRecommendationsScreenState
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: isSelected
-                          ? Colors.deepPurple[600]
-                          : Colors.grey[400],
+                      color:
+                          isSelected
+                              ? Colors.deepPurple[600]
+                              : Colors.grey[400],
                     ),
                   ],
                 ),

@@ -238,124 +238,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('OCR Success')),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'File: $fileName',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Confidence: ${((ocrResult['ocrResults']?['confidence'] ?? 0) * 100).toStringAsFixed(1)}%',
-              ),
-              const SizedBox(height: 12),
-
-              if (extractedValues.isNotEmpty) ...[
-                const Text(
-                  'Detected Health Parameters:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...extractedValues.entries
-                    .where(
-                      (e) =>
-                          !e.key.endsWith('_unit') && !e.key.endsWith('_risk'),
-                    )
-                    .map((entry) {
-                      String unit = extractedValues['${entry.key}_unit'] ?? '';
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '• ${entry.key.toUpperCase()}: ${entry.value} $unit',
-                        ),
-                      );
-                    }),
-              ] else ...[
-                const Text(
-                  'No specific health parameters detected.',
-                  style: TextStyle(color: Colors.orange),
-                ),
+      builder:
+          (context) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green),
+                const SizedBox(width: 8),
+                const Expanded(child: Text('OCR Success')),
               ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'File: $fileName',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Confidence: ${((ocrResult['ocrResults']?['confidence'] ?? 0) * 100).toStringAsFixed(1)}%',
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (extractedValues.isNotEmpty) ...[
+                    const Text(
+                      'Detected Health Parameters:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...extractedValues.entries
+                        .where(
+                          (e) =>
+                              !e.key.endsWith('_unit') &&
+                              !e.key.endsWith('_risk'),
+                        )
+                        .map((entry) {
+                          String unit =
+                              extractedValues['${entry.key}_unit'] ?? '';
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '• ${entry.key.toUpperCase()}: ${entry.value} $unit',
+                            ),
+                          );
+                        }),
+                  ] else ...[
+                    const Text(
+                      'No specific health parameters detected.',
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
     );
   }
 
   void _showOCRErrorDialog(Map<String, dynamic> ocrResult) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.error, color: Colors.red),
-            const SizedBox(width: 8),
-            const Text('OCR Failed'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(ocrResult['error'] ?? 'Unknown error occurred'),
-            const SizedBox(height: 12),
-            if (ocrResult['suggestion'] != null) ...[
-              const Text(
-                'Suggestion:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+      builder:
+          (context) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.red),
+                const SizedBox(width: 8),
+                const Text('OCR Failed'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(ocrResult['error'] ?? 'Unknown error occurred'),
+                const SizedBox(height: 12),
+                if (ocrResult['suggestion'] != null) ...[
+                  const Text(
+                    'Suggestion:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(ocrResult['suggestion']),
+                  const SizedBox(height: 12),
+                ],
+                if (ocrResult['extractedText'] != null) ...[
+                  const Text(
+                    'Detected text:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      ocrResult['extractedText'],
+                      style: const TextStyle(fontSize: 12),
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Try Again'),
               ),
-              Text(ocrResult['suggestion']),
-              const SizedBox(height: 12),
             ],
-            if (ocrResult['extractedText'] != null) ...[
-              const Text(
-                'Detected text:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  ocrResult['extractedText'],
-                  style: const TextStyle(fontSize: 12),
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Try Again'),
           ),
-        ],
-      ),
     );
   }
 
@@ -366,338 +370,346 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.text_snippet, color: Colors.green),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'OCR Text Preview',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder:
+          (context) => AlertDialog(
+            title: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
+                const Icon(Icons.text_snippet, color: Colors.green),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'OCR Text Preview',
+                    style: const TextStyle(fontSize: 18),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.file_present,
-                        color: Colors.blue,
-                        size: 16,
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
                       ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          fileName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.file_present,
                             color: Colors.blue,
+                            size: 16,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              fileName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Show extracted health parameters if available
+                    if (extractedValues != null &&
+                        extractedValues.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green[200]!),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.health_and_safety,
+                                  color: Colors.green,
+                                  size: 18,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Detected Health Parameters:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ...extractedValues.entries
+                                .where(
+                                  (e) =>
+                                      !e.key.endsWith('_unit') &&
+                                      !e.key.endsWith('_risk'),
+                                )
+                                .map((entry) {
+                                  String unit =
+                                      extractedValues['${entry.key}_unit']
+                                          ?.toString() ??
+                                      '';
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Text(
+                                      '• ${entry.key.toUpperCase()}: ${entry.value} $unit',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  );
+                                }),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Raw OCR text section
+                    const Row(
+                      children: [
+                        Icon(Icons.text_fields, color: Colors.grey, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'Full OCR Text:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: SelectableText(
+                        rawText.isNotEmpty
+                            ? rawText
+                            : 'No text extracted from this image.',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Statistics
+                    if (rawText.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  '${rawText.length}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                const Text(
+                                  'Characters',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  '${rawText.split(' ').length}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                const Text(
+                                  'Words',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  '${rawText.split('\n').length}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                const Text(
+                                  'Lines',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Show extracted health parameters if available
-                if (extractedValues != null && extractedValues.isNotEmpty) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green[200]!),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(
-                              Icons.health_and_safety,
-                              color: Colors.green,
-                              size: 18,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Detected Health Parameters:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ...extractedValues.entries
-                            .where(
-                              (e) =>
-                                  !e.key.endsWith('_unit') &&
-                                  !e.key.endsWith('_risk'),
-                            )
-                            .map((entry) {
-                              String unit =
-                                  extractedValues['${entry.key}_unit']
-                                      ?.toString() ??
-                                  '';
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Text(
-                                  '• ${entry.key.toUpperCase()}: ${entry.value} $unit',
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              );
-                            }),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Raw OCR text section
-                const Row(
-                  children: [
-                    Icon(Icons.text_fields, color: Colors.grey, size: 18),
-                    SizedBox(width: 6),
-                    Text(
-                      'Full OCR Text:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: SelectableText(
-                    rawText.isNotEmpty
-                        ? rawText
-                        : 'No text extracted from this image.',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Statistics
-                if (rawText.isNotEmpty) ...[
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              '${rawText.length}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange,
-                              ),
-                            ),
-                            const Text(
-                              'Characters',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${rawText.split(' ').length}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange,
-                              ),
-                            ),
-                            const Text(
-                              'Words',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${rawText.split('\n').length}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange,
-                              ),
-                            ),
-                            const Text(
-                              'Lines',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  // Copy text to clipboard
+                  await Clipboard.setData(ClipboardData(text: rawText));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('OCR text copied to clipboard'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Copy Text'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              // Copy text to clipboard
-              await Clipboard.setData(ClipboardData(text: rawText));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('OCR text copied to clipboard'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            },
-            child: const Text('Copy Text'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
   void _showDebugInfo(Map<String, dynamic> report) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.bug_report, color: Colors.purple),
-            SizedBox(width: 8),
-            Text('Debug Report Data'),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 400,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder:
+          (context) => AlertDialog(
+            title: const Row(
               children: [
-                Text(
-                  'Report Keys and Values:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                ...report.entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Container(
+                Icon(Icons.bug_report, color: Colors.purple),
+                SizedBox(width: 8),
+                Text('Debug Report Data'),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 400,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Report Keys and Values:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...report.entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${entry.key}:',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                entry.value?.toString() ?? 'null',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    const SizedBox(height: 16),
+                    Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Colors.yellow[100],
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '${entry.key}:',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
+                          const Text(
+                            'Conditions for Text Preview:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
+                          Text('• success: ${report['success']}'),
                           Text(
-                            entry.value?.toString() ?? 'null',
-                            style: const TextStyle(fontSize: 12),
+                            '• rawText exists: ${report['rawText'] != null}',
+                          ),
+                          Text(
+                            '• rawText not empty: ${report['rawText']?.toString().isNotEmpty ?? false}',
+                          ),
+                          Text(
+                            '• rawText length: ${report['rawText']?.toString().length ?? 0}',
                           ),
                         ],
                       ),
                     ),
-                  );
-                }).toList(),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.yellow[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Conditions for Text Preview:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('• success: ${report['success']}'),
-                      Text('• rawText exists: ${report['rawText'] != null}'),
-                      Text(
-                        '• rawText not empty: ${report['rawText']?.toString().isNotEmpty ?? false}',
-                      ),
-                      Text(
-                        '• rawText length: ${report['rawText']?.toString().length ?? 0}',
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -979,11 +991,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         if (extractedValues['sgot_sgpt_ratio'] != null) {
-          detectedValues['SGOT/SGPT Ratio'] = extractedValues['sgot_sgpt_ratio']
-              .toString();
+          detectedValues['SGOT/SGPT Ratio'] =
+              extractedValues['sgot_sgpt_ratio'].toString();
         } else if (extractedValues['alt_ast_ratio'] != null) {
-          detectedValues['ALT/AST Ratio'] = extractedValues['alt_ast_ratio']
-              .toString();
+          detectedValues['ALT/AST Ratio'] =
+              extractedValues['alt_ast_ratio'].toString();
         }
 
         if (extractedValues['liver_disease_level'] != null) {
@@ -1557,9 +1569,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       detectedValues['liver_disease_level'] = liverLevel;
       detectedValues['liver_disease_stage'] = liverStage;
-      detectedValues['liver_enzyme_status'] = isElevated
-          ? 'Elevated'
-          : 'Normal';
+      detectedValues['liver_enzyme_status'] =
+          isElevated ? 'Elevated' : 'Normal';
     }
 
     // Enhanced Total Protein Detection with advanced layout analysis
@@ -1841,201 +1852,214 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.auto_fix_high, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Auto-Detected Health Conditions'),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder:
+          (context) => AlertDialog(
+            title: const Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.blue, size: 18),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Based on your medical report analysis with disease levels and stages:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Display detected conditions with levels
-                ...conditions.map((condition) {
-                  final info =
-                      conditionInfo[condition] ??
-                      {
-                        'criteria': 'Clinical assessment',
-                        'icon': Icons.health_and_safety,
-                        'color': Colors.grey,
-                      };
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green[200]!),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              info['icon'] as IconData,
-                              color: info['color'] as Color,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                condition,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Criteria: ${info['criteria']}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Show condition-specific details with levels
-                        if (condition == 'Diabetes') ...[
-                          _buildDetailRow(
-                            'HbA1c Level',
-                            values['HbA1c'] ?? 'Not detected',
-                          ),
-                          _buildDetailRow(
-                            'Diabetes Level',
-                            values['Diabetes Level'] ?? 'Not specified',
-                          ),
-                          _buildDetailRow(
-                            'Control Level',
-                            values['Control Level'] ?? 'Not specified',
-                          ),
-                          if (values['Status'] != null)
-                            _buildDetailRow('Status', values['Status']!),
-                        ] else if (condition == 'Hypertension') ...[
-                          _buildDetailRow(
-                            'Blood Pressure',
-                            values['Blood Pressure'] ?? 'Not detected',
-                          ),
-                          _buildDetailRow(
-                            'Hypertension Level',
-                            values['Hypertension Level'] ?? 'Not specified',
-                          ),
-                          if (values['Hypertension Stage'] != null)
-                            _buildDetailRow(
-                              'Stage',
-                              values['Hypertension Stage']!,
-                            ),
-                        ] else if (condition == 'Chronic Kidney Disease') ...[
-                          _buildDetailRow(
-                            'eGFR Value',
-                            values['eGFR'] ?? 'Not detected',
-                          ),
-                          _buildDetailRow(
-                            'CKD Stage',
-                            values['CKD Stage'] ?? 'Not specified',
-                          ),
-                          if (values['CKD Description'] != null)
-                            _buildDetailRow(
-                              'Description',
-                              values['CKD Description']!,
-                            ),
-                        ] else if (condition == 'Liver Disease') ...[
-                          _buildDetailRow(
-                            'ALT/AST Ratio',
-                            values['ALT/AST Ratio'] ?? 'Not detected',
-                          ),
-                          _buildDetailRow(
-                            'Liver Disease Level',
-                            values['Liver Disease Level'] ?? 'Not specified',
-                          ),
-                          if (values['Liver Disease Stage'] != null)
-                            _buildDetailRow(
-                              'Stage',
-                              values['Liver Disease Stage']!,
-                            ),
-                          if (values['ALT Value'] != null)
-                            _buildDetailRow('ALT Value', values['ALT Value']!),
-                          if (values['AST Value'] != null)
-                            _buildDetailRow('AST Value', values['AST Value']!),
-                        ],
-                      ],
-                    ),
-                  );
-                }),
-
-                const SizedBox(height: 16),
-
-                // Medical disclaimer
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber,
-                        size: 20,
-                        color: Colors.orange[700],
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text(
-                          'These are automated detections based on lab values. Please consult with your healthcare provider for proper medical diagnosis and treatment.',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                Icon(Icons.auto_fix_high, color: Colors.green),
+                SizedBox(width: 8),
+                Text('Auto-Detected Health Conditions'),
               ],
             ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Based on your medical report analysis with disease levels and stages:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Display detected conditions with levels
+                    ...conditions.map((condition) {
+                      final info =
+                          conditionInfo[condition] ??
+                          {
+                            'criteria': 'Clinical assessment',
+                            'icon': Icons.health_and_safety,
+                            'color': Colors.grey,
+                          };
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green[200]!),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  info['icon'] as IconData,
+                                  color: info['color'] as Color,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    condition,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Criteria: ${info['criteria']}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Show condition-specific details with levels
+                            if (condition == 'Diabetes') ...[
+                              _buildDetailRow(
+                                'HbA1c Level',
+                                values['HbA1c'] ?? 'Not detected',
+                              ),
+                              _buildDetailRow(
+                                'Diabetes Level',
+                                values['Diabetes Level'] ?? 'Not specified',
+                              ),
+                              _buildDetailRow(
+                                'Control Level',
+                                values['Control Level'] ?? 'Not specified',
+                              ),
+                              if (values['Status'] != null)
+                                _buildDetailRow('Status', values['Status']!),
+                            ] else if (condition == 'Hypertension') ...[
+                              _buildDetailRow(
+                                'Blood Pressure',
+                                values['Blood Pressure'] ?? 'Not detected',
+                              ),
+                              _buildDetailRow(
+                                'Hypertension Level',
+                                values['Hypertension Level'] ?? 'Not specified',
+                              ),
+                              if (values['Hypertension Stage'] != null)
+                                _buildDetailRow(
+                                  'Stage',
+                                  values['Hypertension Stage']!,
+                                ),
+                            ] else if (condition ==
+                                'Chronic Kidney Disease') ...[
+                              _buildDetailRow(
+                                'eGFR Value',
+                                values['eGFR'] ?? 'Not detected',
+                              ),
+                              _buildDetailRow(
+                                'CKD Stage',
+                                values['CKD Stage'] ?? 'Not specified',
+                              ),
+                              if (values['CKD Description'] != null)
+                                _buildDetailRow(
+                                  'Description',
+                                  values['CKD Description']!,
+                                ),
+                            ] else if (condition == 'Liver Disease') ...[
+                              _buildDetailRow(
+                                'ALT/AST Ratio',
+                                values['ALT/AST Ratio'] ?? 'Not detected',
+                              ),
+                              _buildDetailRow(
+                                'Liver Disease Level',
+                                values['Liver Disease Level'] ??
+                                    'Not specified',
+                              ),
+                              if (values['Liver Disease Stage'] != null)
+                                _buildDetailRow(
+                                  'Stage',
+                                  values['Liver Disease Stage']!,
+                                ),
+                              if (values['ALT Value'] != null)
+                                _buildDetailRow(
+                                  'ALT Value',
+                                  values['ALT Value']!,
+                                ),
+                              if (values['AST Value'] != null)
+                                _buildDetailRow(
+                                  'AST Value',
+                                  values['AST Value']!,
+                                ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+
+                    const SizedBox(height: 16),
+
+                    // Medical disclaimer
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber,
+                            size: 20,
+                            color: Colors.orange[700],
+                          ),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'These are automated detections based on lab values. Please consult with your healthcare provider for proper medical diagnosis and treatment.',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Understood'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Understood'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -2057,9 +2081,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 13,
                 color: _getValueColor(label, value),
-                fontWeight: _isAbnormalValue(label, value)
-                    ? FontWeight.bold
-                    : FontWeight.normal,
+                fontWeight:
+                    _isAbnormalValue(label, value)
+                        ? FontWeight.bold
+                        : FontWeight.normal,
               ),
             ),
           ),
@@ -2424,31 +2449,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showConnectivityErrorDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.wifi_off, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Connection Issue'),
-          ],
-        ),
-        content: const Text(
-          'There seems to be a connectivity issue. Would you like to save your profile without uploading medical reports? You can upload them later from the dashboard.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.wifi_off, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Connection Issue'),
+              ],
+            ),
+            content: const Text(
+              'There seems to be a connectivity issue. Would you like to save your profile without uploading medical reports? You can upload them later from the dashboard.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _saveProfileWithoutReports();
+                },
+                child: const Text('Save Without Reports'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _saveProfileWithoutReports();
-            },
-            child: const Text('Save Without Reports'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -2547,632 +2573,909 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: _isProcessing
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _ocrStatus ?? 'Processing...',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
+      body:
+          _isProcessing
+              ? Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Header Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.orange[400]!, Colors.orange[600]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _ocrStatus ?? 'Processing...',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            widget.isUpdate ? Icons.edit : Icons.person_add,
-                            color: Colors.white,
-                            size: 40,
+                    ),
+                  ],
+                ),
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.orange[400]!, Colors.orange[600]!],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            widget.isUpdate
-                                ? 'Update Your Health Profile'
-                                : 'Welcome to Fitgen Smart Health',
-                            style: const TextStyle(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              widget.isUpdate ? Icons.edit : Icons.person_add,
                               color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              size: 40,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.isUpdate
-                                ? 'Keep your health information up to date'
-                                : 'Let\'s create your personalized health profile with AI-powered OCR',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Personal Information Section
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.person, color: Colors.orange[600]),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Personal Information',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Username Input
-                            TextFormField(
-                              controller: _usernameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Username',
-                                hintText: 'Enter your username',
+                            const SizedBox(height: 12),
+                            Text(
+                              widget.isUpdate
+                                  ? 'Update Your Health Profile'
+                                  : 'Welcome to Fitgen Smart Health',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter a username';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Age Input
-                            TextFormField(
-                              controller: _ageController,
-                              decoration: const InputDecoration(
-                                labelText: 'Age',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.cake),
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your age';
-                                }
-                                int? age = int.tryParse(value);
-                                if (age == null || age < 1 || age > 120) {
-                                  return 'Please enter a valid age';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Gender Selection
-                            DropdownButtonFormField<String>(
-                              value: _selectedGender,
-                              decoration: const InputDecoration(
-                                labelText: 'Gender',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.wc),
-                              ),
-                              items: _genders.map((gender) {
-                                return DropdownMenuItem(
-                                  value: gender,
-                                  child: Text(gender),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedGender = value!;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Height Input
-                            TextFormField(
-                              controller: _heightController,
-                              decoration: const InputDecoration(
-                                labelText: 'Height (cm)',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.height),
-                                suffixText: 'cm',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your height';
-                                }
-                                double? height = double.tryParse(value);
-                                if (height == null ||
-                                    height < 50 ||
-                                    height > 250) {
-                                  return 'Please enter a valid height';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Weight Input
-                            TextFormField(
-                              controller: _weightController,
-                              decoration: const InputDecoration(
-                                labelText: 'Weight (kg)',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.monitor_weight),
-                                suffixText: 'kg',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your weight';
-                                }
-                                double? weight = double.tryParse(value);
-                                if (weight == null ||
-                                    weight < 20 ||
-                                    weight > 500) {
-                                  return 'Please enter a valid weight';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Personal Goal Selection
-                            DropdownButtonFormField<String>(
-                              value: _selectedGoal,
-                              decoration: const InputDecoration(
-                                labelText: 'Personal Goal',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.flag),
-                              ),
-                              items: _goals.map((goal) {
-                                return DropdownMenuItem(
-                                  value: goal,
-                                  child: Text(goal),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedGoal = value!;
-                                });
-                              },
-                            ),
-
-                            // BMI Display (if height and weight are entered)
-                            if (_heightController.text.isNotEmpty &&
-                                _weightController.text.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Builder(
-                                  builder: (context) {
-                                    double? height = double.tryParse(
-                                      _heightController.text,
-                                    );
-                                    double? weight = double.tryParse(
-                                      _weightController.text,
-                                    );
-                                    if (height != null &&
-                                        weight != null &&
-                                        height > 0) {
-                                      double bmi =
-                                          weight /
-                                          ((height / 100) * (height / 100));
-                                      String category = bmi < 18.5
-                                          ? 'Underweight'
-                                          : bmi < 25
-                                          ? 'Normal'
-                                          : bmi < 30
-                                          ? 'Overweight'
-                                          : 'Obese';
-                                      return Row(
-                                        children: [
-                                          Icon(
-                                            Icons.calculate,
-                                            color: Colors.blue[700],
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'BMI: ${bmi.toStringAsFixed(1)} ($category)',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.blue[700],
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Auto-Detected Medical Conditions Section
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.auto_fix_high,
-                                  color: Colors.green[600],
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Auto-Detected Medical Conditions',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Medical conditions will be automatically detected from your uploaded reports',
-                              style: TextStyle(color: Colors.grey[600]),
+                              widget.isUpdate
+                                  ? 'Keep your health information up to date'
+                                  : 'Let\'s create your personalized health profile with AI-powered OCR',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                            // Display detected conditions (including EGFR analysis, liver function, and protein analysis)
-                            if (_hasDiabetes ||
-                                _hasHypertension ||
-                                _hasCKD ||
-                                _hasLiverDisease ||
-                                _hasFattyLiver ||
-                                _detectedEGFR != null) ...[
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.green[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.green[200]!),
+                      // Personal Information Section
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.person, color: Colors.orange[600]),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Personal Information',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Username Input
+                              TextFormField(
+                                controller: _usernameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Username',
+                                  hintText: 'Enter your username',
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.check_circle,
-                                          color: Colors.green,
-                                          size: 18,
-                                        ),
-                                        SizedBox(width: 6),
-                                        Text(
-                                          'Detected Conditions:',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please enter a username';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Age Input
+                              TextFormField(
+                                controller: _ageController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Age',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.cake),
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your age';
+                                  }
+                                  int? age = int.tryParse(value);
+                                  if (age == null || age < 1 || age > 120) {
+                                    return 'Please enter a valid age';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Gender Selection
+                              DropdownButtonFormField<String>(
+                                value: _selectedGender,
+                                decoration: const InputDecoration(
+                                  labelText: 'Gender',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.wc),
+                                ),
+                                items:
+                                    _genders.map((gender) {
+                                      return DropdownMenuItem(
+                                        value: gender,
+                                        child: Text(gender),
+                                      );
+                                    }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedGender = value!;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Height Input
+                              TextFormField(
+                                controller: _heightController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Height (cm)',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.height),
+                                  suffixText: 'cm',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your height';
+                                  }
+                                  double? height = double.tryParse(value);
+                                  if (height == null ||
+                                      height < 50 ||
+                                      height > 250) {
+                                    return 'Please enter a valid height';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Weight Input
+                              TextFormField(
+                                controller: _weightController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Weight (kg)',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.monitor_weight),
+                                  suffixText: 'kg',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your weight';
+                                  }
+                                  double? weight = double.tryParse(value);
+                                  if (weight == null ||
+                                      weight < 20 ||
+                                      weight > 500) {
+                                    return 'Please enter a valid weight';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Personal Goal Selection
+                              DropdownButtonFormField<String>(
+                                value: _selectedGoal,
+                                decoration: const InputDecoration(
+                                  labelText: 'Personal Goal',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.flag),
+                                ),
+                                items:
+                                    _goals.map((goal) {
+                                      return DropdownMenuItem(
+                                        value: goal,
+                                        child: Text(goal),
+                                      );
+                                    }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedGoal = value!;
+                                  });
+                                },
+                              ),
+
+                              // BMI Display (if height and weight are entered)
+                              if (_heightController.text.isNotEmpty &&
+                                  _weightController.text.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Builder(
+                                    builder: (context) {
+                                      double? height = double.tryParse(
+                                        _heightController.text,
+                                      );
+                                      double? weight = double.tryParse(
+                                        _weightController.text,
+                                      );
+                                      if (height != null &&
+                                          weight != null &&
+                                          height > 0) {
+                                        double bmi =
+                                            weight /
+                                            ((height / 100) * (height / 100));
+                                        String category =
+                                            bmi < 18.5
+                                                ? 'Underweight'
+                                                : bmi < 25
+                                                ? 'Normal'
+                                                : bmi < 30
+                                                ? 'Overweight'
+                                                : 'Obese';
+                                        return Row(
+                                          children: [
+                                            Icon(
+                                              Icons.calculate,
+                                              color: Colors.blue[700],
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'BMI: ${bmi.toStringAsFixed(1)} ($category)',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.blue[700],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Auto-Detected Medical Conditions Section
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.auto_fix_high,
+                                    color: Colors.green[600],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Auto-Detected Medical Conditions',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Medical conditions will be automatically detected from your uploaded reports',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Display detected conditions (including EGFR analysis, liver function, and protein analysis)
+                              if (_hasDiabetes ||
+                                  _hasHypertension ||
+                                  _hasCKD ||
+                                  _hasLiverDisease ||
+                                  _hasFattyLiver ||
+                                  _detectedEGFR != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.green[200]!,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
                                             color: Colors.green,
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Detected Conditions:',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      if (_hasDiabetes) ...[
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange[50],
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.orange[200]!,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.water_drop,
+                                                    color: Colors.orange,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Diabetes ($_diabetesType)',
+                                                          style:
+                                                              const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                        if (_detectedHbA1c !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Text(
+                                                            'HbA1c: $_detectedHbA1c',
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 13,
+                                                                  color:
+                                                                      Colors
+                                                                          .orange,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                        if (_diabetesLevel !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 6,
+                                                                  vertical: 2,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: _getDiabetesLevelColor(
+                                                                _diabetesLevel!,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    4,
+                                                                  ),
+                                                            ),
+                                                            child: Text(
+                                                              'Level: $_diabetesLevel',
+                                                              style: const TextStyle(
+                                                                fontSize: 11,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                        if (_diabetesControl !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Text(
+                                                            'Control: $_diabetesControl',
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              color: _getControlColor(
+                                                                _diabetesControl!,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              const Text(
+                                                'Criteria: HbA1c >6.5%',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    if (_hasDiabetes) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        margin: const EdgeInsets.only(
-                                          bottom: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange[50],
-                                          borderRadius: BorderRadius.circular(
-                                            6,
+                                      if (_hasHypertension) ...[
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
                                           ),
-                                          border: Border.all(
-                                            color: Colors.orange[200]!,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red[50],
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.red[200]!,
+                                            ),
                                           ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.water_drop,
-                                                  color: Colors.orange,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        'Diabetes ($_diabetesType)',
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      if (_detectedHbA1c !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          'HbA1c: $_detectedHbA1c',
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors
-                                                                    .orange,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                      if (_diabetesLevel !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                _getDiabetesLevelColor(
-                                                                  _diabetesLevel!,
-                                                                ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4,
-                                                                ),
-                                                          ),
-                                                          child: Text(
-                                                            'Level: $_diabetesLevel',
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                      if (_diabetesControl !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          'Control: $_diabetesControl',
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.favorite,
+                                                    color: Colors.red,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          'Hypertension',
                                                           style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: _getControlColor(
-                                                              _diabetesControl!,
-                                                            ),
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                           ),
                                                         ),
-                                                      ],
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'Criteria: HbA1c >6.5%',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                    if (_hasHypertension) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        margin: const EdgeInsets.only(
-                                          bottom: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red[50],
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.red[200]!,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.favorite,
-                                                  color: Colors.red,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      const Text(
-                                                        'Hypertension',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      if (_detectedBP !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          'BP: $_detectedBP',
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 13,
-                                                                color:
-                                                                    Colors.red,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                      if (_hypertensionLevel !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color: _getHypertensionLevelColor(
-                                                              _hypertensionLevel!,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4,
-                                                                ),
+                                                        if (_detectedBP !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
                                                           ),
-                                                          child: Text(
-                                                            'Level: $_hypertensionLevel',
+                                                          Text(
+                                                            'BP: $_detectedBP',
                                                             style:
                                                                 const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: Colors
-                                                                      .white,
+                                                                  fontSize: 13,
+                                                                  color:
+                                                                      Colors
+                                                                          .red,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .bold,
+                                                                          .w600,
                                                                 ),
                                                           ),
-                                                        ),
+                                                        ],
+                                                        if (_hypertensionLevel !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 6,
+                                                                  vertical: 2,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: _getHypertensionLevelColor(
+                                                                _hypertensionLevel!,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    4,
+                                                                  ),
+                                                            ),
+                                                            child: Text(
+                                                              'Level: $_hypertensionLevel',
+                                                              style: const TextStyle(
+                                                                fontSize: 11,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ],
-                                                    ],
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'Criteria: BP >130/80 mmHg',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
+                                                ],
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                    if (_hasCKD) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        margin: const EdgeInsets.only(
-                                          bottom: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue[50],
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.blue[200]!,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.healing,
-                                                  color: Colors.blue,
-                                                  size: 16,
+                                              const SizedBox(height: 4),
+                                              const Text(
+                                                'Criteria: BP >130/80 mmHg',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
                                                 ),
-                                                const SizedBox(width: 6),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      const Text(
-                                                        'Chronic Kidney Disease',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      if (_hasCKD) ...[
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue[50],
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.blue[200]!,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.healing,
+                                                    color: Colors.blue,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          'Chronic Kidney Disease',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
                                                         ),
-                                                      ),
-                                                      if (_detectedEGFR !=
-                                                          null) ...[
+                                                        if (_detectedEGFR !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Text(
+                                                            'eGFR: $_detectedEGFR',
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 13,
+                                                                  color:
+                                                                      Colors
+                                                                          .blue,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                        if (_ckdStage !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 6,
+                                                                  vertical: 2,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  _getCKDStageColor(
+                                                                    _ckdStage!,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    4,
+                                                                  ),
+                                                            ),
+                                                            child: Text(
+                                                              _ckdStage!,
+                                                              style: const TextStyle(
+                                                                fontSize: 11,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              const Text(
+                                                'Stages: 1 (≥90), 2 (60-89), 3 (45-59)',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      if (_hasLiverDisease) ...[
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.purple[50],
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.purple[200]!,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.local_hospital,
+                                                    color: Colors.purple,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          'Liver Disease',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        if (_detectedAltAstRatio !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Text(
+                                                            'ALT/AST: $_detectedAltAstRatio',
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 13,
+                                                                  color:
+                                                                      Colors
+                                                                          .purple,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                        if (_liverDiseaseLevel !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
+                                                          ),
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 6,
+                                                                  vertical: 2,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: _getLiverLevelColor(
+                                                                _liverDiseaseLevel!,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    4,
+                                                                  ),
+                                                            ),
+                                                            child: Text(
+                                                              'Level: $_liverDiseaseLevel',
+                                                              style: const TextStyle(
+                                                                fontSize: 11,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              const Text(
+                                                'Levels: Low (<1), Average (≈1), High (1.5-2), Very High (>2)',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      if (_hasFattyLiver) ...[
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.brown[50],
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.brown[200]!,
+                                            ),
+                                          ),
+                                          child: const Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.healing,
+                                                    color: Colors.brown,
+                                                    size: 16,
+                                                  ),
+                                                  SizedBox(width: 6),
+                                                  Text(
+                                                    'Fatty Liver',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              SizedBox(height: 4),
+                                              Text(
+                                                'Non-alcoholic fatty liver disease',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+
+                                      // Show detected EGFR values even if they don't trigger full CKD
+                                      if (!_hasCKD &&
+                                          _detectedEGFR != null) ...[
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.cyan[50],
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.cyan[200]!,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.water_drop_outlined,
+                                                    color: Colors.cyan,
+                                                    size: 16,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          'Kidney Function Analysis',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
                                                         const SizedBox(
                                                           height: 2,
                                                         ),
@@ -3182,661 +3485,418 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                               const TextStyle(
                                                                 fontSize: 13,
                                                                 color:
-                                                                    Colors.blue,
+                                                                    Colors.cyan,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w600,
                                                               ),
                                                         ),
-                                                      ],
-                                                      if (_ckdStage !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                _getCKDStageColor(
-                                                                  _ckdStage!,
-                                                                ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4,
-                                                                ),
+                                                        if (_ckdStage !=
+                                                            null) ...[
+                                                          const SizedBox(
+                                                            height: 2,
                                                           ),
-                                                          child: Text(
-                                                            _ckdStage!,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 6,
+                                                                  vertical: 2,
                                                                 ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'Stages: 1 (≥90), 2 (60-89), 3 (45-59)',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                    if (_hasLiverDisease) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        margin: const EdgeInsets.only(
-                                          bottom: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.purple[50],
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.purple[200]!,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.local_hospital,
-                                                  color: Colors.purple,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      const Text(
-                                                        'Liver Disease',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      if (_detectedAltAstRatio !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          'ALT/AST: $_detectedAltAstRatio',
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors
-                                                                    .purple,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                      if (_liverDiseaseLevel !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color: _getLiverLevelColor(
-                                                              _liverDiseaseLevel!,
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  _getCKDStageColor(
+                                                                    _ckdStage!,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    4,
+                                                                  ),
                                                             ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4,
-                                                                ),
-                                                          ),
-                                                          child: Text(
-                                                            'Level: $_liverDiseaseLevel',
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'Levels: Low (<1), Average (≈1), High (1.5-2), Very High (>2)',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                    if (_hasFattyLiver) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.brown[50],
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.brown[200]!,
-                                          ),
-                                        ),
-                                        child: const Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.healing,
-                                                  color: Colors.brown,
-                                                  size: 16,
-                                                ),
-                                                SizedBox(width: 6),
-                                                Text(
-                                                  'Fatty Liver',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              'Non-alcoholic fatty liver disease',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-
-                                    // Show detected EGFR values even if they don't trigger full CKD
-                                    if (!_hasCKD && _detectedEGFR != null) ...[
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        margin: const EdgeInsets.only(
-                                          bottom: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.cyan[50],
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.cyan[200]!,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.water_drop_outlined,
-                                                  color: Colors.cyan,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      const Text(
-                                                        'Kidney Function Analysis',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 2),
-                                                      Text(
-                                                        'eGFR: $_detectedEGFR',
-                                                        style: const TextStyle(
-                                                          fontSize: 13,
-                                                          color: Colors.cyan,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                      if (_ckdStage !=
-                                                          null) ...[
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 6,
-                                                                vertical: 2,
+                                                            child: Text(
+                                                              _ckdStage!,
+                                                              style: const TextStyle(
+                                                                fontSize: 11,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
                                                               ),
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                _getCKDStageColor(
-                                                                  _ckdStage!,
-                                                                ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4,
-                                                                ),
+                                                            ),
                                                           ),
-                                                          child: Text(
-                                                            _ckdStage!,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                ),
-                                                          ),
-                                                        ),
+                                                        ],
                                                       ],
-                                                    ],
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            const Text(
-                                              'Kidney function analysis from lab report',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
+                                                ],
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ] else ...[
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.blue[200]!),
-                                ),
-                                child: Column(
-                                  children: [
-                                    const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          color: Colors.blue,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Upload medical reports to automatically detect conditions',
-                                            style: TextStyle(
-                                              color: Colors.blue,
-                                            ),
+                                              const SizedBox(height: 4),
+                                              const Text(
+                                                'Kidney function analysis from lab report',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Report Upload Section
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.upload_file,
-                                  color: Colors.orange[600],
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Medical Reports (Max 2)',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Upload your medical reports for AI-powered health analysis using real OCR technology',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // OCR Status Display
-                            if (_ocrStatus != null) ...[
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.blue[200]!),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.blue,
-                                            ),
-                                      ),
+                              ] else ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.blue[200]!,
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        _ocrStatus!,
-                                        style: TextStyle(
-                                          color: Colors.blue[700],
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            ElevatedButton.icon(
-                              onPressed:
-                                  _uploadedReports.length < 2 && !_isProcessing
-                                  ? _pickImage
-                                  : null,
-                              icon: const Icon(Icons.add_photo_alternate),
-                              label: Text(
-                                'Upload Medical Report ${_uploadedReports.length + 1}',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-
-                            if (_processedReports.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              ...List.generate(_processedReports.length, (
-                                index,
-                              ) {
-                                final report = _processedReports[index];
-                                bool isSuccess = report['success'] == true;
-                                return Card(
-                                  color: isSuccess
-                                      ? Colors.green[50]
-                                      : Colors.red[50],
-                                  child: ListTile(
-                                    leading: Icon(
-                                      isSuccess
-                                          ? Icons.check_circle
-                                          : Icons.error,
-                                      color: isSuccess
-                                          ? Colors.green
-                                          : Colors.red,
-                                    ),
-                                    title: Text(report['fileName']),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          isSuccess
-                                              ? 'OCR Processing: Complete'
-                                              : 'OCR Processing: Failed',
-                                          style: TextStyle(
-                                            color: isSuccess
-                                                ? Colors.green
-                                                : Colors.red,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Row(
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline,
+                                            color: Colors.blue,
                                           ),
-                                        ),
-                                        if (isSuccess &&
-                                            report['extractedValues'] != null &&
-                                            (report['extractedValues'] as Map)
-                                                .isNotEmpty) ...[
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Detected: ${(report['extractedValues'] as Map).keys.where((k) => !k.toString().endsWith('_unit') && !k.toString().endsWith('_risk')).join(', ')}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.green,
+                                          SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Upload medical reports to automatically detect conditions',
+                                              style: TextStyle(
+                                                color: Colors.blue,
+                                              ),
                                             ),
                                           ),
                                         ],
-                                      ],
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // Debug info button to see what data we have
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.bug_report,
-                                            color: Colors.purple,
-                                          ),
-                                          onPressed: () {
-                                            _showDebugInfo(report);
-                                          },
-                                        ),
-                                        if (isSuccess &&
-                                            report['extractedValues'] != null)
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.info,
-                                              color: Colors.blue,
-                                            ),
-                                            onPressed: () {
-                                              _showOCRResultDialog(
-                                                {
-                                                  'ocrResults':
-                                                      report['ocrResults'],
-                                                },
-                                                report['extractedValues'],
-                                                report['fileName'],
-                                              );
-                                            },
-                                          ),
-                                        if (isSuccess &&
-                                            report['rawText'] != null &&
-                                            report['rawText']
-                                                .toString()
-                                                .isNotEmpty)
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.text_snippet,
-                                              color: Colors.green,
-                                            ),
-                                            onPressed: () {
-                                              _showOCRTextPreview(
-                                                report['rawText'],
-                                                report['fileName'],
-                                                report['extractedValues'],
-                                              );
-                                            },
-                                          ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.delete,
-                                            color: Colors.red,
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              _uploadedReports.removeAt(index);
-                                              _processedReports.removeAt(index);
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    isThreeLine: true,
+                                      ),
+                                    ],
                                   ),
-                                );
-                              }),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Submit Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isProcessing ? null : _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: _isProcessing
-                            ? const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Report Upload Section
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
+                                  Icon(
+                                    Icons.upload_file,
+                                    color: Colors.orange[600],
                                   ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Processing...',
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Medical Reports (Max 2)',
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
-                              )
-                            : Text(
-                                widget.isUpdate
-                                    ? 'Update Profile'
-                                    : 'Create Profile',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
                               ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // OCR Technology Note
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        border: Border.all(color: Colors.blue[200]!),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.auto_awesome, color: Colors.blue),
-                              SizedBox(width: 8),
+                              const SizedBox(height: 8),
                               Text(
-                                'AI-Powered OCR Technology',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                'Upload your medical reports for AI-powered health analysis using real OCR technology',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // OCR Status Display
+                              if (_ocrStatus != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.blue[200]!,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.blue,
+                                              ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _ocrStatus!,
+                                          style: TextStyle(
+                                            color: Colors.blue[700],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+
+                              ElevatedButton.icon(
+                                onPressed:
+                                    _uploadedReports.length < 2 &&
+                                            !_isProcessing
+                                        ? _pickImage
+                                        : null,
+                                icon: const Icon(Icons.add_photo_alternate),
+                                label: Text(
+                                  'Upload Medical Report ${_uploadedReports.length + 1}',
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
                                 ),
                               ),
+
+                              if (_processedReports.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                ...List.generate(_processedReports.length, (
+                                  index,
+                                ) {
+                                  final report = _processedReports[index];
+                                  bool isSuccess = report['success'] == true;
+                                  return Card(
+                                    color:
+                                        isSuccess
+                                            ? Colors.green[50]
+                                            : Colors.red[50],
+                                    child: ListTile(
+                                      leading: Icon(
+                                        isSuccess
+                                            ? Icons.check_circle
+                                            : Icons.error,
+                                        color:
+                                            isSuccess
+                                                ? Colors.green
+                                                : Colors.red,
+                                      ),
+                                      title: Text(report['fileName']),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isSuccess
+                                                ? 'OCR Processing: Complete'
+                                                : 'OCR Processing: Failed',
+                                            style: TextStyle(
+                                              color:
+                                                  isSuccess
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                            ),
+                                          ),
+                                          if (isSuccess &&
+                                              report['extractedValues'] !=
+                                                  null &&
+                                              (report['extractedValues'] as Map)
+                                                  .isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Detected: ${(report['extractedValues'] as Map).keys.where((k) => !k.toString().endsWith('_unit') && !k.toString().endsWith('_risk')).join(', ')}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Debug info button to see what data we have
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.bug_report,
+                                              color: Colors.purple,
+                                            ),
+                                            onPressed: () {
+                                              _showDebugInfo(report);
+                                            },
+                                          ),
+                                          if (isSuccess &&
+                                              report['extractedValues'] != null)
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.info,
+                                                color: Colors.blue,
+                                              ),
+                                              onPressed: () {
+                                                _showOCRResultDialog(
+                                                  {
+                                                    'ocrResults':
+                                                        report['ocrResults'],
+                                                  },
+                                                  report['extractedValues'],
+                                                  report['fileName'],
+                                                );
+                                              },
+                                            ),
+                                          if (isSuccess &&
+                                              report['rawText'] != null &&
+                                              report['rawText']
+                                                  .toString()
+                                                  .isNotEmpty)
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.text_snippet,
+                                                color: Colors.green,
+                                              ),
+                                              onPressed: () {
+                                                _showOCRTextPreview(
+                                                  report['rawText'],
+                                                  report['fileName'],
+                                                  report['extractedValues'],
+                                                );
+                                              },
+                                            ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.red,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _uploadedReports.removeAt(
+                                                  index,
+                                                );
+                                                _processedReports.removeAt(
+                                                  index,
+                                                );
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      isThreeLine: true,
+                                    ),
+                                  );
+                                }),
+                              ],
                             ],
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
 
-                          SizedBox(height: 8),
-                          Text(
-                            'Note: Ensure your medical reports are clear and well-lit for best OCR results.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.blue,
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isProcessing ? null : _saveProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                        ],
+                          child:
+                              _isProcessing
+                                  ? const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Processing...',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                  : Text(
+                                    widget.isUpdate
+                                        ? 'Update Profile'
+                                        : 'Create Profile',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                        ),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 20),
+
+                      // OCR Technology Note
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          border: Border.all(color: Colors.blue[200]!),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.auto_awesome, color: Colors.blue),
+                                SizedBox(width: 8),
+                                Text(
+                                  'AI-Powered OCR Technology',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 8),
+                            Text(
+                              'Note: Ensure your medical reports are clear and well-lit for best OCR results.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

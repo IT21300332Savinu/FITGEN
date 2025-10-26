@@ -10,14 +10,12 @@ class MedicalHome extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const ProfileScreen(isUpdate: false)),
+        MaterialPageRoute(
+          builder: (context) => const ProfileScreen(isUpdate: false),
+        ),
       );
     });
 
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
