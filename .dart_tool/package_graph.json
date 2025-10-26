@@ -51,7 +51,6 @@
         "shared_preferences",
         "sign_in_with_apple",
         "smooth_page_indicator",
-        "sqflite",
         "stop_watch_timer",
         "table_calendar",
         "timeago",
@@ -108,18 +107,6 @@
       "dependencies": []
     },
     {
-      "name": "sqflite",
-      "version": "2.4.2",
-      "dependencies": [
-        "flutter",
-        "path",
-        "sqflite_android",
-        "sqflite_common",
-        "sqflite_darwin",
-        "sqflite_platform_interface"
-      ]
-    },
-    {
       "name": "package_info_plus",
       "version": "9.0.0",
       "dependencies": [
@@ -137,14 +124,16 @@
     },
     {
       "name": "file_picker",
-      "version": "6.2.1",
+      "version": "8.0.7",
       "dependencies": [
+        "cross_file",
         "ffi",
         "flutter",
         "flutter_plugin_android_lifecycle",
         "flutter_web_plugins",
         "path",
         "plugin_platform_interface",
+        "web",
         "win32"
       ]
     },
@@ -162,7 +151,7 @@
     },
     {
       "name": "flutter_cache_manager",
-      "version": "3.4.1",
+      "version": "3.4.0",
       "dependencies": [
         "clock",
         "collection",
@@ -325,7 +314,7 @@
     },
     {
       "name": "sign_in_with_apple",
-      "version": "5.0.0",
+      "version": "7.0.1",
       "dependencies": [
         "flutter",
         "meta",
@@ -673,47 +662,6 @@
       ]
     },
     {
-      "name": "sqflite_common",
-      "version": "2.5.6",
-      "dependencies": [
-        "meta",
-        "path",
-        "synchronized"
-      ]
-    },
-    {
-      "name": "sqflite_platform_interface",
-      "version": "2.4.0",
-      "dependencies": [
-        "flutter",
-        "meta",
-        "platform",
-        "plugin_platform_interface",
-        "sqflite_common"
-      ]
-    },
-    {
-      "name": "sqflite_darwin",
-      "version": "2.4.2",
-      "dependencies": [
-        "flutter",
-        "meta",
-        "path",
-        "sqflite_common",
-        "sqflite_platform_interface"
-      ]
-    },
-    {
-      "name": "sqflite_android",
-      "version": "2.4.2+2",
-      "dependencies": [
-        "flutter",
-        "path",
-        "sqflite_common",
-        "sqflite_platform_interface"
-      ]
-    },
-    {
       "name": "win32",
       "version": "5.15.0",
       "dependencies": [
@@ -745,6 +693,14 @@
       "name": "ffi",
       "version": "2.1.4",
       "dependencies": []
+    },
+    {
+      "name": "cross_file",
+      "version": "0.3.4+2",
+      "dependencies": [
+        "meta",
+        "web"
+      ]
     },
     {
       "name": "plugin_platform_interface",
@@ -810,6 +766,15 @@
         "fixnum",
         "meta",
         "sprintf"
+      ]
+    },
+    {
+      "name": "sqflite",
+      "version": "2.3.3",
+      "dependencies": [
+        "flutter",
+        "path",
+        "sqflite_common"
       ]
     },
     {
@@ -976,7 +941,7 @@
     },
     {
       "name": "cached_network_image_platform_interface",
-      "version": "4.1.1",
+      "version": "4.1.0",
       "dependencies": [
         "flutter",
         "flutter_cache_manager"
@@ -1027,17 +992,16 @@
     },
     {
       "name": "sign_in_with_apple_web",
-      "version": "1.0.1",
+      "version": "3.0.0",
       "dependencies": [
         "flutter",
         "flutter_web_plugins",
-        "js",
         "sign_in_with_apple_platform_interface"
       ]
     },
     {
       "name": "sign_in_with_apple_platform_interface",
-      "version": "1.1.0",
+      "version": "2.0.0",
       "dependencies": [
         "flutter",
         "meta",
@@ -1570,16 +1534,6 @@
       ]
     },
     {
-      "name": "synchronized",
-      "version": "3.4.0",
-      "dependencies": []
-    },
-    {
-      "name": "platform",
-      "version": "3.1.6",
-      "dependencies": []
-    },
-    {
       "name": "csslib",
       "version": "1.0.2",
       "dependencies": [
@@ -1595,6 +1549,15 @@
       "name": "sprintf",
       "version": "7.0.0",
       "dependencies": []
+    },
+    {
+      "name": "sqflite_common",
+      "version": "2.5.6",
+      "dependencies": [
+        "meta",
+        "path",
+        "synchronized"
+      ]
     },
     {
       "name": "typed_data",
@@ -1617,13 +1580,6 @@
       "dependencies": [
         "meta",
         "web"
-      ]
-    },
-    {
-      "name": "js",
-      "version": "0.6.7",
-      "dependencies": [
-        "meta"
       ]
     },
     {
@@ -1654,14 +1610,6 @@
       ]
     },
     {
-      "name": "cross_file",
-      "version": "0.3.4+2",
-      "dependencies": [
-        "meta",
-        "web"
-      ]
-    },
-    {
       "name": "file_selector_macos",
       "version": "0.9.4+4",
       "dependencies": [
@@ -1685,6 +1633,11 @@
       "dependencies": [
         "dbus"
       ]
+    },
+    {
+      "name": "platform",
+      "version": "3.1.6",
+      "dependencies": []
     },
     {
       "name": "xdg_directories",
@@ -1717,6 +1670,11 @@
     {
       "name": "vm_service",
       "version": "14.3.1",
+      "dependencies": []
+    },
+    {
+      "name": "synchronized",
+      "version": "3.4.0",
       "dependencies": []
     },
     {
