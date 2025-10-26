@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+// import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';                 // <— for context.pushNamed
 import '../screens/meal_detail_screen.dart';
 import '../services/meal_suggestions_service.dart';
@@ -358,6 +358,18 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
+                            // TODO: Add flutter_rating_bar package for rating functionality
+                            Row(
+                              children: List.generate(5, (index) {
+                                final rating = _ratingFor(mealKey);
+                                return Icon(
+                                  index < rating ? Icons.star : Icons.star_border,
+                                  color: Colors.amber,
+                                  size: 22,
+                                );
+                              }),
+                            ),
+                            /*
                             RatingBar.builder(
                               initialRating: _ratingFor(mealKey),
                               minRating: 1,
@@ -384,6 +396,7 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                                 }
                               },
                             ),
+                            */
                             const SizedBox(width: 8),
                             Text(
                               _ratingFor(mealKey).toStringAsFixed(1),

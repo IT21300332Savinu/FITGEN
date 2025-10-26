@@ -1,8 +1,8 @@
-import 'package:fitgen_socialbridge/screens/custom_meal_plan_view_screen.dart';
+// import 'custom_meal_plan_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/meal_suggestions_service.dart';
-import '../theme/app_theme.dart';
+// import '../theme/app_theme.dart';
 import 'custom_meal_plan_screen.dart';
 import 'custom_plan_suggestion_screen.dart';
 

@@ -1,13 +1,13 @@
-import 'package:fitgen_socialbridge/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../services/firebase_config .dart';
-import '../models/user_model.dart';
+// import '../services/firebase_config .dart';
+// import '../models/user_model.dart';
 import '../services/meal_suggestions_service.dart';
-import '../widgets/CustomButton.dart';
+// import '../widgets/CustomButton.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -44,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = false;
   bool _isEditing = false;
-  UserModel? _user;
+  // UserModel? _user;
   File? _healthDocumentFile;
   String? _healthDocumentUrl;
   int _currentStep = 0;
@@ -115,8 +115,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<String?> _uploadHealthDocument() async {
     if (_healthDocumentFile == null) return _healthDocumentUrl;
     try {
-      final userId = _user!.uid;
-      final storageRef = FirebaseStorage.instanceFor(app: FirebaseConfig.nutritionApp)
+      // TODO: Implement with proper user model
+      // final userId = _user!.uid;
+      final userId = 'temp_user_id';
+      final storageRef = FirebaseStorage.instance
           .ref()
           .child('health_documents')
           .child('$userId-${DateTime.now().millisecondsSinceEpoch}.jpg');
@@ -135,50 +137,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     setState(() => _isLoading = true);
     try {
-      if (_user == null) return;
+      // TODO: Implement with proper user model
+      // if (_user == null) return;
 
       final healthDocumentUrl = await _uploadHealthDocument();
 
-      final conditions = _selectedConditions
-          .map(
-            (name) => MedicalCondition(
-          name: name,
-          description: 'User reported condition',
-          severityLevel: 3,
-          limitations: const [],
-        ),
-      )
-          .toList();
-
-      final healthMetrics = HealthMetrics(
-        restingHeartRate: int.parse(_restingHeartRateController.text),
-        bloodPressureSystolic: int.parse(_bloodPressureSystolicController.text),
-        bloodPressureDiastolic: int.parse(_bloodPressureDiastolicController.text),
-        respiratoryRate: int.parse(_respiratoryRateController.text),
-        bloodGlucose: double.parse(_bloodGlucoseController.text),
-      );
+      // Placeholder for conditions and health metrics
+      // final conditions = _selectedConditions.map(...).toList();
+      // final healthMetrics = HealthMetrics(...);
 
       final height = double.parse(_heightController.text) / 100; // cm -> m
       final weight = double.parse(_weightController.text);
       final bmi = weight / (height * height);
-      debugPrint("Computed BMI: $bmi"); // if you want to use/store later
+      debugPrint("Computed BMI: $bmi");
 
-      final updatedUser = _user!.copyWith(
-        name: _nameController.text,
-        age: int.parse(_ageController.text),
-        height: double.parse(_heightController.text),
-        weight: double.parse(_weightController.text),
-        emergencyContact: _emergencyContactController.text,
-        medicalNotes: _medicalNotesController.text,
-        healthDocumentUrl: healthDocumentUrl,
-        conditions: conditions,
-        healthMetrics: healthMetrics,
-      );
-
-      // Save updatedUser with your auth/service here
+      // TODO: Save profile data to Firebase
+      // final updatedUser = _user!.copyWith(...);
+      // _user = updatedUser;
 
       setState(() {
-        _user = updatedUser;
         _isEditing = false;
       });
 
@@ -683,12 +660,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: CustomButton(
-                        text: _currentStep == 2 ? 'Update Profile' : 'Next',
-                        onPressed: details.onStepContinue,
-                        isLoading: _isLoading,
-                        backgroundColor: cs.primary,
-                        textColor: cs.onPrimary,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : details.onStepContinue,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cs.primary,
+                          foregroundColor: cs.onPrimary,
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text(_currentStep == 2 ? 'Update Profile' : 'Next'),
                       ),
                     ),
                     const SizedBox(width: 12),
