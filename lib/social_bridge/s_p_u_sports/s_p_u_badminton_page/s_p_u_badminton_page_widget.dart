@@ -10,7 +10,7 @@ import '/social_bridge/s_p_u_sports/badmintonfeedbackcomponent/badmintonfeedback
 import '/social_bridge/s_p_u_sports/completeworkout/completeworkout_widget.dart';
 import '/social_bridge/s_p_u_sports/exercisepageinfo/exercisepageinfo_widget.dart';
 import '/social_bridge/s_p_u_sports/startworkoutinfo/startworkoutinfo_widget.dart';
-import '/models/features/ai_trainer/screens/workout_screen.dart';
+import '/ai_gym_trainer/features/ai_trainer/screens/workout_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
     as smooth_page_indicator;
 import 'package:stop_watch_timer/stop_watch_timer.dart';

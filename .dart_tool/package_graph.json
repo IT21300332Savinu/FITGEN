@@ -50,7 +50,9 @@
         "rxdart",
         "shared_preferences",
         "sign_in_with_apple",
+        "smooth_page_indicator",
         "sqflite",
+        "stop_watch_timer",
         "table_calendar",
         "timeago",
         "url_launcher",
@@ -84,6 +86,20 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "smooth_page_indicator",
+      "version": "1.2.1",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "stop_watch_timer",
+      "version": "3.1.1",
+      "dependencies": [
+        "rxdart"
       ]
     },
     {
