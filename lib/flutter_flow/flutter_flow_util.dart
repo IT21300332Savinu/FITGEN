@@ -12,8 +12,6 @@ import 'package:json_path/json_path.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
-import '../main.dart';
-
 
 export 'keep_alive_wrapper.dart';
 export 'lat_lng.dart';
@@ -420,8 +418,11 @@ extension StringDocRef on String {
   DocumentReference get ref => FirebaseFirestore.instance.doc(this);
 }
 
-void setDarkModeSetting(BuildContext context, ThemeMode themeMode) =>
-    MyApp.of(context).setThemeMode(themeMode);
+void setDarkModeSetting(BuildContext context, ThemeMode themeMode) {
+  // Note: Theme mode switching requires additional setup in main.dart
+  // For now, theme is set statically in FitGenApp
+  debugPrint('Theme mode change requested: $themeMode');
+}
 
 void showSnackbar(
   BuildContext context,
@@ -598,7 +599,14 @@ extension ListUniqueExt<T> on Iterable<T> {
   }
 }
 
-String getCurrentRoute(BuildContext context) =>
-    context.mounted ? MyApp.of(context).getRoute() : '';
-List<String> getCurrentRouteStack(BuildContext context) =>
-    context.mounted ? MyApp.of(context).getRouteStack() : [];
+String getCurrentRoute(BuildContext context) {
+  // Note: Route tracking requires additional setup
+  // Return empty string for now
+  return '';
+}
+
+List<String> getCurrentRouteStack(BuildContext context) {
+  // Note: Route tracking requires additional setup
+  // Return empty list for now
+  return [];
+}

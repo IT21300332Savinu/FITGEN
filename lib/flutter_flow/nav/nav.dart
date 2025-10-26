@@ -7,7 +7,6 @@ import '/backend/schema/structs/index.dart';
 
 import '/auth/base_auth_user_provider.dart';
 
-import '/main.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 
@@ -18,11 +17,7 @@ export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
 import '/ai_nutritionist/screens/profile_screen_meal.dart';
 import '/ai_nutritionist/screens/meal_suggestion_screen.dart';
-import '/ai_nutritionist/screens/custom_meal_plan_screen.dart';
 import '/ai_nutritionist/screens/custom_meal_plan_list_screen.dart';
-import '/ai_nutritionist/screens/custom_meal_plan_view_screen.dart';
-import '/ai_nutritionist/screens/custom_plan_suggestion_screen.dart';
-import '/ai_nutritionist/screens/custom_plan_detail_screen.dart';
 
 
 const kTransitionInfoKey = '__transition_info__';

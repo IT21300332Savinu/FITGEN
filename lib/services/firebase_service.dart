@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../models/user_profile.dart';
-import '../models/health_data.dart';
+import '../ai_medical_guidance/models/user_profile.dart';
+import '../ai_medical_guidance/models/health_data.dart';
 import 'dart:io';
-import 'firebase_config .dart';
+import '../ai_medical_guidance/services/firebase_config .dart';
 
 class FirebaseService {
   // Bind this service to the 'fitgen' Firebase app (secondary project)
@@ -263,7 +263,7 @@ class FirebaseService {
           .get();
 
       if (snapshot.docs.isEmpty) return null;
-      final data = snapshot.docs.first.data() as Map<String, dynamic>;
+      final data = snapshot.docs.first.data();
       final uploadDate = data['uploadDate'];
       if (uploadDate is String) return DateTime.tryParse(uploadDate);
       if (uploadDate is DateTime) return uploadDate;
