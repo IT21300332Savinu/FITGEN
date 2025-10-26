@@ -12,7 +12,9 @@ class FirebaseConfig {
         appId: '1:28582013230:android:38837813f1fa72da8af2bf',
         messagingSenderId: '28582013230',
         projectId: 'fitgen-8df00',
-        // Add other required options
+        // Web-only extras to ensure Auth/Storage work in web builds
+        authDomain: 'fitgen-8df00.firebaseapp.com',
+        storageBucket: 'fitgen-8df00.firebasestorage.app',
       ),
     );
 
@@ -26,7 +28,9 @@ class FirebaseConfig {
         messagingSenderId: '872949407728',
         projectId:
             'fitgenmedical', // This should be 'fitgenmedical' based on your screenshot
-        // Add other required options
+        // Web-only extras to ensure Auth/Storage work in web builds
+        authDomain: 'fitgenmedical.firebaseapp.com',
+        storageBucket: 'fitgenmedical.firebasestorage.app',
       ),
     );
 

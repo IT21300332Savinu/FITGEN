@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'auth/firebase_auth/firebase_user_provider.dart';
 import 'auth/firebase_auth/auth_util.dart';
 
@@ -41,9 +42,27 @@ void main() async {
   // This uses the default Firebase app (SocialBridge) and will be
   // replaced/linked if the user later signs in with the Social Bridge flow.
   try {
-    await FirebaseService.signInAnonymously();
-    await Future.delayed(Duration(milliseconds: 500));
-    //print('Auth initialized: ${FirebaseAuth.instance.currentUser?.uid}');
+    // 1) Default app (SocialBridge)
+    if (FirebaseAuth.instance.currentUser == null) {
+      await FirebaseAuth.instance.signInAnonymously();
+    }
+
+    // 2) fitgen secondary app (profiles/reports)
+    final fitgenAuth = FirebaseAuth.instanceFor(app: FirebaseConfig.mainApp);
+    if (fitgenAuth.currentUser == null) {
+      await fitgenAuth.signInAnonymously();
+    }
+
+    // 3) FitgenMedical secondary app (IoT)
+    final iotAuth = FirebaseAuth.instanceFor(app: FirebaseConfig.iotApp);
+    if (iotAuth.currentUser == null) {
+      await iotAuth.signInAnonymously();
+    }
+
+    await Future.delayed(const Duration(milliseconds: 300));
+    print('Default uid: ${FirebaseAuth.instance.currentUser?.uid}');
+    print('fitgen uid: ${fitgenAuth.currentUser?.uid}');
+    print('iot uid: ${iotAuth.currentUser?.uid}');
   } catch (e) {
     // Log but don't block app startup - screen-level save operations
     // will still show error if sign-in ultimately fails.

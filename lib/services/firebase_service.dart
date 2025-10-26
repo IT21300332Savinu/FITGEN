@@ -4,11 +4,16 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../models/user_profile.dart';
 import '../models/health_data.dart';
 import 'dart:io';
+import 'firebase_config .dart';
 
 class FirebaseService {
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final FirebaseStorage _storage = FirebaseStorage.instance;
+  // Bind this service to the 'fitgen' Firebase app (secondary project)
+  static FirebaseFirestore get _firestore =>
+    FirebaseFirestore.instanceFor(app: FirebaseConfig.mainApp);
+  static FirebaseAuth get _auth =>
+    FirebaseAuth.instanceFor(app: FirebaseConfig.mainApp);
+  static FirebaseStorage get _storage =>
+    FirebaseStorage.instanceFor(app: FirebaseConfig.mainApp);
 
   // User Authentication
   static Future<User?> signInAnonymously() async {
