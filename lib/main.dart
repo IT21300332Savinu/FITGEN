@@ -22,7 +22,7 @@ Future<void> main() async {
   // Initialize all Firebase apps
   try {
     // 1. Social Bridge (Default Firebase)
-    await initFirebase(); // From backend/firebase/firebase_config.dart
+    await initFirebase(); // From backend/firebase/nutri_firebase_config.dart
     debugPrint('✅ Social Bridge Firebase initialized');
 
     // 2. AI Nutritionist (Uses default Firebase or separate - check requirements)

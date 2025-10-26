@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/meal_suggestions_service.dart';
 // import '../theme/app_theme.dart';
 import 'custom_meal_plan_screen.dart';
+import 'custom_meal_plan_view_screen.dart';
 import 'custom_plan_suggestion_screen.dart';
 
 class CustomMealPlanListScreen extends StatefulWidget {
@@ -229,10 +230,10 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                           OutlinedButton.icon(
                             onPressed: () {
                               // TODO: Implement view screen when available
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('View feature coming soon')),
-                              );
-                              /*
+                              // ScaffoldMessenger.of(context).showSnackBar(
+                                // const SnackBar(content: Text('View feature coming soon')),
+                              // );
+
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => CustomMealPlanViewScreen(
@@ -240,7 +241,7 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                                   ),
                                 ),
                               );
-                              */
+
                             },
                             icon: const Icon(Icons.visibility),
                             label: const Text("View"),
