@@ -1,8 +1,12 @@
-import 'package:flutter/services.dart';
-import 'package:csv/csv.dart';
-import '../models/workout_plan.dart';
+// import 'package:flutter/services.dart';
+// import 'package:csv/csv.dart';
+// import '../models/workout_plan.dart';
 
 class WorkoutService {
+  // Note: CSV parsing functionality commented out until csv package is added
+  // and workout_plan models are created
+  
+  /*
   static Future<WorkoutPlan> loadWorkoutPlan(
     String fitnessType,
     String level,
@@ -52,4 +56,5 @@ class WorkoutService {
 
     return workoutPlans;
   }
+  */
 }

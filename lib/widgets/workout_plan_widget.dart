@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/workout_plan.dart';
+// import '../models/workout_plan.dart';
 
-class WorkoutPlanWidget extends StatefulWidget {
+// Note: This widget is commented out until workout_plan models are created
+/*
+class WorkoutPlanWidget extends StatelessWidget {
   final WorkoutPlan workoutPlan;
 
   const WorkoutPlanWidget({super.key, required this.workoutPlan});
@@ -115,3 +117,4 @@ class _WorkoutPlanWidgetState extends State<WorkoutPlanWidget> {
     );
   }
 }
+*/

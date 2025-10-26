@@ -1,8 +1,12 @@
-import 'package:flutter/material.dart';
-import '../screens/workout_recommendations_screen.dart';
-import '../models/user_profile.dart';
+// import 'package:flutter/material.dart';
+// import '../screens/workout_recommendations_screen.dart';
+// import '../models/user_profile.dart';
 
 class NavigationService {
+  // Note: This service references screens that may not exist yet
+  // Uncomment and update paths when implementing workout recommendations
+  
+  /*
   static void navigateToWorkoutRecommendations(
     BuildContext context, {
     required UserProfile userProfile,
@@ -18,6 +22,7 @@ class NavigationService {
       ),
     );
   }
+  */
 }
 
 // Example usage in other screens:

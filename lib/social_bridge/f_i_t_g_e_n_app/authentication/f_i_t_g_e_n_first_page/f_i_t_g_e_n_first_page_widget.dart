@@ -2,13 +2,10 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/index.dart';
+import '/flutter_flow/nav/nav_bar_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'f_i_t_g_e_n_first_page_model.dart';
-import '/services/firebase_service.dart';
-import '/models/user_profile.dart';
-import '/screens/profile_screen.dart';
-import '/screens/dashboard_screen.dart';
 export 'f_i_t_g_e_n_first_page_model.dart';
 
 class FITGENFirstPageWidget extends StatefulWidget {
@@ -267,11 +264,11 @@ class _FITGENFirstPageWidgetState extends State<FITGENFirstPageWidget>
                                   ),
                                   FFButtonWidget(
                                     onPressed: () async {
-                                      // Navigate to the Profile screen for Normal users
+                                      // Navigate to the Home page after login
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ProfileScreen(),
+                                          builder: (context) => const NavBarPage(),
                                         ),
                                       );
                                     },
