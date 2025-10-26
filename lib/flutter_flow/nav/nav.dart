@@ -15,13 +15,13 @@ import '/index.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
-import 'package:fitgen_socialbridge/screens/profile_screen_meal.dart';
-import 'package:fitgen_socialbridge/screens/meal_suggestion_screen.dart';
-import 'package:fitgen_socialbridge/screens/custom_meal_plan_screen.dart';
-import 'package:fitgen_socialbridge/screens/custom_meal_plan_list_screen.dart';
-import 'package:fitgen_socialbridge/screens/custom_meal_plan_view_screen.dart';
-import 'package:fitgen_socialbridge/screens/custom_plan_suggestion_screen.dart';
-import 'package:fitgen_socialbridge/screens/custom_plan_detail_screen.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/profile_screen_meal.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/meal_suggestion_screen.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/custom_meal_plan_screen.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/custom_meal_plan_list_screen.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/custom_meal_plan_view_screen.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/custom_plan_suggestion_screen.dart';
+import 'package:fitgen_socialbridge/ai_nutritionist/screens/custom_plan_detail_screen.dart';
 
 
 const kTransitionInfoKey = '__transition_info__';

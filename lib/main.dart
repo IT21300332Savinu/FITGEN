@@ -1,306 +1,409 @@
-import 'package:fitgen_socialbridge/screens/meal_suggestion_gate.dart';
-import 'package:fitgen_socialbridge/screens/profile_screen_meal.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'auth/firebase_auth/firebase_user_provider.dart';
-import 'auth/firebase_auth/auth_util.dart';
+// Screens
+import 'screens/gym_home.dart';
+import 'screens/medical_home.dart';
 
+// Firebase configurations
 import 'backend/firebase/firebase_config.dart';
-import 'services/firebase_config .dart';
-import 'services/firebase_service.dart';
-import '/flutter_flow/flutter_flow_theme.dart';
-import 'flutter_flow/flutter_flow_util.dart';
-import 'index.dart';
+import 'firebase_options_gym.dart';
+import 'ai_medical_guidance/services/firebase_config .dart';
 
-void main() async {
+// Social Bridge (Special User flow) - Using updated paths
+import 'social_bridge/f_i_t_g_e_n_app/authentication/f_i_t_g_e_n_first_page/f_i_t_g_e_n_first_page_widget.dart';
+
+// Nutritionist
+import 'ai_nutritionist/screens/meal_suggestion_gate.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoRouter.optionURLReflectsImperativeAPIs = true;
-  usePathUrlStrategy();
 
-// This await call is used to initilize the social bridge function which is kept at the default, location is in backend
-  await initFirebase();
-/*   // Initialize default Firebase (SocialBridge)
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyB5GFy_H4OUQ3kEauWbvPS07Etrh4oLK9w",
-      appId: "1:358273804497:web:74a6d2a9475541eec2bdf0",
-      messagingSenderId: "358273804497",
-      projectId: "fitgen-socialbridge-ihkwov",
-      storageBucket: "fitgen-socialbridge-ihkwov.firebasestorage.app",
-      authDomain: "fitgen-socialbridge-ihkwov.firebaseapp.com",
-    ),
-  );
-*/
-  // Initialize all secondary Firebase projects which are the IoT and Nutritionist functions
-  await FirebaseConfig.initializeFirebase();
-
-  // Ensure a (anonymous) user is signed in for normal/user flows so
-  // profile creation/uploads won't fail with "Authentication required".
-  // This uses the default Firebase app (SocialBridge) and will be
-  // replaced/linked if the user later signs in with the Social Bridge flow.
+  // Initialize all Firebase apps
   try {
-    // 1) Default app (SocialBridge)
-    if (FirebaseAuth.instance.currentUser == null) {
-      await FirebaseAuth.instance.signInAnonymously();
+    // 1. Social Bridge (Default Firebase)
+    await initFirebase(); // From backend/firebase/firebase_config.dart
+    debugPrint('✅ Social Bridge Firebase initialized');
+
+    // 2. AI Nutritionist (Uses default Firebase or separate - check requirements)
+    // Nutritionist uses Flask API backend, no separate Firebase needed
+
+    // 3. AI Gym Trainer (Separate Firebase)
+    if (!kIsWeb) {
+      await Firebase.initializeApp(
+        name: 'gym',
+        options: DefaultFirebaseOptionsGym,
+      );
+      debugPrint('✅ Gym Trainer Firebase initialized');
     }
 
-    // 2) fitgen secondary app (profiles/reports)
-    final fitgenAuth = FirebaseAuth.instanceFor(app: FirebaseConfig.mainApp);
-    if (fitgenAuth.currentUser == null) {
-      await fitgenAuth.signInAnonymously();
+    // 4. AI Medical Guidance (Separate Firebase)
+    if (!kIsWeb) {
+      await FirebaseConfig.initializeFirebase(); // Initialize medical Firebase
+      debugPrint('✅ Medical Guidance Firebase initialized');
     }
-
-    // 3) FitgenMedical secondary app (IoT)
-    final iotAuth = FirebaseAuth.instanceFor(app: FirebaseConfig.iotApp);
-    if (iotAuth.currentUser == null) {
-      await iotAuth.signInAnonymously();
-    }
-
-    await Future.delayed(const Duration(milliseconds: 300));
-    print('Default uid: ${FirebaseAuth.instance.currentUser?.uid}');
-    print('fitgen uid: ${fitgenAuth.currentUser?.uid}');
-    print('iot uid: ${iotAuth.currentUser?.uid}');
   } catch (e) {
-    // Log but don't block app startup - screen-level save operations
-    // will still show error if sign-in ultimately fails.
-    print('Anonymous sign-in failed at startup: $e');
+    debugPrint('⚠️ Firebase initialization error: $e');
   }
 
-
-  runApp(MyApp());
+  runApp(const FitGenApp());
 }
 
-class MyApp extends StatefulWidget {
-  // This widget is the root of your application.
-  @override
-  State<MyApp> createState() => _MyAppState();
-
-  static _MyAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_MyAppState>()!;
-}
-
-class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  late AppStateNotifier _appStateNotifier;
-  late GoRouter _router;
-  String getRoute([RouteMatch? routeMatch]) {
-    final RouteMatch lastMatch =
-        routeMatch ?? _router.routerDelegate.currentConfiguration.last;
-    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch
-        ? lastMatch.matches
-        : _router.routerDelegate.currentConfiguration;
-    return matchList.uri.toString();
-  }
-
-  List<String> getRouteStack() =>
-      _router.routerDelegate.currentConfiguration.matches
-          .map((e) => getRoute(e))
-          .toList();
-  late Stream<BaseAuthUser> userStream;
-
-  final authUserSub = authenticatedUserStream.listen((_) {});
-
-  @override
-  void initState() {
-    super.initState();
-
-    _appStateNotifier = AppStateNotifier.instance;
-    _router = createRouter(_appStateNotifier);
-    userStream = fitgenSocialbridgeFirebaseUserStream()
-      ..listen((user) {
-        _appStateNotifier.update(user);
-      });
-    jwtTokenStream.listen((_) {});
-    Future.delayed(
-      Duration(milliseconds: 1000),
-      () => _appStateNotifier.stopShowingSplashImage(),
-    );
-  }
-
-  @override
-  void dispose() {
-    authUserSub.cancel();
-
-    super.dispose();
-  }
-
-  void setThemeMode(ThemeMode mode) => safeSetState(() {
-        _themeMode = mode;
-      });
+class FitGenApp extends StatelessWidget {
+  const FitGenApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return MaterialApp(
+      title: 'FITGEN',
       debugShowCheckedModeBanner: false,
-      title: 'Fitgen-socialbridge',
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en', '')],
       theme: ThemeData(
-        primarySwatch: Colors.orange,
+        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.orange,
           brightness: Brightness.light,
-          primary: Colors.orange,
-          secondary: Colors.deepOrange,
-          surface: Colors.white,
         ),
-        scaffoldBackgroundColor: Colors.grey[50],
-        appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-            elevation: 2,
-            centerTitle: true
-        ),
-        cardTheme: CardThemeData(
-          color: Colors.white,
-          elevation: 4,
-          shadowColor: Colors.grey.withOpacity(0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[300]!),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.orange, width: 2),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        checkboxTheme: CheckboxThemeData(
-          fillColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return Colors.orange;
-            }
-            return Colors.white;
-          }),
-        ),
-        useMaterial3: true,
+        primaryColor: Colors.orange,
+        fontFamily: 'Outfit',
       ),
-      themeMode: _themeMode,
-      routerConfig: _router,
+      home: const UserTypeChooser(),
+      routes: {
+        '/functions': (c) => const FunctionChooser(),
+        '/gym': (c) => const GymHome(),
+        '/medical': (c) => const MedicalHome(),
+      },
     );
   }
 }
 
-class NavBarPage extends StatefulWidget {
-  NavBarPage({
-    Key? key,
-    this.initialPage,
-    this.page,
-    this.disableResizeToAvoidBottomInset = false,
-  }) : super(key: key);
-
-  final String? initialPage;
-  final Widget? page;
-  final bool disableResizeToAvoidBottomInset;
-
-  @override
-  _NavBarPageState createState() => _NavBarPageState();
-}
-
-/// This is the private State class that goes with NavBarPage.
-class _NavBarPageState extends State<NavBarPage> {
-  String _currentPageName = 'SPUHomePage';
-  late Widget? _currentPage;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentPageName = widget.initialPage ?? _currentPageName;
-    _currentPage = widget.page;
-  }
+// User Type Selection Screen
+class UserTypeChooser extends StatelessWidget {
+  const UserTypeChooser({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final tabs = {
-      'SPUHomePage': SPUHomePageWidget(),
-      'SPUUserSportsPage': SPUUserSportsPageWidget(),
-      'SPUAllMeetupPage': SPUAllMeetupPageWidget(),
-      'SPUNutritionistPage': MealSuggestionGate(),
-      'SPUProgressPage': SPUProgressPageWidget(),
-    };
-    final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
-
     return Scaffold(
-      resizeToAvoidBottomInset: !widget.disableResizeToAvoidBottomInset,
-      body: _currentPage ?? tabs[_currentPageName],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (i) => safeSetState(() {
-          _currentPage = null;
-          _currentPageName = tabs.keys.toList()[i];
-        }),
-        backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-        selectedItemColor: FlutterFlowTheme.of(context).primary,
-        unselectedItemColor: FlutterFlowTheme.of(context).secondaryText,
-        showSelectedLabels: false,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home_outlined,
-              size: 24.0,
-            ),
-            label: 'Home',
-            tooltip: '',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.orange.shade50,
+              Colors.orange.shade100,
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.sports_soccer,
-              size: 24.0,
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo/Title
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.fitness_center,
+                          size: 80,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'FITGEN',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade800,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your AI-Powered Fitness Companion',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+                  
+                  // User Type Selection
+                  Text(
+                    'Choose Your Experience',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Special User Button
+                  _UserTypeButton(
+                    icon: Icons.star_rounded,
+                    title: 'Special User',
+                    subtitle: 'Full Social & Fitness Platform',
+                    color: Colors.deepOrange,
+                    onTap: () {
+                      // Navigate to FlutterFlow's Special User flow
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const FITGENFirstPageWidget(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Normal User Button
+                  _UserTypeButton(
+                    icon: Icons.person,
+                    title: 'Normal User',
+                    subtitle: 'Access AI Features Directly',
+                    color: Colors.orange,
+                    onTap: () => Navigator.pushNamed(context, '/functions'),
+                  ),
+                ],
+              ),
             ),
-            label: 'Sports',
-            tooltip: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.groups_rounded,
-              size: 24.0,
-            ),
-            label: 'Meetups',
-            tooltip: '',
+        ),
+      ),
+    );
+  }
+}
+
+class _UserTypeButton extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _UserTypeButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.food_bank_sharp,
-              size: 24.0,
-            ),
-            label: 'Nutritionist',
-            tooltip: '',
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, size: 40, color: color),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: color),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.line_axis,
-              size: 24.0,
+        ),
+      ),
+    );
+  }
+}
+
+// Function Chooser for Normal Users
+class FunctionChooser extends StatelessWidget {
+  const FunctionChooser({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Choose AI Feature'),
+        backgroundColor: Colors.orange.shade700,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.orange.shade700,
+              Colors.orange.shade50,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 20,
+              children: [
+                _FeatureCard(
+                  icon: Icons.fitness_center_rounded,
+                  title: 'AI Gym\nTrainer',
+                  gradient: [Colors.red.shade400, Colors.red.shade700],
+                  onTap: () => Navigator.pushNamed(context, '/gym'),
+                ),
+                _FeatureCard(
+                  icon: Icons.medical_services_rounded,
+                  title: 'AI Medical\nGuidance',
+                  gradient: [Colors.blue.shade400, Colors.blue.shade700],
+                  onTap: () => Navigator.pushNamed(context, '/medical'),
+                ),
+                _FeatureCard(
+                  icon: Icons.restaurant_menu_rounded,
+                  title: 'AI\nNutritionist',
+                  gradient: [Colors.green.shade400, Colors.green.shade700],
+                  onTap: () {
+                    // Navigate to nutritionist
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const MealSuggestionGate(),
+                      ),
+                    );
+                  },
+                ),
+                _FeatureCard(
+                  icon: Icons.people_rounded,
+                  title: 'Social\nBridge',
+                  gradient: [Colors.purple.shade400, Colors.purple.shade700],
+                  onTap: () {
+                    // Navigate to social bridge
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const FITGENFirstPageWidget(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-            label: 'Progress',
-            tooltip: '',
-          )
-        ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FeatureCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+
+  const _FeatureCard({
+    required this.icon,
+    required this.title,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradient,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: gradient[1].withOpacity(0.4),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 64, color: Colors.white),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
