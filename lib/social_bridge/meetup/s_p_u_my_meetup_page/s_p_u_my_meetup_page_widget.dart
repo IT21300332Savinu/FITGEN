@@ -550,7 +550,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                     valueOrDefault<String>(
                                                       cardMeetupRecord
                                                           ?.meetupAttendance
-                                                          ?.toString(),
+                                                          .toString(),
                                                       '0',
                                                     ),
                                                     style: FlutterFlowTheme.of(

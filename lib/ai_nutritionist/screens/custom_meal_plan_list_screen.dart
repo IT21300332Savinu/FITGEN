@@ -29,19 +29,20 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
     });
   }
 
-  Map<String, dynamic> _mealsMapForSuggestionScreen(Map<String, dynamic> plan) {
-    final meals = Map<String, dynamic>.from(plan["meals"] ?? {});
-    final out = <String, dynamic>{};
-    if (meals["breakfast"]?["recipe"] != null)
-      out["breakfast"] = meals["breakfast"]["recipe"];
-    if (meals["lunch"]?["recipe"] != null)
-      out["lunch"] = meals["lunch"]["recipe"];
-    if (meals["dinner"]?["recipe"] != null)
-      out["dinner"] = meals["dinner"]["recipe"];
-    if (meals["snack"]?["recipe"] != null)
-      out["snack"] = meals["snack"]["recipe"];
-    return out;
-  }
+  // Helper method to convert meal plan format for suggestion screen (if needed in future)
+  // Map<String, dynamic> _mealsMapForSuggestionScreen(Map<String, dynamic> plan) {
+  //   final meals = Map<String, dynamic>.from(plan["meals"] ?? {});
+  //   final out = <String, dynamic>{};
+  //   if (meals["breakfast"]?["recipe"] != null)
+  //     out["breakfast"] = meals["breakfast"]["recipe"];
+  //   if (meals["lunch"]?["recipe"] != null)
+  //     out["lunch"] = meals["lunch"]["recipe"];
+  //   if (meals["dinner"]?["recipe"] != null)
+  //     out["dinner"] = meals["dinner"]["recipe"];
+  //   if (meals["snack"]?["recipe"] != null)
+  //     out["snack"] = meals["snack"]["recipe"];
+  //   return out;
+  // }
 
   Widget _mealChip(String label, Map? block, Color accent, ColorScheme cs) {
     if (block == null) return const SizedBox.shrink();
@@ -227,6 +228,11 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                           const SizedBox(width: 12),
                           OutlinedButton.icon(
                             onPressed: () {
+                              // TODO: Implement view screen when available
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('View feature coming soon')),
+                              );
+                              /*
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => CustomMealPlanViewScreen(
@@ -234,6 +240,7 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                                   ),
                                 ),
                               );
+                              */
                             },
                             icon: const Icon(Icons.visibility),
                             label: const Text("View"),
@@ -300,7 +307,7 @@ class _CustomMealPlanListScreenState extends State<CustomMealPlanListScreen> {
                         icon: const Icon(Icons.check_circle),
                         label: const Text("Use this plan"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.successColor,
+                          backgroundColor: Colors.green,
                           // keep the green success accent
                           foregroundColor: Colors.white,
                         ),

@@ -367,7 +367,7 @@ class _CommentcomponentWidgetState extends State<CommentcomponentWidget> {
                       .set(createCommentsRecordData(
                         comment: _model.textController.text,
                         time: getCurrentTimestamp,
-                        meetupref: widget!.commentrefmeetupparam,
+                        meetupref: widget.commentrefmeetupparam,
                         spuserref: currentUserReference,
                         commentor: currentUserDisplayName,
                       ));

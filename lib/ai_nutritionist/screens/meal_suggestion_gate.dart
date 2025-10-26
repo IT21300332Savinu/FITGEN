@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '../services/meal_suggestions_service.dart';
-import 'profile_screen_meal.dart';
-import 'meal_suggestion_screen.dart';
 
 class MealSuggestionGate extends StatefulWidget {
   const MealSuggestionGate({super.key});
@@ -117,8 +115,8 @@ class _MealSuggestionGateState extends State<MealSuggestionGate> {
         message = 'Preparing your meal suggestions...';
         break;
       case _GatePhase.idle:
-      default:
         message = 'Starting...';
+        break;
     }
 
     return Scaffold(

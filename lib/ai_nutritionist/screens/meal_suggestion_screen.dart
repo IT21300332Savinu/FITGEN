@@ -284,7 +284,6 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
   Widget _buildMealsList() {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final outline = cs.outlineVariant.withOpacity(0.25);
 
     double _ratingFor(String key) => mealRatings[key] ?? 3.0;
 

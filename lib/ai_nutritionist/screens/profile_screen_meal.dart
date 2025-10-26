@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
 // import '../services/firebase_config .dart';
 // import '../models/user_model.dart';
 import '../services/meal_suggestions_service.dart';
@@ -43,7 +43,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ];
 
   bool _isLoading = false;
-  bool _isEditing = false;
   // UserModel? _user;
   File? _healthDocumentFile;
   String? _healthDocumentUrl;
@@ -112,24 +111,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<String?> _uploadHealthDocument() async {
-    if (_healthDocumentFile == null) return _healthDocumentUrl;
-    try {
-      // TODO: Implement with proper user model
-      // final userId = _user!.uid;
-      final userId = 'temp_user_id';
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('health_documents')
-          .child('$userId-${DateTime.now().millisecondsSinceEpoch}.jpg');
-      await storageRef.putFile(_healthDocumentFile!);
-      final downloadUrl = await storageRef.getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      debugPrint('Error uploading health document: $e');
-      return null;
-    }
-  }
+  // TODO: Enable when user model is ready
+  // Future<String?> _uploadHealthDocument() async {
+  //   if (_healthDocumentFile == null) return _healthDocumentUrl;
+  //   try {
+  //     // TODO: Implement with proper user model
+  //     // final userId = _user!.uid;
+  //     final userId = 'temp_user_id';
+  //     final storageRef = FirebaseStorage.instance
+  //         .ref()
+  //         .child('health_documents')
+  //         .child('$userId-${DateTime.now().millisecondsSinceEpoch}.jpg');
+  //     await storageRef.putFile(_healthDocumentFile!);
+  //     final downloadUrl = await storageRef.getDownloadURL();
+  //     return downloadUrl;
+  //   } catch (e) {
+  //     debugPrint('Error uploading health document: $e');
+  //     return null;
+  //   }
+  // }
 
   Future<void> _updateProfile() async {
     final cs = Theme.of(context).colorScheme;
@@ -140,7 +140,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // TODO: Implement with proper user model
       // if (_user == null) return;
 
-      final healthDocumentUrl = await _uploadHealthDocument();
+      // Upload health document if needed (uncomment when ready)
+      // final healthDocumentUrl = await _uploadHealthDocument();
 
       // Placeholder for conditions and health metrics
       // final conditions = _selectedConditions.map(...).toList();
@@ -156,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // _user = updatedUser;
 
       setState(() {
-        _isEditing = false;
+        // Profile updated
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -529,27 +530,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // Suggest Meal Plan (sample integration button)
                     ElevatedButton(
                       onPressed: () async {
-                        final age = int.tryParse(_ageController.text) ?? 0;
-                        final height = double.tryParse(_heightController.text) ?? 0;
-                        final weight = double.tryParse(_weightController.text) ?? 0;
+                        // TODO: Use form data when backend API is ready
+                        // final age = int.tryParse(_ageController.text) ?? 0;
+                        // final height = double.tryParse(_heightController.text) ?? 0;
+                        // final weight = double.tryParse(_weightController.text) ?? 0;
 
-                        final payload = {
-                          "Age": age,
-                          "Gender": _selectedGender,
-                          "Height": height,
-                          "Weight": weight,
-                          "Activity_Level": _selectedActivityLevel,
-                          "Dietary_Preference": _selectedDietaryPreference,
-                          "Budget_Preferences": _selectedBudget,
-                          // Map your conditions here as your backend expects:
-                          "Acne": _selectedConditions.contains("Liver Disease") ? 1 : 0,
-                          "Diabetes": _selectedConditions.contains("Diabetes") ? 1 : 0,
-                          "Heart_Disease": _selectedConditions.contains("Fatty Liver") ? 1 : 0,
-                          "Hypertension": _selectedConditions.contains("Hypertension") ? 1 : 0,
-                          "Kidney_Disease": _selectedConditions.contains("Chronic Kidney Disease") ? 1 : 0,
-                          "Weight_Gain": _selectedConditions.contains("Weight Gain") ? 1 : 0,
-                          "Weight_Loss": _selectedConditions.contains("Weight Loss") ? 1 : 0,
-                        };
+                        // TODO: Use payload when backend API is ready
+                        // final payload = {
+                        //   "Age": age,
+                        //   "Gender": _selectedGender,
+                        //   "Height": height,
+                        //   "Weight": weight,
+                        //   "Activity_Level": _selectedActivityLevel,
+                        //   "Dietary_Preference": _selectedDietaryPreference,
+                        //   "Budget_Preferences": _selectedBudget,
+                        //   // Map your conditions here as your backend expects:
+                        //   "Acne": _selectedConditions.contains("Liver Disease") ? 1 : 0,
+                        //   "Diabetes": _selectedConditions.contains("Diabetes") ? 1 : 0,
+                        //   "Heart_Disease": _selectedConditions.contains("Fatty Liver") ? 1 : 0,
+                        //   "Hypertension": _selectedConditions.contains("Hypertension") ? 1 : 0,
+                        //   "Kidney_Disease": _selectedConditions.contains("Chronic Kidney Disease") ? 1 : 0,
+                        //   "Weight_Gain": _selectedConditions.contains("Weight Gain") ? 1 : 0,
+                        //   "Weight_Loss": _selectedConditions.contains("Weight Loss") ? 1 : 0,
+                        // };
 
                         final api = ApiDio();
                         final result = await api.suggestMeal("sKr1Ay7QOIcys7kzE0lJYkiNbyG3");

@@ -269,7 +269,6 @@ class _CustomMealPlanScreenState extends State<CustomMealPlanScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

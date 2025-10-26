@@ -198,8 +198,8 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                   ),
                                 );
                               }
-                              List<MeetupReserveRecord>
-                                  cardMeetupReserveRecordList = snapshot.data!;
+                              // List<MeetupReserveRecord>
+                              //     cardMeetupReserveRecordList = snapshot.data!;
 
                               return Card(
                                 clipBehavior: Clip.antiAliasWithSaveLayer,

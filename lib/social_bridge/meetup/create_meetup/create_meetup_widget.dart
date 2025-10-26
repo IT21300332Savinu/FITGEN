@@ -307,7 +307,7 @@ class _CreateMeetupWidgetState extends State<CreateMeetupWidget> {
                                 context: context,
                                 initialDate: getCurrentTimestamp,
                                 firstDate:
-                                    (getCurrentTimestamp ?? DateTime(1900)),
+                                    getCurrentTimestamp,
                                 lastDate: DateTime(2050),
                                 builder: (context, child) {
                                   return wrapInMaterialDatePickerTheme(

@@ -90,9 +90,6 @@ String? serializeParam(
 
       case ParamType.DataStruct:
         data = param is BaseStruct ? param.serialize() : null;
-
-      default:
-        data = null;
     }
     return data;
   } catch (e) {
