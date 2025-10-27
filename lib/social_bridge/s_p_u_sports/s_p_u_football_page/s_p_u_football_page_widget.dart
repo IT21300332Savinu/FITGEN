@@ -10,6 +10,7 @@ import '/social_bridge/s_p_u_sports/completeworkout/completeworkout_widget.dart'
 import '/social_bridge/s_p_u_sports/exercisepageinfo/exercisepageinfo_widget.dart';
 import '/social_bridge/s_p_u_sports/footballfeedbackcomponent/footballfeedbackcomponent_widget.dart';
 import '/social_bridge/s_p_u_sports/startworkoutinfo/startworkoutinfo_widget.dart';
+import '/ai_gym_trainer/features/ai_trainer/screens/workout_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart'
     as smooth_page_indicator;
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -375,13 +376,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -599,13 +612,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -823,13 +848,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -1488,13 +1525,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -1702,13 +1751,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -1914,13 +1975,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -2560,13 +2633,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
@@ -2772,13 +2857,25 @@ class _SPUFootballPageWidgetState extends State<SPUFootballPageWidget> {
                                                                   10.0,
                                                                   0.0,
                                                                 ),
-                                                            child: Icon(
-                                                              Icons.security,
-                                                              color:
-                                                                  FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).primaryText,
-                                                              size: 24.0,
+                                                            child: InkWell(
+                                                              onTap: () async {
+                                                                await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => WorkoutScreen(
+                                                                      exerciseName: 'Bicep Curl',
+                                                                      workoutType: 'strength',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              child: Icon(
+                                                                Icons.security,
+                                                                color: FlutterFlowTheme.of(
+                                                                  context,
+                                                                ).primaryText,
+                                                                size: 24.0,
+                                                              ),
                                                             ),
                                                           ),
                                                           Text(
