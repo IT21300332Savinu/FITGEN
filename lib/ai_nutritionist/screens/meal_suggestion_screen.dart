@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';                 // <— for context.pushNamed
 import '../screens/meal_detail_screen.dart';
 import '../services/meal_suggestions_service.dart';
+import 'custom_meal_plan_list_screen.dart';
 
 class MealSuggestionScreen extends StatefulWidget {
   const MealSuggestionScreen({
@@ -179,7 +180,12 @@ class _MealSuggestionScreenState extends State<MealSuggestionScreen> {
                 alignment: Alignment.center,
                 child: ElevatedButton.icon(
                   // 🔁 Use GoRouter instead of Navigator.pushNamed if you're on MaterialApp.router
-                  onPressed: () => context.pushNamed('customMealPlanList'),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CustomMealPlanListScreen()),
+                    );
+                  },
                   icon: const Icon(Icons.library_books),
                   label: const Text("My Custom Plans"),
                 ),

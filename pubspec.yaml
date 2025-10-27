@@ -17,6 +17,8 @@ dependencies:
   firebase_auth: ^4.15.3
   cloud_firestore: ^4.13.6
   firebase_storage: ^11.6.5
+  # added by nethma
+  firebase_database: ^10.5.7
   
   # Camera and ML Kit (Stable versions)
   camera: ^0.10.5
