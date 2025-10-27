@@ -36,6 +36,38 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Increment (or create-then-increment) the workout "count" for this user/sport/level.
+  Future<void> _incrementBadmintonCount({required int level}) async {
+    try {
+      // Try to find an existing sport_feedback doc for this user/sport/level.
+      final existing = await querySportFeedbackRecordOnce(
+        queryBuilder: (q) => q
+            .where('user', isEqualTo: currentUserReference)
+            .where('sport', isEqualTo: 'badminton')
+            .where('lvl', isEqualTo: level),
+        singleRecord: true,
+      );
+
+      if (existing.isNotEmpty) {
+        await existing.first.reference.update({
+          'count': FieldValue.increment(1),
+        });
+      } else {
+        // Create a new document initialized with count = 1.
+        final docRef = SportFeedbackRecord.collection.doc();
+        await docRef.set(createSportFeedbackRecordData(
+          user: currentUserReference,
+          sport: 'badminton',
+          workoutdatetime: getCurrentTimestamp,
+          lvl: level,
+          count: 1,
+        ));
+      }
+    } catch (_) {
+      // Silently ignore errors to avoid impacting the dialog UX.
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1151,6 +1183,10 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       );
                                                                   },
                                                                   onEnded: () async {
+                                                                    // Fire-and-forget: increment count in parallel with dialogs.
+                                                                    _incrementBadmintonCount(
+                                                                      level: _model.badmintonPagesCurrentIndex,
+                                                                    );
                                                                     await showDialog(
                                                                       context:
                                                                           context,
@@ -2324,6 +2360,10 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       );
                                                                   },
                                                                   onEnded: () async {
+                                                                    // Fire-and-forget: increment count in parallel with dialogs.
+                                                                    _incrementBadmintonCount(
+                                                                      level: _model.badmintonPagesCurrentIndex,
+                                                                    );
                                                                     await showDialog(
                                                                       context:
                                                                           context,
@@ -3375,6 +3415,10 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       );
                                                                   },
                                                                   onEnded: () async {
+                                                                    // Fire-and-forget: increment count in parallel with dialogs.
+                                                                    _incrementBadmintonCount(
+                                                                      level: _model.badmintonPagesCurrentIndex,
+                                                                    );
                                                                     await showDialog(
                                                                       context:
                                                                           context,
@@ -4407,6 +4451,10 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       );
                                                                   },
                                                                   onEnded: () async {
+                                                                    // Fire-and-forget: increment count in parallel with dialogs.
+                                                                    _incrementBadmintonCount(
+                                                                      level: _model.badmintonPagesCurrentIndex,
+                                                                    );
                                                                     await showDialog(
                                                                       context:
                                                                           context,
@@ -5458,6 +5506,10 @@ class _SPUBadmintonPageWidgetState extends State<SPUBadmintonPageWidget> {
                                                                       );
                                                                   },
                                                                   onEnded: () async {
+                                                                    // Fire-and-forget: increment count in parallel with dialogs.
+                                                                    _incrementBadmintonCount(
+                                                                      level: _model.badmintonPagesCurrentIndex,
+                                                                    );
                                                                     await showDialog(
                                                                       context:
                                                                           context,

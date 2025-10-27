@@ -1,4 +1,6 @@
 import '/backend/backend.dart';
+import '/auth/firebase_auth/auth_util.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '/flutter_flow/flutter_flow_google_map.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -177,7 +179,14 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                         return Padding(
                           padding: EdgeInsets.all(5.0),
                           child: StreamBuilder<List<MeetupReserveRecord>>(
-                            stream: queryMeetupReserveRecord(limit: 5),
+                            // Check if current user has already reserved this meetup
+                            stream: queryMeetupReserveRecord(
+                              queryBuilder: (r) => r
+                                  .where('mr_meetup', isEqualTo: listViewMeetupRecord.reference)
+                                  .where('mr_creator', isEqualTo: currentUserReference)
+                                  .where('mr_reservation', isEqualTo: true),
+                              limit: 1,
+                            ),
                             builder: (context, snapshot) {
                               // Customize what your widget looks like when it's loading.
                               if (!snapshot.hasData) {
@@ -193,8 +202,7 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                   ),
                                 );
                               }
-                              // List<MeetupReserveRecord>
-                              //     cardMeetupReserveRecordList = snapshot.data!;
+                              final alreadyReserved = (snapshot.data?.isNotEmpty ?? false);
 
                               return Card(
                                 clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -700,65 +708,44 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                     Row(
                                       mainAxisSize: MainAxisSize.max,
                                       mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                130.0,
-                                                10.0,
-                                                0.0,
-                                                10.0,
-                                              ),
-                                          child: FFButtonWidget(
-                                            onPressed: () async {
-                                              await MeetupReserveRecord
-                                                  .collection
-                                                  .doc()
-                                                  .set(
-                                                    createMeetupReserveRecordData(
-                                                      mrMeetup:
-                                                          listViewMeetupRecord
-                                                              .reference,
-                                                      mrReservation: true,
-                                                      mrDate:
-                                                          listViewMeetupRecord
-                                                              .meetupDate,
-                                                      mrTime:
-                                                          listViewMeetupRecord
-                                                              .meetupTime,
-                                                      mrHost:
-                                                          listViewMeetupRecord
-                                                              .meetupHost,
-                                                      mrSport:
-                                                          listViewMeetupRecord
-                                                              .meetupSport,
-                                                      meetupLoc:
-                                                          listViewMeetupRecord
-                                                              .meetupLocation,
-                                                      mrEquipment:
-                                                          listViewMeetupRecord
-                                                              .meetupEquipment,
-                                                      mrHostnum:
-                                                          listViewMeetupRecord
-                                                              .meetupHostnum,
-                                                    ),
-                                                  );
+                                        FFButtonWidget(
+                                            onPressed: alreadyReserved
+                                                ? null
+                                                : () async {
+                                                    final meetupRef = listViewMeetupRecord.reference;
+                                                    final reserveDocId = '${meetupRef.id}_${currentUserUid}';
+                                                    final reserveRef = MeetupReserveRecord.collection.doc(reserveDocId);
 
-                                              await listViewMeetupRecord
-                                                  .reference
-                                                  .update({
-                                                    ...mapToFirestore({
-                                                      'meetup_attendance':
-                                                          FieldValue.increment(
-                                                            1,
+                                                    await FirebaseFirestore.instance.runTransaction((tx) async {
+                                                      final existSnap = await tx.get(reserveRef);
+                                                      if (!existSnap.exists) {
+                                                        tx.set(
+                                                          reserveRef,
+                                                          createMeetupReserveRecordData(
+                                                            mrMeetup: meetupRef,
+                                                            mrReservation: true,
+                                                            mrDate: listViewMeetupRecord.meetupDate,
+                                                            mrTime: listViewMeetupRecord.meetupTime,
+                                                            mrHost: listViewMeetupRecord.meetupHost,
+                                                            mrSport: listViewMeetupRecord.meetupSport,
+                                                            meetupLoc: listViewMeetupRecord.meetupLocation,
+                                                            mrEquipment: listViewMeetupRecord.meetupEquipment,
+                                                            mrHostnum: listViewMeetupRecord.meetupHostnum,
+                                                            mrCreator: currentUserReference,
                                                           ),
-                                                    }),
-                                                  });
-                                              _model.buttonclicked = true;
-                                              safeSetState(() {});
-                                            },
-                                            text: 'Attend',
+                                                        );
+                                                        tx.update(meetupRef, {
+                                                          'meetup_attendance': FieldValue.increment(1),
+                                                        });
+                                                      }
+                                                    });
+
+                                                    _model.buttonclicked = true;
+                                                    safeSetState(() {});
+                                                  },
+                                            text: alreadyReserved ? 'Attending' : 'Attend',
                                             options: FFButtonOptions(
                                               height: 40.0,
                                               padding:
@@ -808,16 +795,8 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                                   BorderRadius.circular(8.0),
                                             ),
                                           ),
-                                        ),
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                60.0,
-                                                0.0,
-                                                0.0,
-                                                0.0,
-                                              ),
-                                          child: InkWell(
+                                        SizedBox(width: 24.0),
+                                        InkWell(
                                             splashColor: Colors.transparent,
                                             focusColor: Colors.transparent,
                                             hoverColor: Colors.transparent,
@@ -870,16 +849,8 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                               size: 24.0,
                                             ),
                                           ),
-                                        ),
-                                        Padding(
-                                          padding:
-                                              EdgeInsetsDirectional.fromSTEB(
-                                                5.0,
-                                                0.0,
-                                                0.0,
-                                                0.0,
-                                              ),
-                                          child: FutureBuilder<int>(
+                                        SizedBox(width: 8.0),
+                                        FutureBuilder<int>(
                                             future: queryCommentsRecordCount(
                                               queryBuilder:
                                                   (commentsRecord) =>
@@ -947,7 +918,6 @@ class _SPUAllMeetupPageWidgetState extends State<SPUAllMeetupPageWidget> {
                                               );
                                             },
                                           ),
-                                        ),
                                       ],
                                     ),
                                   ],

@@ -1,4 +1,6 @@
 import '/backend/backend.dart';
+import '/auth/firebase_auth/auth_util.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '/flutter_flow/flutter_flow_google_map.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -228,7 +230,11 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
               ),
               Flexible(
                 child: StreamBuilder<List<MeetupReserveRecord>>(
-                  stream: queryMeetupReserveRecord(),
+                  stream: queryMeetupReserveRecord(
+                    queryBuilder: (r) => r
+                        .where('mr_creator', isEqualTo: currentUserReference)
+                        .where('mr_reservation', isEqualTo: true),
+                  ),
                   builder: (context, snapshot) {
                     // Customize what your widget looks like when it's loading.
                     if (!snapshot.hasData) {
@@ -257,16 +263,9 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                             listViewMeetupReserveRecordList[listViewIndex];
                         return Padding(
                           padding: EdgeInsets.all(5),
-                          child: StreamBuilder<List<MeetupRecord>>(
-                            stream: queryMeetupRecord(
-                              queryBuilder:
-                                  (meetupRecord) => meetupRecord.where(
-                                    'meetup_date',
-                                    isEqualTo:
-                                        listViewMeetupReserveRecord.mrDate,
-                                  ),
-                              singleRecord: true,
-                            ),
+                          child: StreamBuilder<MeetupRecord>(
+                            stream: MeetupRecord.getDocument(
+                                listViewMeetupReserveRecord.mrMeetup!),
                             builder: (context, snapshot) {
                               // Customize what your widget looks like when it's loading.
                               if (!snapshot.hasData) {
@@ -282,16 +281,10 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                   ),
                                 );
                               }
-                              List<MeetupRecord> cardMeetupRecordList =
-                                  snapshot.data!;
-                              // Return an empty Container when the item does not exist.
-                              if (snapshot.data!.isEmpty) {
+                              final cardMeetupRecord = snapshot.data;
+                              if (cardMeetupRecord == null) {
                                 return Container();
                               }
-                              final cardMeetupRecord =
-                                  cardMeetupRecordList.isNotEmpty
-                                      ? cardMeetupRecordList.first
-                                      : null;
 
                               return Card(
                                 clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -611,7 +604,7 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                   child: Text(
                                                     valueOrDefault<String>(
                                                       cardMeetupRecord
-                                                          ?.meetupAttendance
+                                                          .meetupAttendance
                                                           .toString(),
                                                       '0',
                                                     ),
@@ -734,34 +727,25 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
 
                                         return Row(
                                           mainAxisSize: MainAxisSize.max,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             if (listViewMeetupReserveRecord
                                                     .mrReservation ==
                                                 true)
-                                              Padding(
-                                                padding:
-                                                    EdgeInsetsDirectional.fromSTEB(
-                                                      130,
-                                                      10,
-                                                      0,
-                                                      10,
-                                                    ),
-                                                child: FFButtonWidget(
+                                              FFButtonWidget(
                                                   onPressed: () async {
-                                                    await listViewMeetupReserveRecord
-                                                        .reference
-                                                        .delete();
-
-                                                    await cardMeetupRecord!
-                                                        .reference
-                                                        .update({
-                                                          ...mapToFirestore({
-                                                            'meetup_attendance':
-                                                                FieldValue.increment(
-                                                                  -(1),
-                                                                ),
-                                                          }),
+                                                    final meetupRef = cardMeetupRecord.reference;
+                                                    final reserveRef = listViewMeetupReserveRecord.reference;
+                                                    await FirebaseFirestore.instance.runTransaction((tx) async {
+                                                      final resSnap = await tx.get(reserveRef);
+                                                      if (resSnap.exists) {
+                                                        tx.delete(reserveRef);
+                                                        tx.update(meetupRef, {
+                                                          'meetup_attendance': FieldValue.increment(-1),
                                                         });
+                                                      }
+                                                    });
                                                   },
                                                   text: 'Remove',
                                                   options: FFButtonOptions(
@@ -822,17 +806,9 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                           8,
                                                         ),
                                                   ),
-                                                ),
                                               ),
-                                            Padding(
-                                              padding:
-                                                  EdgeInsetsDirectional.fromSTEB(
-                                                    60,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                  ),
-                                              child: InkWell(
+                                            SizedBox(width: 24),
+                                            InkWell(
                                                 splashColor: Colors.transparent,
                                                 focusColor: Colors.transparent,
                                                 hoverColor: Colors.transparent,
@@ -883,16 +859,8 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                   size: 24,
                                                 ),
                                               ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  EdgeInsetsDirectional.fromSTEB(
-                                                    10,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                  ),
-                                              child: Text(
+                                            SizedBox(width: 8),
+                                            Text(
                                                 valueOrDefault<String>(
                                                   rowCount.toString(),
                                                   '0',
@@ -921,7 +889,6 @@ class _SPUMyMeetupPageWidgetState extends State<SPUMyMeetupPageWidget> {
                                                       ).bodyMedium.fontStyle,
                                                 ),
                                               ),
-                                            ),
                                           ],
                                         );
                                       },

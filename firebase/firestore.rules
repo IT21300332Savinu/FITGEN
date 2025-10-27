@@ -11,15 +11,24 @@ service cloud.firestore {
     match /meetup/{document} {
       allow create: if true;
       allow read: if true;
-      allow write: if false;
+      // Allow only updating the attendance counter by +/- 1 and nothing else
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(["meetup_attendance"]) 
+        && (
+          request.resource.data.meetup_attendance == resource.data.meetup_attendance + 1 ||
+          request.resource.data.meetup_attendance == resource.data.meetup_attendance - 1
+        );
       allow delete: if false;
     }
 
     match /meetup_reserve/{document} {
       allow create: if true;
       allow read: if true;
-      allow write: if false;
-      allow delete: if false;
+      // Only the creator of the reservation can delete it
+      allow delete: if request.auth != null &&
+        resource.data.mr_creator == /databases/$(database)/documents/special_user/$(request.auth.uid);
+      // Disallow other updates
+      allow update: if false;
     }
 
     match /workout_plans/{document} {
